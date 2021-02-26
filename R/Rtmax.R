@@ -31,7 +31,8 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
   }
 
   impurity_feuilles <- NULL
-  V_split <- NULL
+  #V_split <- NULL
+  var_type <- var_split <- var_summary <- num_noeud <- var_threshold <- c()
   hist_nodes <- list()
   model_param <- list()
   id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
@@ -264,12 +265,17 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
             imp_nodes[[2*unique(id_feuille)[i]+1]] <- feuille_split$impur_list[[2]]
           }
 
-          # split sur quel espace, quel noeud, quelle variable
-          #V_split <- rbind(V_split,c(TYPE,unique(id_feuille)[i],vsplit_space))
-
           # split sur quel espace, quel noeud, quelle variable, quel resume, quel threshold
-          V_split <- rbind(V_split,c(TYPE,unique(id_feuille)[i],vsplit_space,
-                                     feuille_split$variable_summary, feuille_split$threshold))
+          # V_split <- rbind(V_split,c(TYPE,unique(id_feuille)[i],vsplit_space,
+          #                            feuille_split$variable_summary, feuille_split$threshold))
+
+
+          var_type <- c(var_type, TYPE)
+          num_noeud <- c(num_noeud, unique(id_feuille)[i])
+          var_split <- c(var_split, vsplit_space)
+          var_summary <- c(var_summary, feuille_split$variable_summary)
+          var_threshold <- c(var_threshold, feuille_split$threshold)
+
 
           model_param[[unique(id_feuille)[i]]] <- feuille_split$model_param
 
@@ -341,8 +347,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
 
     if (count_split ==0 ){
 
-      V_split <- data.frame(V_split)
-      names(V_split) <- c("type","num_noeud", "var_split","var_summary","threshold")
+      V_split <- data.frame(type = var_type, num_noeud = num_noeud, var_split = var_split,
+                            var_summary = var_summary, threshold = var_threshold)
+
+      #V_split <- data.frame(V_split)
+      #names(V_split) <- c("type","num_noeud", "var_split","var_summary","threshold")
 
       for (q in unique(id_feuille)){
         w <- which(id_feuille == q)
@@ -383,8 +392,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
     }
   }
 
-  V_split <- data.frame(V_split)
-  names(V_split) <- c("type","num_noeud", "var_split","var_summary","threshold")
+  V_split <- data.frame(type = var_type, num_noeud = num_noeud, var_split = var_split,
+                        var_summary = var_summary, threshold = var_threshold)
+
+  #V_split <- data.frame(V_split)
+  #names(V_split) <- c("type","num_noeud", "var_split","var_summary","threshold")
 
   for (q in unique(id_feuille)){
     w <- which(id_feuille == q)
