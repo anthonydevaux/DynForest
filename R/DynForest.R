@@ -364,7 +364,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Shape=NULL, Image=NUL
     })
 
     Curve_depth <- aggregate(num_noeud ~ type + var_split + var_summary,
-                            do.call(rbind, Curve_depth_list), mean)
+                             do.call(rbind, Curve_depth_list),
+                             FUN = function(x) return(c(round(mean(x),1), round(sd(x),1), round(length(x),0))))
 
     Curve_depth$var_split <- paste(Curve_depth$var_split, Curve_depth$var_summary, sep = ".")
     Curve_depth$var_summary <- NULL
@@ -380,13 +381,15 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Shape=NULL, Image=NUL
     })
 
     Other_depth <- aggregate(num_noeud ~ type + var_split,
-                            do.call(rbind, Other_depth_list), mean)
+                             do.call(rbind, Other_depth_list),
+                             FUN = function(x) return(c(round(mean(x),1), round(sd(x),1), round(length(x),0))))
 
   }else{ Other_depth <- NULL }
 
   var_depth <- rbind(Curve_depth, Other_depth)
-  var_depth <- var_depth[order(var_depth$num_noeud), ]
-  colnames(var_depth)[3] <- "min_depth"
+  var_depth <- cbind(var_depth[,1:2], unlist(var_depth[,3]))
+  colnames(var_depth)[3:5] <- c("min_depth","sd_depth","n_var")
+  var_depth <- var_depth[order(var_depth$min_depth), ]
 
   ############
 
