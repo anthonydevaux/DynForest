@@ -150,14 +150,14 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Shape=NULL, Image=NUL
     var.ini <- impurity(Y, timeScale)
     varex <- 1 - mean(oob.err$err)/var.ini
     drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels, xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, varex=varex, size=size, time=temps,
-                splitrule=splitrule, curve.model=Curve$model)
+                splitrule=splitrule, curve.model=Curve$model, Inputs = Inputs)
     class(drf) <- c("DynForest")
     return(drf)
   }
 
   if (imp == FALSE && Y$type=="surv"){
     drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels, xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, size=size, time=temps,
-                splitrule=splitrule, curve.model=Curve$model)
+                splitrule=splitrule, curve.model=Curve$model, Inputs = Inputs)
     class(drf) <- c("DynForest")
     return(drf)
   }
@@ -353,55 +353,20 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Shape=NULL, Image=NUL
 
   Importance <- list(Curve=as.vector(Importance.Curve), Scalar=as.vector(Importance.Scalar), Factor=as.vector(Importance.Factor), Shape=as.vector(Importance.Shape), Image=as.vector(Importance.Image))
 
-  # min depth
-
-  if (!is.null(Curve)){
-
-    Curve_depth_list <- apply(rf$rf, 2, FUN = function(x){
-
-      return(aggregate(num_noeud ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], min))
-
-    })
-
-    Curve_depth <- aggregate(num_noeud ~ type + var_split + var_summary,
-                            do.call(rbind, Curve_depth_list), mean)
-
-    Curve_depth$var_split <- paste(Curve_depth$var_split, Curve_depth$var_summary, sep = ".")
-    Curve_depth$var_summary <- NULL
-
-  }else{ Curve_depth <- NULL }
-
-  if (!is.null(Scalar)|!is.null(Factor)){
-
-    Other_depth_list <- apply(rf$rf, 2, FUN = function(x){
-
-      return(aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type!="Curve",], min))
-
-    })
-
-    Other_depth <- aggregate(num_noeud ~ type + var_split,
-                            do.call(rbind, Other_depth_list), mean)
-
-  }else{ Other_depth <- NULL }
-
-  var_depth <- rbind(Curve_depth, Other_depth)
-  var_depth <- var_depth[order(var_depth$num_noeud), ]
-  colnames(var_depth)[3] <- "min_depth"
-
   ############
 
   temps.imp <- Sys.time() - debut
 
   if (Y$type == "surv"){
     drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, time=temps, size=size,
-                splitrule=splitrule, var_depth = var_depth, curve.model=Curve$model)
+                splitrule=splitrule, curve.model=Curve$model, Inputs = Inputs)
     class(drf) <- c("DynForest")
     return(drf)
   }
   var.ini <- impurity(Y, timeScale)
   varex <- 1 - mean(oob.err$err)/var.ini
   drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, varex=varex, time=temps, size=size,
-              splitrule=splitrule, var_depth = var_depth, curve.model=Curve$model)
+              splitrule=splitrule, curve.model=Curve$model, Inputs = Inputs)
   class(drf) <- c("DynForest")
   return(drf)
 }

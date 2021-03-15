@@ -82,8 +82,9 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = NULL,
       nsplit <- 10
 
       mtry2 <- ncol(data_summaries) # nombre de resumes qu'on tire pour chaque variable
-      var_mtry2 <- sample(1:ncol(data_summaries), mtry2)
-
+      #var_mtry2 <- sample(1:ncol(data_summaries), mtry2)
+      var_mtry2 <- seq(ncol(data_summaries))
+      
       impurete_sum <- rep(NA, length(var_mtry2))
       split_sum <- list()
       split_threholds_sum <- rep(NA, length(var_mtry2))
