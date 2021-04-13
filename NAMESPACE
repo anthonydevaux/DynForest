@@ -2,6 +2,7 @@
 
 S3method(predict,DynForest)
 export(DynForest)
+export(combine_times)
 export(pred.MMT)
 export(predRE)
 export(var_depth)

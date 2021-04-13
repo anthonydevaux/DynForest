@@ -5,7 +5,6 @@
 \title{Predict Mixed Model Tree}
 \usage{
 pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL,
-  Shape = NULL, Image = NULL, aligned.shape = FALSE,
   timeScale = 0.1)
 }
 \arguments{
@@ -16,12 +15,6 @@ pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL,
 \item{Scalar}{[list]: A list that contains the input scalars.}
 
 \item{Factor}{[list]: A list that contains the input factors.}
-
-\item{Shape}{[list]: A list that contains the input shape.}
-
-\item{Image}{[list]: A list that contains the input images.}
-
-\item{aligned.shape}{[logical]: \code{TRUE} if the input shapes are aligned and normalized (\code{aligned.shape=FALSE} by default)}
 
 \item{timeScale}{[numeric]: Time scale for the input and output curves (\code{timeScale=0.1} by default)}
 }

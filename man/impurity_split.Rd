@@ -4,10 +4,10 @@
 \alias{impurity_split}
 \title{Impurity Split}
 \usage{
-impurity_split(Y, split, timeScale = 0.1)
+impurity_split(Y, split)
 }
 \arguments{
-\item{timeScale}{}
+\item{split}{}
 }
 \description{
 Impurity Split

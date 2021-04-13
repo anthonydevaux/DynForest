@@ -3,6 +3,8 @@
 #' @param X
 #' @param Y
 #' @param timeScale
+#' @param nsplit_option
+#' @param nodesize
 #'
 #' @import kmlShape
 #' @import Evomorph
@@ -11,8 +13,8 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = NULL,
-                         nodesize = 5){
+var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
+                         nodesize = 1){
   # Pour le moment on se concentre sur le cas des variables courbes ::
   impur <- rep(0,dim(X$X)[length(dim(X$X))])
   toutes_imp <- list()
@@ -84,7 +86,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = NULL,
       mtry2 <- ncol(data_summaries) # nombre de resumes qu'on tire pour chaque variable
       #var_mtry2 <- sample(1:ncol(data_summaries), mtry2)
       var_mtry2 <- seq(ncol(data_summaries))
-      
+
       impurete_sum <- rep(NA, length(var_mtry2))
       split_sum <- list()
       split_threholds_sum <- rep(NA, length(var_mtry2))
@@ -105,7 +107,12 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = NULL,
         for (j in 1:length(split_threholds)){ # boucle sur les nsplit
 
           split_nsplit[[j]] <- factor(ifelse(data_summaries[,i_sum]<=split_threholds[j],1,2))
-          impurete <- impurity_split(Y,split_nsplit[[j]], timeScale)
+
+          if (length(unique(split_nsplit[[j]]))==1){
+            impurete_nsplit[j] <- Inf
+          }
+
+          impurete <- impurity_split(Y,split_nsplit[[j]])
           impurete_nsplit[j] <- impurete$impur
 
         }
@@ -142,7 +149,12 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = NULL,
         for (j in 1:length(split_threholds)){ # boucle sur les nsplit
 
           split_nsplit[[j]] <- factor(ifelse(X$X[,i]<=split_threholds[j],1,2))
-          impurete <- impurity_split(Y,split_nsplit[[j]], timeScale)
+
+          if (length(unique(split_nsplit[[j]]))==1){
+            impurete_nsplit[j] <- Inf
+          }
+
+          impurete <- impurity_split(Y,split_nsplit[[j]])
           impurete_nsplit[j] <- impurete$impur
 
         }
@@ -157,7 +169,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = NULL,
       if (length(unique(X$X[,i]))==2){
         split[[i]] <- rep(2,length(X$X[,i]))
         split[[i]][which(X$X[,i]==unique(X$X[,i])[1])] <- 1
-        impurete <- impurity_split(Y,split[[i]], timeScale)
+        impurete <- impurity_split(Y,split[[i]])
         impur[i] <- impurete$impur
         threshold[i] <- mean(unique(X$X[,i]))
         toutes_imp[[i]] <- impurete$imp_list
@@ -176,9 +188,9 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = NULL,
   true_split <- which.min(impur)
   split <- split[[true_split]]
 
-  if (Y$type=="surv"){
-    if (any(table(split[Y$Y==1],Y$Y[Y$Y==1]) < nodesize)) return(list(Pure=TRUE))
-  }
+  # if (Y$type=="surv"){
+  #   if (any(table(split[Y$Y==1],Y$Y[Y$Y==1]) < nodesize)) return(list(Pure=TRUE))
+  # }
 
   return(list(split=split, impurete=min(impur),impur_list = toutes_imp[[true_split]], variable=which.min(impur),
               variable_summary=ifelse(X$type=="curve", variable_summary[true_split], NA),

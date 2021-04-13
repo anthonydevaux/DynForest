@@ -30,17 +30,6 @@ impurity <- function(Y, timeScale=0.1){
     return(imp)
   }
 
-  if (Y$type=="image"){
-    if (length(Y$id)==1){
-      return(0)
-    }
-    # On met au bon format ::
-    donnees <- riemfactory(Y$Y)
-    Moy <- rbase.mean(donnees)
-    Moy <- riemfactory(array(rep(Moy$x,length(Y$id)), dim=c(nrow(Y$Y),ncol(Y$Y),length(Y$id))))
-    return(mean(rbase.pdist2(Moy,donnees)[1,]^2))
-  }
-
   if (Y$type=="scalar"){
     if (length(Y$Y)==1){
       return(0)
@@ -50,11 +39,6 @@ impurity <- function(Y, timeScale=0.1){
 
   if (Y$type=="factor"){
     return(Entropy(table(Y$Y)))
-  }
-
-  if (Y$type=="shape"){
-    ms<- mshape(Y$Y[,,,drop=FALSE])
-    return(mean(ShapeDist(Y$Y,ms)^2))
   }
 
 }

@@ -4,9 +4,6 @@
 #' @param Curve [list]:
 #' @param Scalar [list]:
 #' @param Factor [list]:
-#' @param Shape [list]:
-#' @param Image [list]:
-#' @param aligned.shape [logical]:
 #' @param timeScale [numeric]:
 #' @param d_out [numeric]:
 #' @param ... : optional parameters to be passed to the low level function
@@ -20,7 +17,7 @@
 #' @return
 #' @export
 #'
-predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL,Shape=NULL, Image=NULL,aligned.shape=FALSE, timeScale=0.1, d_out=0.1,...){
+predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1, d_out=0.1,...){
   # La première étape est de toujours lire les prédicteurs ::
 
   if (is.null(Curve)==FALSE){
@@ -33,28 +30,15 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL,Shape=N
   if (is.null(Factor)==FALSE){
     Factor <- list(type="factor",X=Factor$X,id=Factor$id)
   }
-  if (is.null(Shape)==FALSE){
-    Shape <- list(type="shape",X=Shape$X,id=Shape$id)
-  }
-  if (is.null(Image)==FALSE){
-    Image <- list(type="image",X=Image$X,id=Image$id)
-  }
 
   ## Puis on prend les prédicteurs:
 
-  inputs <- read.Xarg(c(Curve,Scalar,Factor,Shape,Image))
+  inputs <- read.Xarg(c(Curve,Scalar,Factor))
   Inputs <- inputs
   # On va les lires en mettant la maj sur les différents éléments qui le constituent :
 
   for (k in 1:length(Inputs)){
     str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
-  }
-
-  if (is.element("shape",inputs)==TRUE & aligned.shape==FALSE){
-    for (k in 1:dim(Shape$X)[length(dim(Shape$X))]){
-      Shape$X[,,,k] <- gpagen(Shape$X[,,,k],print.progress = FALSE)$coords
-    }
-    aligned.shape=TRUE
   }
 
   Id.pred <- unique(get(Inputs[1])$id)
@@ -64,10 +48,8 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL,Shape=N
     pred.feuille <- as.data.frame(matrix(0, ncol(object$rf), length(Id.pred)))
   }
 
-  if (object$splitrule=="MM"){
-    for (t in 1:ncol(object$rf)){
-      pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor,Shape=Shape,Image=Image, timeScale, aligned.shape = aligned.shape)
-    }
+  for (t in 1:ncol(object$rf)){
+    pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale)
   }
 
   if (object$type=="scalar"){
@@ -85,33 +67,6 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL,Shape=N
     }
     prediction <- data.frame(pred=val, prob=proba)
     return(prediction)
-  }
-
-  if (object$type=="shape"){
-    pred <- array(0, dim=c(object$size[1], object$size[2],length(Id.pred)))
-    for (l in 1:dim(pred.feuille)[2]){
-      pred_courant <- array(0,dim=c(object$size[1],object$size[2],ncol(object$rf)))
-      for(k in 1:dim(pred.feuille)[1]){
-        pred_courant[,,k] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]]
-      }
-      Ms <- mshape(pred_courant)
-      M <- matrix(0,dim(Ms)[1], dim(Ms)[2])
-      M[,1] <- Ms[,1]
-      M[,2] <- Ms[,2]
-      pred[,,l] <- M
-    }
-  }
-
-  if (object$type=="image"){
-    pred <- array(0, dim=c(object$size[1], object$size[2],length(Id.pred)))
-    for (l in 1:dim(pred.feuille)[2]){
-      pred_courant <- array(0,dim=c(object$size[1],object$size[2],ncol(object$rf)))
-      for(k in 1:dim(pred.feuille)[1]){
-        pred_courant[,,k] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]]
-      }
-      donnees <- riemfactory(pred_courant[,,,drop=FALSE])
-      pred[,,l] <- rbase.mean(donnees)$x
-    }
   }
 
   if (object$type=="curve"){

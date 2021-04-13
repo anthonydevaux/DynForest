@@ -5,8 +5,7 @@
 \title{Predict with Dynamic random forests}
 \usage{
 \method{predict}{DynForest}(object, Curve = NULL, Scalar = NULL,
-  Factor = NULL, Shape = NULL, Image = NULL, aligned.shape = FALSE,
-  timeScale = 0.1, d_out = 0.1, ...)
+  Factor = NULL, timeScale = 0.1, d_out = 0.1, ...)
 }
 \arguments{
 \item{object}{: Dynamic random forest}
@@ -16,12 +15,6 @@
 \item{Scalar}{[list]:}
 
 \item{Factor}{[list]:}
-
-\item{Shape}{[list]:}
-
-\item{Image}{[list]:}
-
-\item{aligned.shape}{[logical]:}
 
 \item{timeScale}{[numeric]:}
 

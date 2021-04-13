@@ -4,9 +4,9 @@
 \alias{Rtmax}
 \title{Randomized Dynamic tree}
 \usage{
-Rtmax(Curve = NULL, Scalar = NULL, Factor = NULL, Shape = NULL,
-  Image = NULL, Y, mtry, aligned.shape = FALSE, timeScale = 0.1,
-  splitrule = NULL, nsplit_option = NULL, nodesize = 1, ...)
+Rtmax(Curve = NULL, Scalar = NULL, Factor = NULL, Y = NULL,
+  mtry = 1, timeScale = 0.1, nsplit_option = "quantile",
+  nodesize = 1)
 }
 \arguments{
 \item{Curve}{[list]:}
@@ -15,19 +15,13 @@ Rtmax(Curve = NULL, Scalar = NULL, Factor = NULL, Shape = NULL,
 
 \item{Factor}{[list]:}
 
-\item{Shape}{[list]:}
-
-\item{Image}{[list]:}
-
 \item{Y}{[list]:}
 
 \item{mtry}{[integer]:}
 
-\item{aligned.shape}{[logical]:}
-
 \item{timeScale}{[numeric]:}
 
-\item{...}{: option}
+\item{nodesize}{}
 }
 \description{
 Randomized Dynamic tree

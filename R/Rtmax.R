@@ -3,13 +3,11 @@
 #' @param Curve [list]:
 #' @param Scalar [list]:
 #' @param Factor [list]:
-#' @param Shape [list]:
-#' @param Image [list]:
 #' @param Y [list]:
 #' @param mtry [integer]:
-#' @param aligned.shape [logical]:
 #' @param timeScale [numeric]:
-#' @param ... : option
+#' @param nsplit_option
+#' @param nodesize
 #'
 #' @import kmlShape
 #' @import RiemBase
@@ -20,10 +18,10 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y,mtry,aligned.shape=FALSE, timeScale=0.1,
-                  splitrule=NULL, nsplit_option=NULL, nodesize=1, ...){
+Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeScale = 0.1,
+                  nsplit_option = "quantile", nodesize = 1){
 
-  inputs <- read.Xarg(c(Curve,Scalar,Factor,Shape,Image))
+  inputs <- read.Xarg(c(Curve,Scalar,Factor))
   Inputs <- inputs
 
   for (k in 1:length(Inputs)){
@@ -31,8 +29,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
   }
 
   impurity_feuilles <- NULL
-  #V_split <- NULL
-  var_type <- var_split <- var_summary <- num_noeud <- var_threshold <- c()
+  var_type <- var_split <- var_summary <- num_noeud <- var_threshold <- N <- Nevent <- c()
   hist_nodes <- list()
   model_param <- list()
   id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
@@ -42,8 +39,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
   wXCurve <- NULL
   wXScalar <- NULL
   wXFactor <- NULL
-  wXShape <- NULL
-  wXImage <- NULL
   wY <- NULL
 
   for (k in id_boot){
@@ -51,8 +46,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
     if (is.element("curve",inputs)==TRUE) wXCurve <- c(wXCurve, which(Curve$id==k))
     if (is.element("scalar",inputs)==TRUE) wXScalar <- c(wXScalar, which(Scalar$id==k))
     if (is.element("factor",inputs)==TRUE) wXFactor <- c(wXFactor, which(Factor$id==k))
-    if (is.element("shape",inputs)==TRUE) wXShape <- c(wXShape, which(Shape$id==k))
-    if (is.element("image",inputs)==TRUE) wXImage <- c(wXImage, which(Image$id==k))
   }
 
   Y_pred <- list()
@@ -61,12 +54,10 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
                                                            model=Curve$model) ### bootstrap pour les courbes
   if (is.element("scalar",inputs)==TRUE) Scalar_boot <- list(type=Scalar$type,   X=Scalar$X[wXScalar,, drop=FALSE], id= Scalar$id[wXScalar]) ### bootstrap pour les courbes
   if (is.element("factor",inputs)==TRUE) Factor_boot <- list(type=Factor$type,   X=Factor$X[wXFactor,, drop=FALSE], id= Factor$id[wXFactor])
-  if (is.element("shape",inputs)==TRUE) Shape_boot <- list(type=Shape$type,   X=Shape$X[,,wXShape, , drop=FALSE], id= Shape$id[wXShape])
-  if (is.element("image",inputs)==TRUE) Image_boot <- list(type=Image$type,   X=Image$X[,,wXImage, , drop=FALSE], id= Image$id[wXImage])
 
 
-  if (Y$type=="curve" || Y$type=="surv") {Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY], time=Y$time[wY])} ### idem pour Y
-  if (Y$type=="image" || Y$type=="shape") {Y_boot <- list(type=Y$type, Y=Y$Y[,,wY], id=Y$id[wY])}
+  if (Y$type=="curve") {Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY], time=Y$time[wY])} ### idem pour Y
+  if (Y$type=="surv") {Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY])}
   if (Y$type=="factor" || Y$type=="scalar") {Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY])}
 
 
@@ -100,15 +91,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
       wXCurve <- NULL
       wXScalar <- NULL
       wXFactor <- NULL
-      wXShape <- NULL
-      wXImage <- NULL
 
       for (l in unique(Y_boot$id[w])){
         if (is.element("curve",inputs)==TRUE) wXCurve <- c(wXCurve, which(Curve_boot$id==l))
         if (is.element("scalar",inputs)==TRUE) wXScalar <- c(wXScalar, which(Scalar_boot$id==l))
         if (is.element("factor",inputs)==TRUE) wXFactor <- c(wXFactor, which(Factor_boot$id==l))
-        if (is.element("shape",inputs)==TRUE) wXShape <- c(wXShape, which(Shape_boot$id==l))
-        if (is.element("image",inputs)==TRUE) wXImage <- c(wXImage, which(Image_boot$id==l))
       }
 
       if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[unique(id_feuille)[i]]] >0){
@@ -133,24 +120,13 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
           Factor_courant <- list(type = Factor_boot$type, X=Factor_boot$X[wXFactor,tirageFactor, drop=FALSE], id=Factor_boot$id[wXFactor, drop=FALSE])
         }
 
-        if (is.element("shape",split.spaces)==TRUE){
-          tirageShape <- sample(1:dim(Shape$X)[length(dim(Shape$X))],length(which(variables=="shape")))
-          Shape_courant <- list(type = Shape_boot$type, X=Shape_boot$X[,,wXShape,tirageShape, drop=FALSE], id=Shape_boot$id[wXShape, drop=FALSE])
-        }
-
-        if (is.element("image",split.spaces)==TRUE){
-          tirageImage <- sample(1:dim(Image$X)[length(dim(Image$X))],length(which(variables=="image")))
-          Image_courant <- list(type = Image_boot$type, X=Image_boot$X[,,wXImage,tirageImage, drop=FALSE], id=Image_boot$id[wXImage])
-        }
-
-        if (Y_boot$type=="curve" || Y_boot$type=="surv"){
+        if (Y_boot$type=="curve"){
           Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w], time=Y_boot$time[w])
         }
 
-        if (Y_boot$type=="image" || Y_boot$type=="shape"){
-          Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[,,w, drop=FALSE], id=Y_boot$id[w, drop=FALSE])
+        if (Y_boot$type=="surv"){
+          Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w])
         }
-
 
         if (Y_boot$type=="factor" || Y_boot$type=="scalar"){
           Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[w, drop=FALSE], id=Y_boot$id[w, drop=FALSE])
@@ -162,14 +138,17 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
 
         # on test les meilleurs splits sur chacun des variables factor tire par mtry
 
-        if (length(unique(Y_courant$id)) >= nodesize*2){ # si nb sujet inferieur a nodesize*2, feuille avec moins de nodesize
+        if (Y_courant$type == "surv"){
+          N_courant <- sum(Y_courant$Y[,2]==1) # nb event
+        }else{
+          N_courant <- length(unique(Y_courant$id))  # nb id
+        }
+
+        if (N_courant >= nodesize*2){ # si nb sujet/event inferieur a nodesize*2, feuille avec moins de nodesize
 
           if (is.element("factor",split.spaces)==TRUE){
 
-              if (splitrule=="MM"){
-                feuille_split_Factor <- var_split_MM(Factor_courant,Y_courant,timeScale,
-                                                          nodesize)
-              }
+            feuille_split_Factor <- var_split_MM(Factor_courant,Y_courant,timeScale,nodesize)
 
             if (feuille_split_Factor$Pure==FALSE){
               F_SPLIT <- rbind(F_SPLIT,c("Factor",feuille_split_Factor$impurete))
@@ -181,10 +160,8 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
 
           if (is.element("curve",split.spaces)==TRUE){
 
-              if (splitrule=="MM"){
-                feuille_split_Curve <- var_split_MM(Curve_courant,Y_courant,timeScale,
-                                                         nsplit_option,nodesize)
-              }
+            feuille_split_Curve <- var_split_MM(Curve_courant,Y_courant,timeScale,
+                                                nsplit_option,nodesize)
 
             if (feuille_split_Curve$Pure==FALSE){
               F_SPLIT <- rbind(F_SPLIT,c("Curve",feuille_split_Curve$impurete))
@@ -194,40 +171,14 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
 
           if (is.element("scalar",split.spaces)==TRUE){
 
-              if (splitrule=="MM"){
-                feuille_split_Scalar <- var_split_MM(Scalar_courant,Y_courant,timeScale,
-                                                          nsplit_option,nodesize)
-              }
+            feuille_split_Scalar <- var_split_MM(Scalar_courant,Y_courant,timeScale,
+                                                 nsplit_option,nodesize)
 
             if (feuille_split_Scalar$Pure==FALSE){
               F_SPLIT <- rbind(F_SPLIT,c("Scalar",feuille_split_Scalar$impurete))
               decoupe <- decoupe +1
             }
 
-
-          }
-
-          if (is.element("shape",split.spaces)==TRUE){
-
-            feuille_split_Shape <- ERvar_split(Shape_courant,Y_courant,timeScale, ntry=ntry)
-
-
-            if (feuille_split_Shape$Pure==FALSE){
-              F_SPLIT <- rbind(F_SPLIT,c("Shape",feuille_split_Shape$impurete))
-              decoupe <- decoupe +1
-            }
-
-          }
-
-
-          if (is.element("image",split.spaces)==TRUE){
-
-            feuille_split_Image <- ERvar_split(Image_courant,Y_courant,timeScale, ntry=ntry)
-
-            if (feuille_split_Image$Pure==FALSE){
-              F_SPLIT <- rbind(F_SPLIT,c("Image",feuille_split_Image$impurete))
-              decoupe <- decoupe +1
-            }
 
           }
 
@@ -266,16 +217,18 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
           }
 
           # split sur quel espace, quel noeud, quelle variable, quel resume, quel threshold
-          # V_split <- rbind(V_split,c(TYPE,unique(id_feuille)[i],vsplit_space,
-          #                            feuille_split$variable_summary, feuille_split$threshold))
-
-
           var_type <- c(var_type, TYPE)
           num_noeud <- c(num_noeud, unique(id_feuille)[i])
           var_split <- c(var_split, vsplit_space)
           var_summary <- c(var_summary, feuille_split$variable_summary)
           var_threshold <- c(var_threshold, feuille_split$threshold)
+          N <- c(N, length(Y_courant$id))
 
+          if (Y_courant$type=="surv"){
+            Nevent <- c(Nevent, sum(Y_courant$Y[,2]==1)) # nb event
+          }else{
+            Nevent <- c(Nevent, NA)
+          }
 
           model_param[[unique(id_feuille)[i]]] <- feuille_split$model_param
 
@@ -295,7 +248,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
             wY_droit <- c(wY_droit, which(Y_boot$id==droit_id[k]))
           }
 
-
           id_feuille_prime[wY_gauche] <- 2*(unique(id_feuille)[i])
           id_feuille_prime[wY_droit] <- 2*(unique(id_feuille)[i])+1
 
@@ -308,18 +260,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
             meanFd <- as.matrix(kmlShape::meanFrechet(trajD))
           }
 
-          if (X$type=="shape"){
-            meanFg <- mshape(X_boot$X[,,w_gauche,vsplit_space])
-            meanFd <- mshape(X_boot$X[,,w_droit,vsplit_space])
-          }
-
-          if (X$type=="image"){
-            meanFg <- rbase.mean(riemfactory(X_boot$X[,,w_gauche,vsplit_space]))
-            meanFd <- rbase.mean(riemfactory(X_boot$X[,,w_droit,vsplit_space]))
-            hist_nodes[[2*(unique(id_feuille)[i])]] <- meanFg$x
-            hist_nodes[[2*(unique(id_feuille)[i])+1]] <- meanFd$x
-          }
-
           if (X$type=="factor"){
             meanFg <- unique(X_boot$X[w_gauche, vsplit_space])
             meanFd <- unique(X_boot$X[w_droit,vsplit_space])
@@ -329,7 +269,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
             meanFg <- mean(X_boot$X[w_gauche,vsplit_space])
             meanFd <- mean(X_boot$X[w_droit,vsplit_space])
           }
-
 
 
           hist_nodes[[2*(unique(id_feuille)[i])]] <- meanFg
@@ -348,10 +287,10 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
     if (count_split ==0 ){
 
       V_split <- data.frame(type = var_type, num_noeud = num_noeud, var_split = var_split,
-                            var_summary = var_summary, threshold = var_threshold)
+                            var_summary = var_summary, threshold = var_threshold, N = N,
+                            Nevent = Nevent)
 
-      #V_split <- data.frame(V_split)
-      #names(V_split) <- c("type","num_noeud", "var_split","var_summary","threshold")
+      browser()
 
       for (q in unique(id_feuille)){
         w <- which(id_feuille == q)
@@ -365,20 +304,9 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
           Table <- which.max(table(Y_boot$Y[w]))
           Y_pred[[q]] <-  as.factor(attributes(Table)$names)
         }
-
-        if (Y$type=="shape"){
-          Y_pred[[q]] <-  mshape(Y_boot$Y[,,w, drop=FALSE])
-        }
-
-        if (Y$type=="image"){
-          donnees <- riemfactory(Y_boot$Y[,,w, drop=FALSE])
-          Y_pred[[q]] <- rbase.mean(donnees)$x
-        }
-
         if (Y$type=="surv"){
-          donnees = survfit(Surv(Y_boot$time[w], Y_boot$Y[w])~1)
-          # CHF
-          Y_pred[[q]] <- data.frame(times=donnees$time, traj=donnees$cumhaz)
+          donnees <- survfit(Y_boot$Y[w]~1)
+          Y_pred[[q]] <- data.frame(times=donnees$time, traj=donnees$surv) # surv
         }
 
       }
@@ -393,20 +321,13 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
   }
 
   V_split <- data.frame(type = var_type, num_noeud = num_noeud, var_split = var_split,
-                        var_summary = var_summary, threshold = var_threshold)
-
-  #V_split <- data.frame(V_split)
-  #names(V_split) <- c("type","num_noeud", "var_split","var_summary","threshold")
+                        var_summary = var_summary, threshold = var_threshold, N = N,
+                        Nevent = Nevent)
 
   for (q in unique(id_feuille)){
     w <- which(id_feuille == q)
     if (Y$type=="curve"){
       Y_pred[[q]] <- kmlShape::meanFrechet(data.frame(Y_boot$id[w], Y_boot$time[w], Y_boot$Y[w]))
-    }
-
-    if (Y$type=="image"){
-      donnees <- riemfactory(Y_boot$Y[,,w, drop=FALSE])
-      Y_pred[[q]] <- rbase.mean(donnees)$x
     }
 
     if(Y$type=="scalar"){
@@ -418,14 +339,9 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Shape=NULL, Image=NULL,Y
       Y_pred[[q]] <-  as.factor(attributes(Table)$names)
     }
 
-    if (Y$type=="shape"){
-      Y_pred[[q]] <- mshape(Y_boot$Y[,,w, drop=FALSE])
-    }
-
     if (Y$type=="surv"){
-      donnees = survfit(Surv(Y_boot$time[w], Y_boot$Y[w])~1)
-      # CHF
-      Y_pred[[q]] <- data.frame(times=donnees$time, traj=donnees$cumhaz)
+      donnees <- survfit(Y_boot$Y[w]~1)
+      Y_pred[[q]] <- data.frame(times=donnees$time, traj=donnees$surv) # surv
     }
 
   }

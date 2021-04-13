@@ -4,10 +4,10 @@
 \alias{DynForest}
 \title{Dynamic Random Forest}
 \usage{
-DynForest(Curve = NULL, Scalar = NULL, Factor = NULL, Shape = NULL,
-  Image = NULL, Y, mtry = NULL, ntree = 100, ncores = NULL,
-  timeScale = 0.1, imp = TRUE, d_out = 0.1, splitrule = "MM",
-  nsplit_option = "quantile", nodesize = 1, ...)
+DynForest(Curve = NULL, Scalar = NULL, Factor = NULL, Y,
+  mtry = NULL, ntree = 100, ncores = NULL, timeScale = 0.1,
+  imp = TRUE, d_out = 0.1, nsplit_option = "quantile",
+  nodesize = 1, ...)
 }
 \arguments{
 \item{Curve}{[list]: A list that contains the different input curves. It must contain the following elements (no choice): \code{X} the matrix of the different curves, each column code for a different curve variable; \code{id} is the vector of the identifiers for the different trajectories contained in \code{X}; \code{time} is the vector of the measurement times associated with the trajectories contained in \code{X}.}
@@ -15,10 +15,6 @@ DynForest(Curve = NULL, Scalar = NULL, Factor = NULL, Shape = NULL,
 \item{Scalar}{[list]: A list that contains the different input scalars. It must contain the following elements (no choice):  \code{X} the matrix of the scalars, each column code for a different variable; \code{id} is the vector of the identifiers for each individual.}
 
 \item{Factor}{[list]: A list that contains the different input factors. It must contain the following elements (no choice):  \code{X} the matrix of the factors, each column code for a different variable; \code{id} is the vector of the identifiers for each individual.}
-
-\item{Shape}{[list]: A list that contains the different input shapes. It must contain the following elements (no choice):  \code{X} the array of the shapes of dimension \code{n}x2x\code{l}x\code{p} where \code{n} is the number of points for composing each shape, \code{l} is the number of shapes and \code{p} is the number of shapes variables, \code{id} is the vector of the identifiers for each individual.}
-
-\item{Image}{[list]: A list that contains the different input images. It must contain the following elements (no choice):  \code{X} the array of the images of dimension \code{n}x\code{m}x\code{l}x\code{p} where \code{n}*\code{m} is the size of each image, \code{l} is the number of images and \code{p} is the number of shapes variables; \code{id} is the vector of the identifiers for each individual.}
 
 \item{Y}{[list]: A list that contains the output, It must contain the following elements (no choice): \code{type} defines the nature of the output, can be "\code{curve}", "\code{sclalar}", "\code{factor}", "\code{shape}", "\code{image}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
 
