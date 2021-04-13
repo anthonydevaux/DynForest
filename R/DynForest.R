@@ -104,11 +104,11 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   #   Y= list(type="surv", Y=ykm, id=idkm)
   # }
 
+  browser()
+
   for (i in 1:ntree){
     xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,d_out=d_out)
   }
-
-  browser()
 
   print("on passe erreur oob de la foret")
   oob.err <- OOB.rfshape(rf,Curve = Curve,Scalar =Scalar,Factor=Factor, Y=Y, timeScale=timeScale, d_out=d_out)

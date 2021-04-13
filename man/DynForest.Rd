@@ -4,10 +4,21 @@
 \alias{DynForest}
 \title{Dynamic Random Forest}
 \usage{
-DynForest(Curve = NULL, Scalar = NULL, Factor = NULL, Y,
-  mtry = NULL, ntree = 100, ncores = NULL, timeScale = 0.1,
-  imp = TRUE, d_out = 0.1, nsplit_option = "quantile",
-  nodesize = 1, ...)
+DynForest(
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  Y,
+  mtry = NULL,
+  ntree = 100,
+  ncores = NULL,
+  timeScale = 0.1,
+  imp = TRUE,
+  d_out = 0.1,
+  nsplit_option = "quantile",
+  nodesize = 1,
+  ...
+)
 }
 \arguments{
 \item{Curve}{[list]: A list that contains the different input curves. It must contain the following elements (no choice): \code{X} the matrix of the different curves, each column code for a different curve variable; \code{id} is the vector of the identifiers for the different trajectories contained in \code{X}; \code{time} is the vector of the measurement times associated with the trajectories contained in \code{X}.}

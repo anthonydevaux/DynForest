@@ -4,8 +4,7 @@
 \alias{pred.MMT}
 \title{Predict Mixed Model Tree}
 \usage{
-pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL,
-  timeScale = 0.1)
+pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL, timeScale = 0.1)
 }
 \arguments{
 \item{tree}{: Mixed Model Tree}
@@ -17,6 +16,9 @@ pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL,
 \item{Factor}{[list]: A list that contains the input factors.}
 
 \item{timeScale}{[numeric]: Time scale for the input and output curves (\code{timeScale=0.1} by default)}
+}
+\value{
+
 }
 \description{
 Predict Mixed Model Tree

@@ -9,6 +9,9 @@ var_depth(DynForest_obj)
 \arguments{
 \item{DynForest_obj}{}
 }
+\value{
+
+}
 \description{
 Title
 }

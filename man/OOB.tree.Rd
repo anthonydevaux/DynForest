@@ -4,8 +4,15 @@
 \alias{OOB.tree}
 \title{OOB tree}
 \usage{
-OOB.tree(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
-  timeScale = 0.1, d_out = 0.1)
+OOB.tree(
+  tree,
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  Y,
+  timeScale = 0.1,
+  d_out = 0.1
+)
 }
 \arguments{
 \item{d_out}{}

@@ -9,6 +9,9 @@ combine_times(pred, newtimes)
 \arguments{
 \item{newtimes}{}
 }
+\value{
+
+}
 \description{
 Title
 }

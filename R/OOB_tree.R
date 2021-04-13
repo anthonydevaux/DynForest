@@ -12,6 +12,8 @@
 #' @import Evomorph
 #' @import stringr
 #' @import RiemBase
+#' @import pec
+#' @import prodlim
 #'
 #' @keywords internal
 OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.1, d_out=0.1){
@@ -65,14 +67,14 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
         pred.mat <- t(res.mat$traj[which(res.mat$times<=Y.surv$time.event), drop = FALSE])
 
-        pec.res <- pec(object = pred.mat,
-                       formula = Surv(time.event, event) ~ 1,
-                       data = Y.surv, cens.model = "marginal",
-                       exact = FALSE, times = tree$Y_pred[[pred_courant]]$times,
-                       reference = FALSE)
+        pec.res <- pec::pec(object = pred.mat,
+                            formula = Surv(time.event, event) ~ 1,
+                            data = Y.surv, cens.model = "marginal",
+                            exact = FALSE, times = tree$Y_pred[[pred_courant]]$times,
+                            reference = FALSE)
 
-        IBS <- ibs(pec.res, start = 0,
-                   times = Y.surv$time.event)[1]
+        IBS <- pec::ibs(pec.res, start = 0,
+                        times = Y.surv$time.event)[1]
 
         xerror[which(OOB==i)] <- IBS
 
