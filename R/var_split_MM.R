@@ -93,33 +93,45 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
       for (i_sum in var_mtry2){ # boucle sur les resumes tires
 
-        if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
-          split_threholds <- quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit))[-c(1,nsplit+1)]
-        }
+        if (!is.na(data_summaries[,i_sum])){
 
-        if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
-          split_threholds <- sample(data_summaries[,i_sum], nsplit)
-        }
-
-        impurete_nsplit <- rep(NA, length(split_threholds))
-        split_nsplit <- list()
-
-        for (j in 1:length(split_threholds)){ # boucle sur les nsplit
-
-          split_nsplit[[j]] <- factor(ifelse(data_summaries[,i_sum]<=split_threholds[j],1,2))
-
-          if (length(unique(split_nsplit[[j]]))==1){
-            impurete_nsplit[j] <- Inf
+          if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
+            split_threholds <- quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit))[-c(1,nsplit+1)]
           }
 
-          impurete <- impurity_split(Y,split_nsplit[[j]])
-          impurete_nsplit[j] <- impurete$impur
+          if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
+            split_threholds <- sample(data_summaries[,i_sum], nsplit)
+          }
+
+          impurete_nsplit <- rep(NA, length(split_threholds))
+          split_nsplit <- list()
+
+          for (j in 1:length(split_threholds)){ # boucle sur les nsplit
+
+            split_nsplit[[j]] <- factor(ifelse(data_summaries[,i_sum]<=split_threholds[j],1,2))
+
+            if (length(unique(split_nsplit[[j]]))==1){
+              impurete_nsplit[j] <- Inf
+            }
+
+            impurete <- impurity_split(Y,split_nsplit[[j]])
+            impurete_nsplit[j] <- impurete$impur
+
+          }
+
+          impurete_sum[i_sum] <- impurete_nsplit[which.min(impurete_nsplit)]
+          split_sum[[i_sum]] <- split_nsplit[[which.min(impurete_nsplit)]]
+          split_threholds_sum[i_sum] <- split_threholds[which.min(impurete_nsplit)]
+
+        }else{
+
+          # if random effects cant be computed
+          impurete_sum[i_sum] <- NA
+          split_sum[[i_sum]] <- NA
+          split_threholds_sum[i_sum] <- NA
 
         }
 
-        impurete_sum[i_sum] <- impurete_nsplit[which.min(impurete_nsplit)]
-        split_sum[[i_sum]] <- split_nsplit[[which.min(impurete_nsplit)]]
-        split_threholds_sum[i_sum] <- split_threholds[which.min(impurete_nsplit)]
       }
 
       variable_summary[i] <- var_mtry2[which.min(impurete_sum)]

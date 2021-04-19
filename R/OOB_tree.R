@@ -34,6 +34,7 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
   if (Y$type=="curve" || Y$type=="surv"){
     for (i in OOB){
+
       id_wY <- which(Y$id== i)
       if (is.element("curve",inputs)==TRUE) {
         id_wXCurve <- which(Curve$id==i)
@@ -54,29 +55,33 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
       pred_courant <- pred.MMT(tree, Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant, timeScale=timeScale)
       #chancla <- DouglasPeuckerNbPoints(tree$Y_Curves[[pred_courant]]$times, tree$Y_Curves[[pred_courant]]$traj, nbPoints = length(stats::na.omit(Y[id_w])))
 
-      if (Y$type == "curve"){
-        xerror[which(OOB==i)] <- kmlShape::distFrechet(tree$Y_pred[[pred_courant]]$times, tree$Y_pred[[pred_courant]]$traj, Y$time[id_wY], Y$Y[id_wY], timeScale = d_out)^2
-      }
+      if (is.na(pred_courant)){
 
-      if (Y$type == "surv"){
+        xerror[which(OOB==i)] <- NA
 
-        Y.surv <- data.frame(time.event = Y$Y[id_wY,1], event = Y$Y[id_wY,2])
+      }else{
 
-        res.mat <- combine_times(pred = tree$Y_pred[[pred_courant]],
-                                 newtimes = Y.surv$time.event)
+        if (Y$type == "curve"){
+          xerror[which(OOB==i)] <- kmlShape::distFrechet(tree$Y_pred[[pred_courant]]$times, tree$Y_pred[[pred_courant]]$traj, Y$time[id_wY], Y$Y[id_wY], timeScale = d_out)^2
+        }
 
-        pred.mat <- t(res.mat$traj[which(res.mat$times<=Y.surv$time.event), drop = FALSE])
+        if (Y$type == "surv"){
 
-        pec.res <- pec::pec(object = pred.mat,
-                            formula = Surv(time.event, event) ~ 1,
-                            data = Y.surv, cens.model = "marginal",
-                            exact = FALSE, times = tree$Y_pred[[pred_courant]]$times,
-                            reference = FALSE)
+          Y.surv <- data.frame(time.event = Y$Y[id_wY,1], event = Y$Y[id_wY,2])
 
-        IBS <- pec::ibs(pec.res, start = 0,
-                        times = Y.surv$time.event)[1]
+          pec.res <- pec::pec(object = t(tree$Y_pred[[pred_courant]]$traj),
+                              formula = Surv(time.event, event) ~ 1,
+                              data = Y.surv, cens.model = "marginal",
+                              exact = FALSE, times = tree$Y_pred[[pred_courant]]$times,
+                              maxtime = max(tree$Y_pred[[pred_courant]]$times),
+                              reference = FALSE)
 
-        xerror[which(OOB==i)] <- IBS
+          IBS <- pec::ibs(pec.res, start = 0,
+                          times = max(tree$Y_pred[[pred_courant]]$times))[1]
+
+          xerror[which(OOB==i)] <- IBS
+
+        }
 
       }
 
@@ -109,5 +114,5 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
   }
 
-  return(mean(xerror))
+  return(mean(xerror, na.rm = T))
 }

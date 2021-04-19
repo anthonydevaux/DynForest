@@ -41,7 +41,8 @@ predRE <- function(model, formula, data){
     Xi <- X[row.id, ]
     Yi <- Y[row.id, ]
     Vi <- Zi%*%B%*%t(Zi) + se*diag(length(row.id))
-    b <- B%*%t(Zi)%*%solve(Vi)%*%(Yi-Xi%*%beta)
+    b <- tryCatch(B%*%t(Zi)%*%solve(Vi)%*%(Yi-Xi%*%beta),
+                  error = function(e) return(rep(NA, ncol(B)))) # solve issue
 
     bi[rownames(bi)==id,] <- b
 

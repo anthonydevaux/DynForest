@@ -24,7 +24,7 @@ rf_shape_para <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y, mtry, ntree, 
 
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
-  clusterExport(cl,list("Y"),envir=globalenv())
+  parallel::clusterExport(cl,list("Y"),envir=globalenv())
 
   trees <- pbsapply(1:ntree, FUN=function(i){
     Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
@@ -35,6 +35,7 @@ rf_shape_para <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y, mtry, ntree, 
 
   # trees <- list()
   # for (i in 1:ntree){
+  #   cat(paste0(i,"\n"))
   #   trees[[i]] <- Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
   #                       nsplit_option = nsplit_option, nodesize = nodesize)
   # }

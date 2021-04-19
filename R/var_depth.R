@@ -9,7 +9,9 @@
 #' @examples
 var_depth <- function(DynForest_obj){
 
-  if (any(DynForest_obj$Inputs%in%c("Curve"))){
+  Inputs <- names(DynForest_obj$Inputs)[unlist(lapply(DynForest_obj$Inputs, FUN = function(x) return(!is.null(x))))]
+
+  if (any(Inputs%in%c("Curve"))){
 
     # mindepth and node at depth
 
@@ -20,7 +22,7 @@ var_depth <- function(DynForest_obj){
       }
 
       df <- aggregate(num_noeud ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], min)
-      df <- data.frame(type = paste(df$type, df$var_split, df$var_summary, sep = "."),
+      df <- data.frame(type = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
                        num_noeud = df$num_noeud)
       return(df)
 
@@ -45,8 +47,8 @@ var_depth <- function(DynForest_obj){
       }
 
       df <- aggregate(num_noeud ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], length)
-      df <- data.frame(type = paste(df$type, df$var_split, df$var_summary, sep = "."),
-                       count = df$num_noeud)
+      df <- data.frame(type = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
+                       num_noeud = df$num_noeud)
       return(df)
 
     })
@@ -66,19 +68,38 @@ var_depth <- function(DynForest_obj){
 
   }
 
-  if (any(DynForest_obj$Inputs%in%c("Scalar","Factor"))){
+  if (any(Inputs%in%c("Scalar","Factor"))){
 
     # mindepth and node at depth
 
     Other_depth_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
-      if (nrow(x$V_split[x$V_split$type!="Curve",])==0){
-        return(data.frame("type" = character(), "num_noeud" = numeric()))
+      if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
+
+        df_scalar <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], min)
+        df_scalar <- data.frame(type = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+                                num_noeud = df_scalar$num_noeud)
+
+      }else{
+
+        df_scalar <- data.frame("type" = character(), "num_noeud" = numeric())
+
       }
 
-      df <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type!="Curve",], min)
-      df <- data.frame(type = paste(df$type, df$var_split, sep = "."),
-                       num_noeud = df$num_noeud)
+      if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
+
+      df_factor <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], min)
+      df_factor <- data.frame(type = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+                       num_noeud = df_factor$num_noeud)
+
+      }else{
+
+        df_factor <- data.frame("type" = character(), "num_noeud" = numeric())
+
+      }
+
+      df <- rbind(df_scalar, df_factor)
+
       return(df)
 
     })
@@ -97,13 +118,32 @@ var_depth <- function(DynForest_obj){
 
     Other_count_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
-      if (nrow(x$V_split[x$V_split$type!="Curve",])==0){
-        return(data.frame("type" = character(), "num_noeud" = numeric()))
+      if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
+
+        df_scalar <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], length)
+        df_scalar <- data.frame(type = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+                                num_noeud = df_scalar$num_noeud)
+
+      }else{
+
+        df_scalar <- data.frame("type" = character(), "num_noeud" = numeric())
+
       }
 
-      df <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type!="Curve",], length)
-      df <- data.frame(type = paste(df$type, df$var_split, sep = "."),
-                       count = df$num_noeud)
+      if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
+
+        df_factor <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], length)
+        df_factor <- data.frame(type = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+                                num_noeud = df_factor$num_noeud)
+
+      }else{
+
+        df_factor <- data.frame("type" = character(), "num_noeud" = numeric())
+
+      }
+
+      df <- rbind(df_scalar, df_factor)
+
       return(df)
 
     })

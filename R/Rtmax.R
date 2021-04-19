@@ -71,10 +71,12 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
   id_feuille <- rep(1,length(Y_boot$id)) #### localisation des feuilles de l'arbre
   id_feuille_prime <- id_feuille
+  feuilles_courantes <- unique(id_feuille)
+  feuilles_terminales <- NULL
 
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
     count_split <- 0
-    for (i in 1:length(unique(id_feuille))){
+    for (i in 1:length(feuilles_courantes)){
       # Il faut que l'on regarde le tirage des variables de manière aléatoire :
       V <- NULL
       for (v in Inputs){
@@ -87,7 +89,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
       split.spaces <- unique(variables)
 
       # variables <- sample(c(1:dim(X_boot$X[,,drop=FALSE])[2]),mtry)
-      w <- which(id_feuille==unique(id_feuille)[i])
+      w <- which(id_feuille==feuilles_courantes[i])
       wXCurve <- NULL
       wXScalar <- NULL
       wXFactor <- NULL
@@ -98,7 +100,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
         if (is.element("factor",inputs)==TRUE) wXFactor <- c(wXFactor, which(Factor_boot$id==l))
       }
 
-      if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[unique(id_feuille)[i]]] >0){
+      if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[feuilles_courantes[i]]] >0){
 
         # On est ici
 
@@ -183,9 +185,23 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           }
 
         }else{
+          feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
+
+          # add leafs to V_split
+          var_type <- c(var_type, "Leaf")
+          num_noeud <- c(num_noeud, feuilles_courantes[i])
+          var_split <- c(var_split, NA)
+          var_summary <- c(var_summary, NA)
+          var_threshold <- c(var_threshold, NA)
+          N <- c(N, length(Y_courant$id))
+
+          if (Y_courant$type=="surv"){
+            Nevent <- c(Nevent, sum(Y_courant$Y[,2]==1)) # nb event
+          }else{
+            Nevent <- c(Nevent, NA)
+          }
 
           next()
-
         }
 
         if (decoupe>0){
@@ -208,17 +224,38 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           droit_id <- unique(Y_boot$id[w])[which(feuille_split$split==2)]
 
           if (Y$type=="surv"){
-            imp_nodes[[2*unique(id_feuille)[i]]] <- Inf
-            imp_nodes[[2*unique(id_feuille)[i]+1]] <- Inf
+
+            if (sum(Y_boot$Y[w,2][which(feuille_split$split==1)])>=nodesize & sum(Y_boot$Y[w,2][which(feuille_split$split==2)])>=nodesize){
+              imp_nodes[[2*feuilles_courantes[i]]] <- Inf
+              imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
+            }else{
+              feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
+
+              # add leafs to V_split
+              var_type <- c(var_type, "Leaf")
+              num_noeud <- c(num_noeud, feuilles_courantes[i])
+              var_split <- c(var_split, NA)
+              var_summary <- c(var_summary, NA)
+              var_threshold <- c(var_threshold, NA)
+              N <- c(N, length(Y_courant$id))
+
+              if (Y_courant$type=="surv"){
+                Nevent <- c(Nevent, sum(Y_courant$Y[,2]==1)) # nb event
+              }else{
+                Nevent <- c(Nevent, NA)
+              }
+
+              next()
+            }
           }
           else {
-            imp_nodes[[2*unique(id_feuille)[i]]] <- feuille_split$impur_list[[1]]
-            imp_nodes[[2*unique(id_feuille)[i]+1]] <- feuille_split$impur_list[[2]]
+            imp_nodes[[2*feuilles_courantes[i]]] <- feuille_split$impur_list[[1]]
+            imp_nodes[[2*feuilles_courantes[i]+1]] <- feuille_split$impur_list[[2]]
           }
 
           # split sur quel espace, quel noeud, quelle variable, quel resume, quel threshold
           var_type <- c(var_type, TYPE)
-          num_noeud <- c(num_noeud, unique(id_feuille)[i])
+          num_noeud <- c(num_noeud, feuilles_courantes[i])
           var_split <- c(var_split, vsplit_space)
           var_summary <- c(var_summary, feuille_split$variable_summary)
           var_threshold <- c(var_threshold, feuille_split$threshold)
@@ -230,7 +267,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
             Nevent <- c(Nevent, NA)
           }
 
-          model_param[[unique(id_feuille)[i]]] <- feuille_split$model_param
+          model_param[[feuilles_courantes[i]]] <- feuille_split$model_param
 
           wY_gauche <- NULL
           wY_droit <- NULL
@@ -248,8 +285,8 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
             wY_droit <- c(wY_droit, which(Y_boot$id==droit_id[k]))
           }
 
-          id_feuille_prime[wY_gauche] <- 2*(unique(id_feuille)[i])
-          id_feuille_prime[wY_droit] <- 2*(unique(id_feuille)[i])+1
+          id_feuille_prime[wY_gauche] <- 2*(feuilles_courantes[i])
+          id_feuille_prime[wY_droit] <- 2*(feuilles_courantes[i])+1
 
           #print(paste("Split on the variable", vsplit_space, "on the space of ", paste(TYPE,"s",sep="")))
 
@@ -271,11 +308,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           }
 
 
-          hist_nodes[[2*(unique(id_feuille)[i])]] <- meanFg
-          hist_nodes[[2*(unique(id_feuille)[i])+1]] <- meanFd
+          hist_nodes[[2*(feuilles_courantes[i])]] <- meanFg
+          hist_nodes[[2*(feuilles_courantes[i])+1]] <- meanFd
           count_split <- count_split+1
 
-          feuilles_courantes <- unique(id_feuille_prime)
+          #feuilles_courantes <- unique(id_feuille_prime)
         }
 
 
@@ -283,6 +320,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
     }
 
     id_feuille <- id_feuille_prime
+    feuilles_courantes <- setdiff(unique(id_feuille_prime), feuilles_terminales)
 
     if (count_split ==0 ){
 
@@ -290,7 +328,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
                             var_summary = var_summary, threshold = var_threshold, N = N,
                             Nevent = Nevent)
 
-      browser()
+      V_split <- V_split[order(V_split$num_noeud),]
 
       for (q in unique(id_feuille)){
         w <- which(id_feuille == q)
@@ -306,7 +344,9 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
         }
         if (Y$type=="surv"){
           donnees <- survfit(Y_boot$Y[w]~1)
-          Y_pred[[q]] <- data.frame(times=donnees$time, traj=donnees$surv) # surv
+          #pred <- data.frame(times=donnees$time, traj=donnees$cumhaz) # Nelson-Aalen CHF
+          pred <- data.frame(times=donnees$time, traj=donnees$surv) # surv Kaplan-Meier
+          Y_pred[[q]] <- combine_times(pred = pred, newtimes = unique(Y$Y[,1]))
         }
 
       }
@@ -323,6 +363,8 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
   V_split <- data.frame(type = var_type, num_noeud = num_noeud, var_split = var_split,
                         var_summary = var_summary, threshold = var_threshold, N = N,
                         Nevent = Nevent)
+
+  V_split <- V_split[order(V_split$num_noeud),]
 
   for (q in unique(id_feuille)){
     w <- which(id_feuille == q)
@@ -341,7 +383,9 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
     if (Y$type=="surv"){
       donnees <- survfit(Y_boot$Y[w]~1)
-      Y_pred[[q]] <- data.frame(times=donnees$time, traj=donnees$surv) # surv
+      #pred <- data.frame(times=donnees$time, traj=donnees$cumhaz) # Nelson-Aalen CHF
+      pred <- data.frame(times=donnees$time, traj=donnees$surv) # surv Kaplan-Meier
+      Y_pred[[q]] <- combine_times(pred = pred, newtimes = unique(Y$Y[,1]))
     }
 
   }

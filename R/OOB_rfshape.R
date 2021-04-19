@@ -12,6 +12,7 @@
 #' @import kmlShape
 #' @import Evomorph
 #' @import geomorph
+#' @import pec
 #'
 #' @keywords internal
 OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.1, d_out=0.1){
@@ -33,20 +34,21 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
   Factor_courant <- NULL
 
   if (Y$type=="surv"){
-    oob.pred <- list()
-    #errdp <- rep(NA,length(unique(id)))
 
-    for (i in 1:length(unique(Y$id))){
-      indiv <- unique(Y$id)[i]
+    allTimes <- sort(unique(c(0,Y$Y[,1])))
+
+    oob.pred <- matrix(NA, nrow = length(Y$id), ncol = length(allTimes))
+
+    for (i in 1:length(Y$id)){
+      indiv <- Y$id[i]
       w_y <- which(Y$id==indiv)
-      courbe2 = Y$Y[w_y]
-      pred_courant <- rep(0, length(w_y))
-      n_ind = 0
+      Y.surv = data.frame(time.event = Y$Y[w_y,1], event = Y$Y[w_y,2])
+      pred.mat <- matrix(NA, nrow = ncol(rf$rf), ncol = length(allTimes))
+
       for (t in 1:ncol(rf$rf)){
         BOOT <- rf$rf[,t]$boot
-        oob <- setdiff(unique(Y$id),BOOT)
+        oob <- setdiff(Y$id,BOOT)
         if (is.element(indiv, oob)== TRUE){
-          n_ind= n_ind+1
 
           if (is.element("curve",inputs)==TRUE){
             w_XCurve <- which(Curve$id== indiv)
@@ -64,18 +66,27 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
             Factor_courant <- list(type="factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
           }
 
-          pred <- pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant, timeScale = timeScale)
+          pred.node <- pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant, timeScale = timeScale)
 
-          courbe <- rf$rf[,t]$Y_pred[[pred]] ## Il faut les mettre aux mêmes temps que Y$time[w_y]
-
-          for (j in 1:length(w_y)){
-            courbe2[j] = courbe[which.min(abs(Y$time[w_y][j]-courbe[,1])),2]
+          if (is.na(pred.node)){
+            pred.mat[t,] <- NA
+          }else{
+            pred.mat[t,] <- rf$rf[,t]$Y_pred[[pred.node]]$traj
           }
-          pred_courant <- pred_courant + courbe2
+
         }
       }
-      oob.pred[[i]] <-  data.frame(times=Y$time[w_y], traj=pred_courant/n_ind)
-      err[i] <- mean((Y$Y[w_y]-pred_courant/n_ind)^2)
+      oob.pred[i,] <- apply(pred.mat, 2, mean, na.rm = TRUE)
+
+      pec.res <- pec::pec(object = t(oob.pred[i,]),
+                          formula = Surv(time.event, event) ~ 1,
+                          data = Y.surv, cens.model = "marginal",
+                          exact = FALSE, times = allTimes,
+                          maxtime = max(allTimes),
+                          reference = FALSE)
+
+      err[i] <- pec::ibs(pec.res, start = 0,
+                         times = max(allTimes))[1]
     }
     return(list(err=err,oob.pred=oob.pred))
   }
@@ -85,7 +96,6 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
     #errdp <- rep(NA,length(unique(id)))
 
     for (i in 1:length(unique(Y$id))){
-      print(i)
       indiv <- unique(Y$id)[i]
       w_y <- which(Y$id==indiv)
       pred_courant <- NULL

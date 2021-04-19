@@ -28,9 +28,7 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL,timeScale=0.1){
 
   if (tree$Y$type=="factor"){
     pred <- factor(rep(NA, length(id.pred)),levels=tree$Ylevels)
-  }
-
-  else{pred <- rep(NA,length(id.pred))}
+  }else{pred <- rep(NA,length(id.pred))}
 
   for (i in 1:length(id.pred)){
 
@@ -69,6 +67,11 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL,timeScale=0.1){
 
         data_summaries <- RE
 
+        if (is.na(data_summaries[,var.split.sum])){
+          noeud_courant <- NA
+          break
+        }
+
         if (data_summaries[,var.split.sum] < threshold){
           distG <- 0
           distD <- 1
@@ -106,7 +109,11 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL,timeScale=0.1){
     }
 
     else{
-      pred[i] <- tree$Y_pred[[noeud_courant]]
+      if(!is.na(noeud_courant)){
+        pred[i] <- tree$Y_pred[[noeud_courant]]
+      }else{
+        pred[i] <- NA
+      }
     }
   }
   return(pred)

@@ -5,7 +5,7 @@
 #' @param Scalar [list]:
 #' @param Factor [list]:
 #' @param timeScale [numeric]:
-#' @param d_out [numeric]:
+#' @param ncores [numeric]:
 #' @param ... : optional parameters to be passed to the low level function
 #'
 #' @import kmlShape
@@ -13,22 +13,28 @@
 #' @import RiemBase
 #' @import Evomorph
 #' @import geomorph
+#' @import parallel
+#' @import doParallel
 #'
 #' @return
 #' @export
 #'
-predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1, d_out=0.1,...){
+predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1, ncores = NULL, ...){
   # La première étape est de toujours lire les prédicteurs ::
 
   if (is.null(Curve)==FALSE){
     Curve <- list(type="curve",X=Curve$X,id=Curve$id,time=Curve$time,
-                  model=object$curve.model)
+                  model=object$Curve.model)
   }
   if (is.null(Scalar)==FALSE){
     Scalar <- list(type="scalar",X=Scalar$X,id=Scalar$id)
   }
   if (is.null(Factor)==FALSE){
     Factor <- list(type="factor",X=Factor$X,id=Factor$id)
+  }
+
+  if(is.null(ncores)==TRUE){
+    ncores <- parallel::detectCores()-1
   }
 
   ## Puis on prend les prédicteurs:
@@ -48,9 +54,26 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     pred.feuille <- as.data.frame(matrix(0, ncol(object$rf), length(Id.pred)))
   }
 
-  for (t in 1:ncol(object$rf)){
-    pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale)
-  }
+  # leaf predictions of new subjects
+
+  cl <- parallel::makeCluster(ncores)
+  doParallel::registerDoParallel(cl)
+
+  pred.feuille <- foreach(t=1:ncol(object$rf),
+                       .combine='rbind', .multicombine = TRUE
+                       #, .packages = c()
+                       ) %dopar%
+    {
+
+      return(pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale))
+
+    }
+
+  parallel::stopCluster(cl)
+
+  # for (t in 1:ncol(object$rf)){
+  #   pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale)
+  # }
 
   if (object$type=="scalar"){
     pred <- apply(pred.feuille, 2, "mean")
@@ -85,29 +108,19 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
   if (object$type=="surv"){
     pred <- NULL
+    allTimes <- object$times
     for (l in 1:dim(pred.feuille)[2]){
       pred_courant <- NULL
       for(k in 1:dim(pred.feuille)[1]){
-        pred_courant <- rbind(pred_courant, cbind(rep(k,dim(object$rf[,k]$Y_pred[[pred.feuille[k,l]]])[1]),object$rf[,k]$Y_pred[[pred.feuille[k,l]]]))
+        pred_courant <- rbind(pred_courant, object$rf[,k]$Y_pred[[pred.feuille[k,l]]]$traj)
       }
-      Pred = cbind(sort(unique(pred_courant$times)), rep(NA,length(sort(unique(pred_courant$times)))))
-      ### Maintenant il faut prédire à partir de cet élément::
-      pred_courant2 = NULL
-      id_courant = NULL
-      for (k in sort(unique(pred_courant$times))){
-        w= which(pred_courant$times >= k)
-        for (j in unique(pred_courant[,1])){
-          w_y = intersect(w,which(pred_courant[,1]==j))
-          if (length(w_y)>= 1){
-            pred_courant2 = c(pred_courant2, pred_courant[w_y,][which.min(pred_courant[w_y,2]),3])
-          }
-        }
-        Pred[which(Pred[,1]==k),2] = mean(pred_courant2)
-      }
-      predouille <- cbind(Pred, rep(Id.pred[l],dim(Pred)[1]))
-      pred <- rbind(pred, predouille)
+
+      pred.Id <- data.frame(ID = rep(Id.pred[l], length(allTimes)),
+                            times = allTimes,
+                            pred = apply(pred_courant, 2, mean, na.rm = TRUE))
+
+      pred <- rbind(pred, pred.Id)
     }
-    #names(pred) <- c("times", "traj", "ID")
   }
   return(pred)
 }

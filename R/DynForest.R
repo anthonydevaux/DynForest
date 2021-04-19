@@ -67,72 +67,62 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   }
 
   if(is.null(ncores)==TRUE){
-    ncores <- detectCores()-1
+    ncores <- parallel::detectCores()-1
   }
 
-  print("Building the maximal Dynamic trees...")
+  print("Building Dynamic trees...")
 
   debut <- Sys.time()
   rf <-  rf_shape_para(Curve=Curve,Scalar=Scalar, Factor=Factor, Y=Y, mtry=mtry, ntree=ntree, timeScale = timeScale,ncores=ncores,
                        nsplit_option = nsplit_option, nodesize = nodesize)
-  temps <- Sys.time() - debut
 
   rf <- list(type=Y$type, rf=rf, levels=levels(Y$Y))
 
-  print("Forest constucted !")
-  xerror <- rep(NA, ntree)
 
-  print("calcul erreur oob")
-  #cl <- parallel::makeCluster(ncores)
-  #doParallel::registerDoParallel(cl)
+  print("OOB trees error...")
+  cl <- parallel::makeCluster(ncores)
+  doParallel::registerDoParallel(cl)
 
-  #xerror <- pbsapply(1:ntree, FUN=function(i){OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor,Shape=Shape,Image=Image, Y=Y_KM, timeScale=timeScale,d_out=d_out)},cl=cl)
+  xerror <- pbsapply(1:ntree, FUN=function(i){OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,d_out=d_out)},cl=cl)
 
-  #parallel::stopCluster(cl)
-  xerror = rep(NA,ntree)
+  parallel::stopCluster(cl)
 
-  # if (Y$type=="surv"){
-  #   ykm = NULL
-  #   idkm = NULL
-  #
-  #   for (i in unique(Y$id)){
-  #     qui = which(Y$id==i)
-  #     donnees = survfit(Y[qui,]~1)
-  #     ykm=c(ykm, donnees$surv)
-  #     idkm=c(idkm, i)
-  #   }
-  #   Y= list(type="surv", Y=ykm, id=idkm)
+  # xerror <- rep(NA, ntree)
+  # for (i in 1:ntree){
+  #   cat(paste0(i,"\n"))
+  #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,d_out=d_out)
   # }
 
-  browser()
-
-  for (i in 1:ntree){
-    xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,d_out=d_out)
-  }
-
-  print("on passe erreur oob de la foret")
+  cat("OOB Forest error...")
   oob.err <- OOB.rfshape(rf,Curve = Curve,Scalar =Scalar,Factor=Factor, Y=Y, timeScale=timeScale, d_out=d_out)
+  cat("OK!\n")
+
+  temps <- Sys.time() - debut
+
+  cat("DynForest DONE!\n")
 
   # Ok pour le XERROR
 
   if (imp == FALSE && Y$type!="surv"){
     var.ini <- impurity(Y, timeScale)
     varex <- 1 - mean(oob.err$err)/var.ini
-    drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels, xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, varex=varex, size=size, time=temps,
-                curve.model=Curve$model, Inputs = Inputs)
+    drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels, xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, varex=varex,
+                Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
+                Curve.model = Curve$model, comput.time=temps)
     class(drf) <- c("DynForest")
     return(drf)
   }
 
   if (imp == FALSE && Y$type=="surv"){
-    drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels, xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, size=size, time=temps,
-                curve.model=Curve$model, Inputs = Inputs)
+    drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred,
+                Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
+                Curve.model = Curve$model, comput.time=temps)
     class(drf) <- c("DynForest")
     return(drf)
   }
 
 
-  print("Importance calculation...")
+  cat("Importance variables...\n")
   debut <- Sys.time()
   Curve.perm <- Curve
   Scalar.perm <- Scalar
@@ -145,7 +135,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   #X.perm <- list(type=X$type, X=X$X, id=X$id, time=X$time)
   if (is.element("curve",inputs)==TRUE){
     p=1
-    print('Computing the importance on the space of curves')
+    cat("Curves...")
     Curve.err <- matrix(NA, ntree, dim(Curve$X)[2])
 
     cl <- parallel::makeCluster(ncores)
@@ -174,12 +164,14 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
     }
 
     parallel::stopCluster(cl)
+
+    cat("OK!\n")
   }
 
 
   if (is.element("scalar",inputs)==TRUE){
     p=1
-    print('Computing the importance on the space of scalars')
+    cat("Scalars...")
     Scalar.err <- matrix(NA, ntree, dim(Scalar$X)[2])
 
     cl <- parallel::makeCluster(ncores)
@@ -207,11 +199,12 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
     }
 
     parallel::stopCluster(cl)
+    cat("OK!\n")
   }
 
   if (is.element("factor",inputs)==TRUE){
     p=1
-    print('Computing the importance on the space of factors')
+    cat("Factors...")
     Factor.err <- matrix(NA, ntree, dim(Factor$X)[2])
 
     cl <- parallel::makeCluster(ncores)
@@ -241,24 +234,29 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
     }
 
     parallel::stopCluster(cl)
+    cat("OK!\n")
   }
 
   Importance <- list(Curve=as.vector(Importance.Curve), Scalar=as.vector(Importance.Scalar), Factor=as.vector(Importance.Factor))
 
   ############
 
-  temps.imp <- Sys.time() - debut
+  temps <- Sys.time() - debut
+
+  cat("DynForest DONE!\n")
 
   if (Y$type == "surv"){
-    drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, time=temps,
-                curve.model=Curve$model, Inputs = Inputs)
+    drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance,
+                Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
+                Curve.model = Curve$model, comput.time=temps)
     class(drf) <- c("DynForest")
     return(drf)
   }
   var.ini <- impurity(Y, timeScale)
   varex <- 1 - mean(oob.err$err)/var.ini
-  drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, varex=varex, time=temps,
-              curve.model=Curve$model, Inputs = Inputs)
+  drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, varex=varex,
+              Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
+              Curve.model = Curve$model, comput.time=temps)
   class(drf) <- c("DynForest")
   return(drf)
 }
