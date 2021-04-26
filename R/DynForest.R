@@ -15,6 +15,9 @@
 #' @param d_out [string]: "euc" or "frec".
 #' @param nsplit_option
 #' @param nodesize
+#' @param cause
+#' @param IBS.min
+#' @param IBS.max
 #' @param ... : optional parameters to be passed to the low level function
 #'
 #' @import stringr
@@ -33,9 +36,13 @@
 #' }
 #' @export
 #'
-DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=100,ncores=NULL, timeScale=0.1, imp=TRUE, d_out=0.1,
-                      nsplit_option = "quantile", nodesize = 1, ...){
+DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=100, ncores=NULL, timeScale=0.1, imp=TRUE, d_out=0.1,
+                      nsplit_option = "quantile", nodesize = 1, cause = 1, IBS.min = 0, IBS.max = NULL, ...){
 
+
+  if (Y$type=="surv"){
+    Y$comp <- ifelse(length(unique(Y$Y[,2]))>2, TRUE, FALSE)
+  }
 
   ### On va regarder les différentes entrées:
   if (is.null(Curve)==FALSE){
@@ -74,7 +81,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   debut <- Sys.time()
   rf <-  rf_shape_para(Curve=Curve,Scalar=Scalar, Factor=Factor, Y=Y, mtry=mtry, ntree=ntree, timeScale = timeScale,ncores=ncores,
-                       nsplit_option = nsplit_option, nodesize = nodesize)
+                       nsplit_option = nsplit_option, nodesize = nodesize, cause = cause)
 
   rf <- list(type=Y$type, rf=rf, levels=levels(Y$Y))
 
@@ -83,18 +90,21 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
 
-  xerror <- pbsapply(1:ntree, FUN=function(i){OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,d_out=d_out)},cl=cl)
+  xerror <- pbsapply(1:ntree, FUN=function(i){OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,
+                                                       d_out=d_out, IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)},cl=cl)
 
   parallel::stopCluster(cl)
 
   # xerror <- rep(NA, ntree)
   # for (i in 1:ntree){
   #   cat(paste0(i,"\n"))
-  #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,d_out=d_out)
+  #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale, d_out=d_out,
+  #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
   # }
 
   cat("OOB Forest error...")
-  oob.err <- OOB.rfshape(rf,Curve = Curve,Scalar =Scalar,Factor=Factor, Y=Y, timeScale=timeScale, d_out=d_out)
+  oob.err <- OOB.rfshape(rf,Curve = Curve,Scalar =Scalar,Factor=Factor, Y=Y, timeScale=timeScale, d_out=d_out,
+                         IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
   cat("OK!\n")
 
   temps <- Sys.time() - debut
@@ -156,7 +166,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
         Curve.perm$X[-id_boot_Curve,p] <- permutation_courbes(Curve$X[-id_boot_Curve,p], Curve$id[-id_boot_Curve])
 
 
-        Curve.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve.perm, Scalar = Scalar, Factor=Factor, Y, timeScale=timeScale)
+        Curve.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve.perm, Scalar = Scalar, Factor=Factor, Y, timeScale=timeScale,
+                                   IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
 
       }
       Curve.perm$X[,p] <- Curve$X[,p]
@@ -191,7 +202,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
         Scalar.perm$X[-id_boot_Scalar,p] <- sample(Scalar.perm$X[-id_boot_Scalar,p])
 
-        Scalar.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar.perm, Factor=Factor, Y, timeScale=timeScale)
+        Scalar.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar.perm, Factor=Factor, Y, timeScale=timeScale,
+                                    IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
 
       }
       Scalar.perm$X[,p] <- Scalar$X[,p]
@@ -225,7 +237,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
         Factor.perm$X[-id_boot_Factor,p] <- sample(Factor.perm$X[-id_boot_Factor,p])
 
-        Factor.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar, Factor=Factor.perm , Y, timeScale=timeScale)
+        Factor.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar, Factor=Factor.perm , Y, timeScale=timeScale,
+                                    IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
 
       }
       ##on remet la variable en place :::

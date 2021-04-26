@@ -5,6 +5,7 @@
 #' @param timeScale
 #' @param nsplit_option
 #' @param nodesize
+#' @param cause
 #'
 #' @import kmlShape
 #' @import Evomorph
@@ -14,7 +15,7 @@
 #'
 #' @keywords internal
 var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
-                         nodesize = 1){
+                         nodesize = 1, cause = 1){
   # Pour le moment on se concentre sur le cas des variables courbes ::
   impur <- rep(0,dim(X$X)[length(dim(X$X))])
   toutes_imp <- list()
@@ -39,7 +40,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
             split_courant[[k]][which(X$id==l)] <- 1
           }
           # Il faut maintenant regarder la qualité du découpage ::
-          impurete <- impurity_split(Y,split_courant[[k]])
+          impurete <- impurity_split(Y,split_courant[[k]], cause = cause)
           impur_courant[k] <- impurete$impur
           toutes_imp_courant[[k]] <- impurete$imp_list
         }
@@ -93,7 +94,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
       for (i_sum in var_mtry2){ # boucle sur les resumes tires
 
-        if (!is.na(data_summaries[,i_sum])){
+        if (!all(is.na(data_summaries[,i_sum]))){
 
           if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
             split_threholds <- quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit))[-c(1,nsplit+1)]
@@ -112,9 +113,10 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
             if (length(unique(split_nsplit[[j]]))==1){
               impurete_nsplit[j] <- Inf
+              next()
             }
 
-            impurete <- impurity_split(Y,split_nsplit[[j]])
+            impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
             impurete_nsplit[j] <- impurete$impur
 
           }
@@ -164,9 +166,10 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
           if (length(unique(split_nsplit[[j]]))==1){
             impurete_nsplit[j] <- Inf
+            next()
           }
 
-          impurete <- impurity_split(Y,split_nsplit[[j]])
+          impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
           impurete_nsplit[j] <- impurete$impur
 
         }
@@ -181,7 +184,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
       if (length(unique(X$X[,i]))==2){
         split[[i]] <- rep(2,length(X$X[,i]))
         split[[i]][which(X$X[,i]==unique(X$X[,i])[1])] <- 1
-        impurete <- impurity_split(Y,split[[i]])
+        impurete <- impurity_split(Y,split[[i]], cause = cause)
         impur[i] <- impurete$impur
         threshold[i] <- mean(unique(X$X[,i]))
         toutes_imp[[i]] <- impurete$imp_list
@@ -199,10 +202,6 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
   }
   true_split <- which.min(impur)
   split <- split[[true_split]]
-
-  # if (Y$type=="surv"){
-  #   if (any(table(split[Y$Y==1],Y$Y[Y$Y==1]) < nodesize)) return(list(Pure=TRUE))
-  # }
 
   return(list(split=split, impurete=min(impur),impur_list = toutes_imp[[true_split]], variable=which.min(impur),
               variable_summary=ifelse(X$type=="curve", variable_summary[true_split], NA),

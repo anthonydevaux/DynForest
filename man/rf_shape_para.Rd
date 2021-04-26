@@ -6,7 +6,7 @@
 \usage{
 rf_shape_para(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry,
   ntree, ncores, timeScale = 0.1, nsplit_option = "quantile",
-  nodesize = 1)
+  nodesize = 1, cause = 1)
 }
 \arguments{
 \item{...}{}

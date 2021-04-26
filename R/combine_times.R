@@ -2,6 +2,7 @@
 #'
 #' @param pred
 #' @param newtimes
+#' @param type
 #'
 #' @importFrom zoo na.locf
 #'
@@ -9,7 +10,7 @@
 #' @export
 #'
 #' @examples
-combine_times <- function(pred, newtimes){
+combine_times <- function(pred, newtimes, type = "surv"){
 
   newtimes <- unique(sort(c(0,newtimes, pred$times)))
 
@@ -20,7 +21,12 @@ combine_times <- function(pred, newtimes){
   newpred$traj <- zoo::na.locf(newpred$traj, na.rm = F)
 
   if (any(is.na(newpred$traj))){
-    newpred$traj[which(is.na(newpred$traj))] <- 1
+    if (type == "surv"){
+      newpred$traj[which(is.na(newpred$traj))] <- 1
+    }
+    if (type == "risk"){
+      newpred$traj[which(is.na(newpred$traj))] <- 0
+    }
   }
 
   return(newpred)

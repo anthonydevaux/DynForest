@@ -2,10 +2,12 @@
 #'
 #' @param Y
 #' @param split
+#' @param cause
 #'
 #' @import survival
+#' @importFrom cmprsk crr
 #' @keywords internal
-impurity_split <- function(Y,split){
+impurity_split <- function(Y,split,cause=1){
   impur <- 0
   imp <- list()
   for (i in 1:2){
@@ -30,7 +32,22 @@ impurity_split <- function(Y,split){
     }
 
     if (Y$type == "surv"){
-      impur= 1/(1+survdiff(Y$Y~split)$chisq)
+      if (Y$comp){
+
+        # Fine & Gray splitting rule
+        crr.res <- cmprsk::crr(ftime = Y$Y[,1], fstatus = Y$Y[,2], cov1 = split, failcode = cause)
+        if (crr.res$converged){
+          impur <- 2*pnorm(abs(crr.res$coef)/sqrt(diag(crr.res$var)), lower.tail=FALSE) # p-value (from emil package)
+        }else{
+          impur <- Inf
+        }
+
+      }else{
+
+        # logrank splitting rule
+        impur <- 1/(1+survival::survdiff(Y$Y~split)$chisq)
+
+      }
       break
     }
   }

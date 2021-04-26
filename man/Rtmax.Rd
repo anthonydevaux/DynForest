@@ -6,7 +6,7 @@
 \usage{
 Rtmax(Curve = NULL, Scalar = NULL, Factor = NULL, Y = NULL,
   mtry = 1, timeScale = 0.1, nsplit_option = "quantile",
-  nodesize = 1)
+  nodesize = 1, cause = 1)
 }
 \arguments{
 \item{Curve}{[list]:}
@@ -21,7 +21,7 @@ Rtmax(Curve = NULL, Scalar = NULL, Factor = NULL, Y = NULL,
 
 \item{timeScale}{[numeric]:}
 
-\item{nodesize}{}
+\item{cause}{}
 }
 \description{
 Randomized Dynamic tree

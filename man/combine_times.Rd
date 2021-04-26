@@ -4,10 +4,10 @@
 \alias{combine_times}
 \title{Title}
 \usage{
-combine_times(pred, newtimes)
+combine_times(pred, newtimes, type = "surv")
 }
 \arguments{
-\item{newtimes}{}
+\item{type}{}
 }
 \description{
 Title

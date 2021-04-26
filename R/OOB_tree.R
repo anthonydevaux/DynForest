@@ -7,6 +7,9 @@
 #' @param Y
 #' @param timeScale
 #' @param d_out
+#' @param IBS.min
+#' @param IBS.max
+#' @param cause
 #'
 #' @import kmlShape
 #' @import Evomorph
@@ -16,7 +19,8 @@
 #' @import prodlim
 #'
 #' @keywords internal
-OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.1, d_out=0.1){
+OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.1, d_out=0.1,
+                     IBS.min = 0, IBS.max = NULL, cause = 1){
 
   inputs <- read.Xarg(c(Curve,Scalar,Factor))
   Inputs <- inputs
@@ -33,6 +37,24 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
   Curve_courant <- NULL
 
   if (Y$type=="curve" || Y$type=="surv"){
+    if (Y$type=="surv"){
+      allTimes <- sort(unique(c(0,Y$Y[,1])))
+
+      if (is.null(IBS.max)){
+        IBS.max <- max(allTimes)
+      }
+
+      Y.surv <- data.frame(time.event = Y$Y[order(Y$Y[,1]),1],
+                           event = ifelse(Y$Y[order(Y$Y[,1]),2]==cause,1,0))
+      # IPCW using all data
+      ipcw.res <- pec::ipcw(formula = Surv(time.event, event) ~ 1,
+                            data = Y.surv,
+                            method = "marginal",
+                            times=allTimes,
+                            subjectTimes=allTimes)$IPCW.times
+
+    }
+
     for (i in OOB){
 
       id_wY <- which(Y$id== i)
@@ -53,7 +75,6 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
       }
 
       pred_courant <- pred.MMT(tree, Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant, timeScale=timeScale)
-      #chancla <- DouglasPeuckerNbPoints(tree$Y_Curves[[pred_courant]]$times, tree$Y_Curves[[pred_courant]]$traj, nbPoints = length(stats::na.omit(Y[id_w])))
 
       if (is.na(pred_courant)){
 
@@ -67,25 +88,42 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
         if (Y$type == "surv"){
 
-          Y.surv <- data.frame(time.event = Y$Y[id_wY,1], event = Y$Y[id_wY,2])
+          # individual IBS with IPCW using all data
 
-          pec.res <- pec::pec(object = t(tree$Y_pred[[pred_courant]]$traj),
-                              formula = Surv(time.event, event) ~ 1,
-                              data = Y.surv, cens.model = "marginal",
-                              exact = FALSE, times = tree$Y_pred[[pred_courant]]$times,
-                              maxtime = max(tree$Y_pred[[pred_courant]]$times),
-                              reference = FALSE)
+          Di <- ifelse(Y$Y[id_wY,1] <= allTimes, 1, 0) # D(t)
+          pec.res <- list()
+          pec.res$AppErr$matrix <- ipcw.res*(Di-tree$Y_pred[[pred_courant]]$traj)^2 # BS(t)
+          pec.res$models <- "matrix"
+          pec.res$time <- allTimes
+          pec.res$start <- 0
+          pec.res$maxtime <- max(allTimes)
+          class(pec.res) <- "pec"
 
-          IBS <- pec::ibs(pec.res, start = 0,
-                          times = max(tree$Y_pred[[pred_courant]]$times))[1]
+          xerror[which(OOB==i)] <- pec::ibs(pec.res, start = IBS.min, times = IBS.max)[1] # IBS
 
-          xerror[which(OOB==i)] <- IBS
+          ############
+
+          # individual IBS with IPCW using one individual
+
+          # Y.surv <- data.frame(time.event = Y$Y[id_wY,1], event = Y$Y[id_wY,2])
+          #
+          # pec.res <- pec::pec(object = 1-t(tree$Y_pred[[pred_courant]]$traj),
+          #                     formula = Surv(time.event, event) ~ 1,
+          #                     data = Y.surv, cens.model = "marginal",
+          #                     exact = FALSE, times = allTimes,
+          #                     maxtime = max(allTimes),
+          #                     reference = FALSE)
+          #
+          # IBS <- pec::ibs(pec.res, start = 0, times = max(allTimes))[1]
+          #
+          # xerror[which(OOB==i)] <- IBS
 
         }
 
       }
 
     }
+
   }
 
   if (Y$type == "factor" || Y$type == "scalar"){

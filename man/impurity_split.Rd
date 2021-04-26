@@ -4,10 +4,10 @@
 \alias{impurity_split}
 \title{Impurity Split}
 \usage{
-impurity_split(Y, split)
+impurity_split(Y, split, cause = 1)
 }
 \arguments{
-\item{split}{}
+\item{cause}{}
 }
 \description{
 Impurity Split

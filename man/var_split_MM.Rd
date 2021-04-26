@@ -5,10 +5,10 @@
 \title{Mixed-Model Split function}
 \usage{
 var_split_MM(X, Y, timeScale = 0.1, nsplit_option = "quantile",
-  nodesize = 1)
+  nodesize = 1, cause = 1)
 }
 \arguments{
-\item{nodesize}{}
+\item{cause}{}
 }
 \description{
 Mixed-Model Split function
