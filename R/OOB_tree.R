@@ -36,6 +36,8 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
   Factor_courant <- NULL
   Curve_courant <- NULL
 
+  browser()
+
   if (Y$type=="curve" || Y$type=="surv"){
     if (Y$type=="surv"){
       allTimes <- sort(unique(c(0,Y$Y[,1])))

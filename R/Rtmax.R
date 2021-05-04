@@ -350,13 +350,16 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
         if (Y$type=="surv"){
           datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
           fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
-                         reverse = any(unique(datasurv$event)==0),
+                         #reverse = any(unique(datasurv$event)==0),
                          # censoring distribution if right censored data
                          type = "risk")
-          #fit <- survfit(Y_boot$Y[w]~1)
-          #pred <- data.frame(times=fit$time, traj=fit$cumhaz) # Nelson-Aalen CHF
-          #pred <- data.frame(times=fit$time, traj=fit$surv) # surv Kaplan-Meier
-          pred <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM / Aalen-Johansen
+
+          if (is.null(fit$cuminc)){
+            pred <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
+          }else{
+            pred <- data.frame(times=fit$time, traj=fit$cuminc[[cause]]) # Aalen-Johansen
+          }
+
           Y_pred[[q]] <- combine_times(pred = pred, newtimes = unique(Y$Y[,1]), type = "risk")
         }
 
@@ -391,13 +394,16 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
     if (Y$type=="surv"){
       datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
       fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
-                     reverse = any(unique(datasurv$event)==0),
+                     #reverse = any(unique(datasurv$event)==0),
                      # censoring distribution if right censored data
                      type = "risk")
-      #fit <- survfit(Y_boot$Y[w]~1)
-      #pred <- data.frame(times=fit$time, traj=fit$cumhaz) # Nelson-Aalen CHF
-      #pred <- data.frame(times=fit$time, traj=fit$surv) # surv Kaplan-Meier
-      pred <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM / Aalen-Johansen
+
+      if (is.null(fit$cuminc)){
+        pred <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
+      }else{
+        pred <- data.frame(times=fit$time, traj=fit$cuminc[[cause]]) # Aalen-Johansen CIF
+      }
+
       Y_pred[[q]] <- combine_times(pred = pred, newtimes = unique(Y$Y[,1]), type = "risk")
     }
 
