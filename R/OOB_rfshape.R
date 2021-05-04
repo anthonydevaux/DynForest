@@ -47,7 +47,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
     }
 
     Y.surv <- data.frame(time.event = Y$Y[order(Y$Y[,1]),1],
-                         event = ifelse(Y$Y[order(Y$Y[,1]),2]==cause,1,0))
+                         event = ifelse(Y$Y[order(Y$Y[,1]),2]==0,0,1))
 
     # IPCW using all data
     ipcw.res <- pec::ipcw(formula = Surv(time.event, event) ~ 1,
@@ -109,7 +109,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
 
       # individual IBS with IPCW using all data
 
-      Di <- ifelse(Y$Y[w_y,1] <= allTimes, 1, 0) # D(t)
+      Di <- ifelse(Y$Y[w_y,1] <= allTimes, 1, 0)*ifelse(Y$Y[w_y,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
       pec.res <- list()
       pec.res$AppErr$matrix <- ipcw.res*(Di-oob.pred)^2 # BS(t)
       pec.res$models <- "matrix"
@@ -119,15 +119,6 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
       class(pec.res) <- "pec"
 
       err <- pec::ibs(pec.res, start = IBS.min, times = IBS.max)[1] # IBS
-
-      # pec.res <- pec::pec(object = t(oob.pred),
-      #                     formula = Surv(time.event, event) ~ 1,
-      #                     data = Y.surv, cens.model = "marginal",
-      #                     exact = FALSE, times = allTimes,
-      #                     maxtime = max(allTimes),
-      #                     reference = FALSE)
-      #
-      # err <- pec::ibs(pec.res, start = 0, times = max(allTimes))[1]
 
       return(list(err=err,oob.pred=oob.pred))
     }

@@ -87,20 +87,20 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
 
   print("OOB trees error...")
-  # cl <- parallel::makeCluster(ncores)
-  # doParallel::registerDoParallel(cl)
-  #
-  # xerror <- pbsapply(1:ntree, FUN=function(i){OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,
-  #                                                      d_out=d_out, IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)},cl=cl)
-  #
-  # parallel::stopCluster(cl)
+  cl <- parallel::makeCluster(ncores)
+  doParallel::registerDoParallel(cl)
 
-  xerror <- rep(NA, ntree)
-  for (i in 1:ntree){
-    cat(paste0(i,"\n"))
-    xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale, d_out=d_out,
-                         IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
-  }
+  xerror <- pbsapply(1:ntree, FUN=function(i){OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,
+                                                       d_out=d_out, IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)},cl=cl)
+
+  parallel::stopCluster(cl)
+
+  # xerror <- rep(NA, ntree)
+  # for (i in 1:ntree){
+  #   cat(paste0(i,"\n"))
+  #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale, d_out=d_out,
+  #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
+  # }
 
   cat("OOB Forest error...")
   oob.err <- OOB.rfshape(rf,Curve = Curve,Scalar =Scalar,Factor=Factor, Y=Y, timeScale=timeScale, d_out=d_out,

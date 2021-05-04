@@ -36,8 +36,6 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
   Factor_courant <- NULL
   Curve_courant <- NULL
 
-  browser()
-
   if (Y$type=="curve" || Y$type=="surv"){
     if (Y$type=="surv"){
       allTimes <- sort(unique(c(0,Y$Y[,1])))
@@ -47,7 +45,7 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
       }
 
       Y.surv <- data.frame(time.event = Y$Y[order(Y$Y[,1]),1],
-                           event = ifelse(Y$Y[order(Y$Y[,1]),2]==cause,1,0))
+                           event = ifelse(Y$Y[order(Y$Y[,1]),2]==0,0,1))
       # IPCW using all data
       ipcw.res <- pec::ipcw(formula = Surv(time.event, event) ~ 1,
                             data = Y.surv,
@@ -92,7 +90,7 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
           # individual IBS with IPCW using all data
 
-          Di <- ifelse(Y$Y[id_wY,1] <= allTimes, 1, 0) # D(t)
+          Di <- ifelse(Y$Y[id_wY,1] <= allTimes, 1, 0)*ifelse(Y$Y[id_wY,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
           pec.res <- list()
           pec.res$AppErr$matrix <- ipcw.res*(Di-tree$Y_pred[[pred_courant]]$traj)^2 # BS(t)
           pec.res$models <- "matrix"
@@ -102,23 +100,6 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
           class(pec.res) <- "pec"
 
           xerror[which(OOB==i)] <- pec::ibs(pec.res, start = IBS.min, times = IBS.max)[1] # IBS
-
-          ############
-
-          # individual IBS with IPCW using one individual
-
-          # Y.surv <- data.frame(time.event = Y$Y[id_wY,1], event = Y$Y[id_wY,2])
-          #
-          # pec.res <- pec::pec(object = 1-t(tree$Y_pred[[pred_courant]]$traj),
-          #                     formula = Surv(time.event, event) ~ 1,
-          #                     data = Y.surv, cens.model = "marginal",
-          #                     exact = FALSE, times = allTimes,
-          #                     maxtime = max(allTimes),
-          #                     reference = FALSE)
-          #
-          # IBS <- pec::ibs(pec.res, start = 0, times = max(allTimes))[1]
-          #
-          # xerror[which(OOB==i)] <- IBS
 
         }
 
