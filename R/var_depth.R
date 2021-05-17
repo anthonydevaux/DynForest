@@ -18,24 +18,24 @@ var_depth <- function(DynForest_obj){
     Curve_depth_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
       if (nrow(x$V_split[x$V_split$type=="Curve",])==0){
-        return(data.frame("type" = character(), "num_noeud" = numeric()))
+        return(data.frame("var" = character(), "num_noeud" = numeric()))
       }
 
       df <- aggregate(num_noeud ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], min)
-      df <- data.frame(type = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
+      df <- data.frame(var = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
                        num_noeud = df$num_noeud)
       return(df)
 
     })
 
-    Curve_depth <- aggregate(num_noeud ~ type,
+    Curve_depth <- aggregate(num_noeud ~ var,
                              do.call(rbind, Curve_depth_list), mean)
-    Curve_depth <- Curve_depth[str_order(Curve_depth$type),]
+    Curve_depth <- Curve_depth[str_order(Curve_depth$var),]
 
-    Curve_node_depth <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "type",
+    Curve_node_depth <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "var",
                                                           all.x = TRUE, all.y = TRUE),
                                Curve_depth_list)
-    Curve_node_depth <- Curve_node_depth[str_order(Curve_node_depth$type),]
+    Curve_node_depth <- Curve_node_depth[str_order(Curve_node_depth$var),]
     colnames(Curve_node_depth)[2:ncol(Curve_node_depth)] <- paste0("tree", seq(ncol(Curve_node_depth)-1))
 
     # count by tree
@@ -43,21 +43,21 @@ var_depth <- function(DynForest_obj){
     Curve_count_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
       if (nrow(x$V_split[x$V_split$type=="Curve",])==0){
-        return(data.frame("type" = character(), "num_noeud" = numeric()))
+        return(data.frame("var" = character(), "num_noeud" = numeric()))
       }
 
       df <- aggregate(num_noeud ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], length)
-      df <- data.frame(type = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
+      df <- data.frame(var = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
                        num_noeud = df$num_noeud)
       return(df)
 
     })
 
-    Curve_count <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "type",
+    Curve_count <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "var",
                                                      all.x = TRUE, all.y = TRUE),
                           Curve_count_list)
 
-    Curve_count <- Curve_count[str_order(Curve_count$type),]
+    Curve_count <- Curve_count[str_order(Curve_count$var),]
     colnames(Curve_count)[2:ncol(Curve_count)] <- paste0("tree", seq(ncol(Curve_count)-1))
 
   }else{
@@ -77,24 +77,24 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
 
         df_scalar <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], min)
-        df_scalar <- data.frame(type = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+        df_scalar <- data.frame(var = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
                                 num_noeud = df_scalar$num_noeud)
 
       }else{
 
-        df_scalar <- data.frame("type" = character(), "num_noeud" = numeric())
+        df_scalar <- data.frame("var" = character(), "num_noeud" = numeric())
 
       }
 
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
       df_factor <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], min)
-      df_factor <- data.frame(type = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+      df_factor <- data.frame(var = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
                        num_noeud = df_factor$num_noeud)
 
       }else{
 
-        df_factor <- data.frame("type" = character(), "num_noeud" = numeric())
+        df_factor <- data.frame("var" = character(), "num_noeud" = numeric())
 
       }
 
@@ -104,14 +104,14 @@ var_depth <- function(DynForest_obj){
 
     })
 
-    Other_depth <- aggregate(num_noeud ~ type,
+    Other_depth <- aggregate(num_noeud ~ var,
                              do.call(rbind, Other_depth_list), mean)
-    Other_depth <- Other_depth[str_order(Other_depth$type),]
+    Other_depth <- Other_depth[str_order(Other_depth$var),]
 
-    Other_node_depth <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "type",
+    Other_node_depth <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "var",
                                                           all.x = TRUE, all.y = TRUE),
                                Other_depth_list)
-    Other_node_depth <- Other_node_depth[str_order(Other_node_depth$type),]
+    Other_node_depth <- Other_node_depth[str_order(Other_node_depth$var),]
     colnames(Other_node_depth)[2:ncol(Other_node_depth)] <- paste0("tree", seq(ncol(Other_node_depth)-1))
 
     # count by tree
@@ -121,24 +121,24 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
 
         df_scalar <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], length)
-        df_scalar <- data.frame(type = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+        df_scalar <- data.frame(var = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
                                 num_noeud = df_scalar$num_noeud)
 
       }else{
 
-        df_scalar <- data.frame("type" = character(), "num_noeud" = numeric())
+        df_scalar <- data.frame("var" = character(), "num_noeud" = numeric())
 
       }
 
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
         df_factor <- aggregate(num_noeud ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], length)
-        df_factor <- data.frame(type = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+        df_factor <- data.frame(var = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
                                 num_noeud = df_factor$num_noeud)
 
       }else{
 
-        df_factor <- data.frame("type" = character(), "num_noeud" = numeric())
+        df_factor <- data.frame("var" = character(), "num_noeud" = numeric())
 
       }
 
@@ -148,11 +148,11 @@ var_depth <- function(DynForest_obj){
 
     })
 
-    Other_count <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "type",
+    Other_count <- Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "var",
                                                      all.x = TRUE, all.y = TRUE),
                           Other_count_list)
 
-    Other_count <- Other_count[str_order(Other_count$type),]
+    Other_count <- Other_count[str_order(Other_count$var),]
     colnames(Other_count)[2:ncol(Other_count)] <- paste0("tree", seq(ncol(Other_count)-1))
 
   }else{

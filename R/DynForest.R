@@ -97,7 +97,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   # xerror <- rep(NA, ntree)
   # for (i in 1:ntree){
-  #   cat(paste0(i,"\n"))
+  #   cat(paste0("Tree ", i,"\n"))
   #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale, d_out=d_out,
   #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
   # }

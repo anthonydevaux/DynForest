@@ -8,6 +8,7 @@
 #' @importFrom cmprsk crr
 #' @keywords internal
 impurity_split <- function(Y,split,cause=1){
+
   impur <- 0
   imp <- list()
   for (i in 1:2){
@@ -35,7 +36,8 @@ impurity_split <- function(Y,split,cause=1){
       if (Y$comp){
 
         # Fine & Gray splitting rule
-        crr.res <- cmprsk::crr(ftime = Y$Y[,1], fstatus = Y$Y[,2], cov1 = split, failcode = cause)
+        crr.res <- tryCatch(cmprsk::crr(ftime = Y$Y[,1], fstatus = Y$Y[,2], cov1 = split, failcode = cause),
+                            error = function(e) return(list(converged = FALSE)))
         if (crr.res$converged){
           impur <- 2*pnorm(abs(crr.res$coef)/sqrt(diag(crr.res$var)), lower.tail=FALSE) # p-value (from emil package)
         }else{
