@@ -305,10 +305,12 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           id_feuille_prime[wY_droit] <- 2*(feuilles_courantes[i])+1
 
           if (X$type=="curve"){
-            trajG <- as.data.frame(cbind(X_boot$id[w_gauche], X_boot$time[w_gauche], X_boot$X[w_gauche,vsplit_space]))
-            trajD <- as.data.frame(cbind(X_boot$id[w_droit], X_boot$time[w_droit], X_boot$X[w_droit,vsplit_space]))
-            meanFg <- as.matrix(kmlShape::meanFrechet(trajG))
-            meanFd <- as.matrix(kmlShape::meanFrechet(trajD))
+            # trajG <- as.data.frame(cbind(X_boot$id[w_gauche], X_boot$time[w_gauche], X_boot$X[w_gauche,vsplit_space]))
+            # trajD <- as.data.frame(cbind(X_boot$id[w_droit], X_boot$time[w_droit], X_boot$X[w_droit,vsplit_space]))
+            # meanFg <- as.matrix(kmlShape::meanFrechet(trajG))
+            # meanFd <- as.matrix(kmlShape::meanFrechet(trajD))
+            meanFg <- NA
+            meanFd <- NA
           }
 
           if (X$type=="factor"){

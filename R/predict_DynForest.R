@@ -5,6 +5,7 @@
 #' @param Scalar [list]:
 #' @param Factor [list]:
 #' @param timeScale [numeric]:
+#' @param predTimes [numeric]:
 #' @param ncores [numeric]:
 #' @param ... : optional parameters to be passed to the low level function
 #'
@@ -19,7 +20,8 @@
 #' @return
 #' @export
 #'
-predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1, ncores = NULL, ...){
+predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1, predTimes = NULL,
+                              ncores = NULL, ...){
   # La première étape est de toujours lire les prédicteurs ::
 
   if (is.null(Curve)==FALSE){
@@ -107,19 +109,24 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   }
 
   if (object$type=="surv"){
-    pred <- NULL
+
     allTimes <- object$times
+
+    if (is.null(predTimes)){
+      predTimes <- allTimes
+    }
+
+    id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
+    pred <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
+
     for (l in 1:dim(pred.feuille)[2]){
-      pred_courant <- NULL
+      pred_courant <- matrix(NA, nrow = ncol(object$rf), ncol = length(predTimes))
       for(k in 1:dim(pred.feuille)[1]){
-        pred_courant <- rbind(pred_courant, object$rf[,k]$Y_pred[[pred.feuille[k,l]]]$traj)
+        pred_courant[k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]]$traj[id.predTimes]
       }
 
-      pred.Id <- data.frame(ID = rep(Id.pred[l], length(allTimes)),
-                            times = allTimes,
-                            pred = apply(pred_courant, 2, mean, na.rm = TRUE))
+      pred[l,] <- apply(pred_courant, 2, mean, na.rm = TRUE)
 
-      pred <- rbind(pred, pred.Id)
     }
   }
   return(pred)
