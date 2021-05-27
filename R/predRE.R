@@ -14,9 +14,8 @@
 #' @examples
 predRE <- function(model, formula, data){
 
-  # a revoir pour gerer les NA
-
   subject <- "id"
+  dataNA <- na.omit(data)
   beta <- model$beta
 
   # Variance-covariance matrix of the random-effects
@@ -27,16 +26,19 @@ predRE <- function(model, formula, data){
   B[upper.tri(B,diag=TRUE)] <- model$varcov
 
   se <- model$stderr^2 # residual variance error
-  Z <- model.matrix(formula$random, data) # random design matrix
-  X <- model.matrix(formula$fixed, data) # fixed design matrix
-  Y <- na.omit(data[,as.character(formula$fixed)[2], drop = FALSE]) # outcome
+  Z <- model.matrix(formula$random, dataNA) # random design matrix
+
+  X <- model.matrix(formula$fixed, dataNA) # fixed design matrix
+
+  Y <- model.matrix(reformulate(as.character(formula$fixed)[2], intercept = FALSE),
+                    dataNA) # outcome
 
   bi <- matrix(NA, nrow = length(unique(data$id)), ncol = ncol(B),
                dimnames = list(unique(data$id), colnames(Z)))
 
   for (id in unique(data$id)){
 
-    row.id <- which(data$id==id)
+    row.id <- which(dataNA$id==id)
     Zi <- Z[row.id, , drop = FALSE]
     Xi <- X[row.id, ]
     Yi <- Y[row.id, ]

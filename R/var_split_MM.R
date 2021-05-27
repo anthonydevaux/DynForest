@@ -97,7 +97,8 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
         if (!all(is.na(data_summaries[,i_sum]))){
 
           if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
-            split_threholds <- quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit))[-c(1,nsplit+1)]
+            split_threholds <- quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit),
+                                        na.rm = T)[-c(1,nsplit+1)]
           }
 
           if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
@@ -150,7 +151,8 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
         nsplit <- 10
 
         if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
-          split_threholds <- quantile(X$X[,i], probs = seq(0,1,1/nsplit))[-c(1,nsplit+1)]
+          split_threholds <- quantile(X$X[,i], probs = seq(0,1,1/nsplit),
+                                      na.rm = T)[-c(1,nsplit+1)]
         }
 
         if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
