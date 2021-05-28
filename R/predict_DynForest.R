@@ -20,9 +20,33 @@
 #' @return
 #' @export
 #'
-predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1, predTimes = NULL,
+predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1,
+                              predTimes = NULL, t0 = NULL,
                               ncores = NULL, ...){
-  # La première étape est de toujours lire les prédicteurs ::
+
+  ##########
+  # Checking
+
+  if (object$type=="surv"){
+
+    if (is.null(t0)){
+      stop("t0 value is needed for dynamic prediction !")
+    }
+    if (!is.null(predTimes)){
+      if (all(predTimes<=t0)){
+        stop("predTimes values should be greater than t0 time !")
+      }
+      if (any(predTimes<=t0)){
+        warning("Only predTimes values greater than t0 time will be computed !")
+        predTimes <- predTimes[!(predTimes <= t0)]
+      }
+    }else{
+      predTimes <- object$times
+    }
+
+  }
+
+  ##########
 
   if (is.null(Curve)==FALSE){
     Curve <- list(type="curve",X=Curve$X,id=Curve$id,time=Curve$time,
@@ -57,7 +81,6 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   }
 
   # leaf predictions of new subjects
-
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
 
@@ -112,9 +135,9 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
     allTimes <- object$times
 
-    if (is.null(predTimes)){
-      predTimes <- allTimes
-    }
+    # if (is.null(predTimes)){
+    #   predTimes <- allTimes
+    # }
 
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
     pred <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
