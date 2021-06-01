@@ -41,7 +41,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
         predTimes <- predTimes[!(predTimes <= t0)]
       }
     }else{
-      predTimes <- object$times
+      predTimes <- object$times[!(object$times <= t0)]
     }
 
   }
@@ -51,6 +51,11 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   if (is.null(Curve)==FALSE){
     Curve <- list(type="curve",X=Curve$X,id=Curve$id,time=Curve$time,
                   model=object$Curve.model)
+    if (!is.null(t0)){
+      Curve$X <- Curve$X[which(Curve$time<t0),]
+      Curve$id <- Curve$id[which(Curve$time<t0)]
+      Curve$time <- Curve$time[which(Curve$time<t0)]
+    }
   }
   if (is.null(Scalar)==FALSE){
     Scalar <- list(type="scalar",X=Scalar$X,id=Scalar$id)
@@ -134,10 +139,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   if (object$type=="surv"){
 
     allTimes <- object$times
-
-    # if (is.null(predTimes)){
-    #   predTimes <- allTimes
-    # }
+    predTimes <- c(t0, predTimes)
 
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
     pred <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
@@ -156,6 +158,9 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
       pred[l,] <- apply(pred_courant, 2, mean, na.rm = TRUE)
 
     }
+
+    pred <- apply(pred[,-1], MARGIN = 2, FUN = function(x) x-pred[,1]) # pi(T<=tHor|T>t0)
+
   }
   return(pred)
 }
