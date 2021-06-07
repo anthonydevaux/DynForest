@@ -159,7 +159,8 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
     }
 
-    pred <- apply(pred[,-1], MARGIN = 2, FUN = function(x) x-pred[,1]) # pi(T<=tHor|T>t0)
+    #pred <- apply(pred[,-1], MARGIN = 2, FUN = function(x) x-pred[,1]) # pi(T<=tHor|T>t0)
+    pred <- 1 - apply(pred[,-1], MARGIN = 2, FUN = function(x) {(1-x)/(1-pred[,1])}) # pi(T<=tHor|T>t0)
 
   }
   return(pred)
