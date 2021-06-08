@@ -6,6 +6,7 @@
 #' @param nsplit_option
 #' @param nodesize
 #' @param cause
+#' @param init
 #'
 #' @import kmlShape
 #' @import Evomorph
@@ -15,7 +16,7 @@
 #'
 #' @keywords internal
 var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
-                         nodesize = 1, cause = 1){
+                         nodesize = 1, cause = 1, init = NULL){
   # Pour le moment on se concentre sur le cas des variables courbes ::
   impur <- rep(0,dim(X$X)[length(dim(X$X))])
   toutes_imp <- list()
@@ -57,14 +58,29 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
     if (X$type=="curve"){
 
-      # modele mixte pour construire les resumes
-
+      # compute summaries from mixed model
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, marker = X$X[,i])
       colnames(data_model)[which(colnames(data_model)=="marker")] <- colnames(X$X)[i]
 
-      model_output <- hlme(fixed = X$model[[i]]$fixed,
-                           random = X$model[[i]]$random,
-                           subject = "id", data = data_model, verbose = FALSE)
+      # Mixed model with initial values for parameters ?
+      if (!is.na(init[[colnames(X$X)[i]]][[1]])){
+
+        model_output <- hlme(fixed = X$model[[i]]$fixed,
+                             random = X$model[[i]]$random,
+                             subject = "id", data = data_model,
+                             B = init[[colnames(X$X)[i]]],
+                             verbose = FALSE)
+
+      }else{
+
+        model_output <- hlme(fixed = X$model[[i]]$fixed,
+                             random = X$model[[i]]$random,
+                             subject = "id", data = data_model,
+                             verbose = FALSE)
+
+      }
+
+      init[[colnames(X$X)[i]]] <- model_output$best
 
       model_param[[i]] <- list(beta = model_output$best[(model_output$N[1]+1):model_output$N[2]],
                                varcov = model_output$best[(model_output$N[1]+model_output$N[2]+1):
@@ -209,5 +225,6 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
               variable_summary=ifelse(X$type=="curve", variable_summary[true_split], NA),
               threshold=ifelse(X$type=="curve"|X$type=="scalar", threshold[true_split], NA),
               model_param=ifelse(X$type=="curve", list(model_param[[true_split]]), NA),
+              init = init,
               Pure=Pure))
 }

@@ -36,6 +36,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
                         Nevent = integer(), stringsAsFactors = FALSE)
   hist_nodes <- list()
   model_param <- list()
+  model_init <- list()
   id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
   boot <- id_boot
   decoupe <- 1
@@ -117,6 +118,30 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           tirageCurve <- sample(1:ncol(Curve$X),length(which(variables=="curve")))
           Curve_courant <- list(type = Curve_boot$type, X=Curve_boot$X[wXCurve,tirageCurve, drop=FALSE], id=Curve_boot$id[wXCurve, drop=FALSE], time=Curve_boot$time[wXCurve, drop=FALSE],
                                 model = Curve_boot$model[tirageCurve])
+
+
+          # initial values to compute MM from upper nodes
+          current_node <- feuilles_courantes[i]
+          marker_init <- colnames(Curve_courant$X)
+          model_init[[current_node]] <- rep(list(NA), length(tirageCurve))
+          names(model_init[[current_node]]) <- marker_init
+
+          while (current_node>1 & length(marker_init)>0){
+
+            current_node <- current_node%/%2
+
+            current_node_marker <-
+              names(model_init[[current_node]])[which(names(model_init[[current_node]])%in%marker_init)]
+
+            if (length(current_node_marker)>0){
+
+              model_init[[feuilles_courantes[i]]][current_node_marker] <- model_init[[current_node]][current_node_marker]
+              marker_init <- marker_init[-which(marker_init%in%current_node_marker)]
+
+            }
+
+          }
+
         }
 
         if (is.element("scalar",split.spaces)==TRUE){
@@ -176,9 +201,10 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
             feuille_split_Curve <- var_split_MM(X = Curve_courant, Y = Y_courant, timeScale = timeScale,
                                                 nsplit_option = nsplit_option, nodesize = nodesize,
-                                                cause = cause)
+                                                cause = cause, init = model_init[[feuilles_courantes[i]]])
 
             if (feuille_split_Curve$Pure==FALSE){
+              model_init[[feuilles_courantes[i]]] <- feuille_split_Curve$init # update initial values at current node
               F_SPLIT <- merge(F_SPLIT,
                                data.frame(TYPE = "Curve", Impurity = feuille_split_Curve$impurete,
                                           stringsAsFactors = FALSE),
@@ -242,6 +268,12 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           gauche_id <- unique(Y_courant$id)[which(feuille_split$split==1)]
           droit_id <- unique(Y_courant$id)[which(feuille_split$split==2)]
 
+          if (sum(is.na(feuille_split$split)) > 0){
+            na_id <- unique(Y_courant$id)[which(is.na(feuille_split$split))]
+          }else{
+            na_id <- NULL
+          }
+
           if (Y$type=="surv"){
 
             LNevent <- sum(Y_courant$Y[,2][which(feuille_split$split==1)]==cause)
@@ -301,6 +333,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
             wY_droit <- c(wY_droit, which(Y_boot$id==droit_id[k]))
           }
 
+          if (!is.null(na_id)){
+            wY_na <- which(Y_boot$id%in%na_id)
+            id_feuille_prime[wY_na] <- NA
+          }
+
           id_feuille_prime[wY_gauche] <- 2*(feuilles_courantes[i])
           id_feuille_prime[wY_droit] <- 2*(feuilles_courantes[i])+1
 
@@ -333,7 +370,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
     }
 
     id_feuille <- id_feuille_prime
-    feuilles_courantes <- setdiff(unique(id_feuille_prime), feuilles_terminales)
+    feuilles_courantes <- setdiff(unique(na.omit(id_feuille_prime)), feuilles_terminales)
 
     if (count_split ==0 ){
 
