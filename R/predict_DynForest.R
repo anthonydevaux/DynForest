@@ -52,9 +52,9 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     Curve <- list(type="curve",X=Curve$X,id=Curve$id,time=Curve$time,
                   model=object$Curve.model)
     if (!is.null(t0)){
-      Curve$X <- Curve$X[which(Curve$time<t0),]
-      Curve$id <- Curve$id[which(Curve$time<t0)]
-      Curve$time <- Curve$time[which(Curve$time<t0)]
+      Curve$X <- Curve$X[which(Curve$time<=t0),]
+      Curve$id <- Curve$id[which(Curve$time<=t0)]
+      Curve$time <- Curve$time[which(Curve$time<=t0)]
     }
   }
   if (is.null(Scalar)==FALSE){
@@ -159,8 +159,11 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
     }
 
-    #pred <- apply(pred[,-1], MARGIN = 2, FUN = function(x) x-pred[,1]) # pi(T<=tHor|T>t0)
-    pred <- 1 - apply(pred[,-1], MARGIN = 2, FUN = function(x) {(1-x)/(1-pred[,1])}) # pi(T<=tHor|T>t0)
+    # S landmark time / t horizon time
+    # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
+    #                = ( F(S+t) - F(S) ) / S(S)
+    # A faire CR => S(S) n'est pas egale a 1-F(S) mais a la somme des Fj(S) avec j event
+    pred <- apply(pred[,-1], MARGIN = 2, FUN = function(x) {(x-pred[,1])/(1-pred[,1])})
 
   }
   return(pred)
