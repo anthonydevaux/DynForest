@@ -58,9 +58,13 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
     if (X$type=="curve"){
 
+      fixed_var <- all.vars(X$model[[i]]$fixed)
+      random_var <- all.vars(X$model[[i]]$random)
+      model_var <- unique(c(fixed_var,random_var))
+
       # compute summaries from mixed model
-      data_model <- data.frame(id = as.numeric(X$id), time = X$time, marker = X$X[,i])
-      colnames(data_model)[which(colnames(data_model)=="marker")] <- colnames(X$X)[i]
+      data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,, drop = FALSE])
+      data_model <- data_model[,c("id", model_var)]
 
       # Mixed model with initial values for parameters ?
       if (!is.na(init[[colnames(X$X)[i]]][[1]])){

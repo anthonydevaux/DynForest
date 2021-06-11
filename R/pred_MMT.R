@@ -53,8 +53,14 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL,timeScale=0.1){
 
       if (type=="curve"){
 
+        fixed_var <- all.vars(X$model[[var.split]]$fixed)
+        random_var <- all.vars(X$model[[var.split]]$random)
+        model_var <- unique(c(fixed_var,random_var))
+
         data_model <- data.frame(id = as.numeric(X$id[wCurve]), time = X$time[wCurve],
                                  X$X[wCurve, , drop = FALSE])
+
+        data_model <- data_model[,c("id",model_var)]
 
         RE <- predRE(tree$model_param[[noeud_courant]][[1]],
                      X$model[[var.split]], data_model)$bi
