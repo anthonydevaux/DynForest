@@ -81,8 +81,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
 
-    cat(paste0(p, "\n"))
-
     count_split <- 0
     for (i in 1:length(feuilles_courantes)){
       # Il faut que l'on regarde le tirage des variables de manière aléatoire :
