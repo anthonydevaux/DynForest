@@ -117,14 +117,22 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           Curve_courant <- list(type = Curve_boot$type, X=Curve_boot$X[wXCurve,tirageCurve, drop=FALSE], id=Curve_boot$id[wXCurve, drop=FALSE], time=Curve_boot$time[wXCurve, drop=FALSE],
                                 model = Curve_boot$model[tirageCurve])
 
-
-          # initial values to compute MM from upper nodes
           current_node <- feuilles_courantes[i]
           marker_init <- colnames(Curve_courant$X)
-          model_init[[current_node]] <- rep(list(NA), length(tirageCurve))
-          names(model_init[[current_node]]) <- marker_init
 
-          while (current_node>1 & length(marker_init)>0){
+          if (current_node==1){ # starting values for mixed models
+
+            model_init[[current_node]] <- lapply(Curve$model, FUN = function(x) x$init.param)
+            names(model_init[[current_node]]) <- colnames(Curve$X)
+
+          }else{
+
+            model_init[[current_node]] <- rep(list(NA), length(tirageCurve))
+            names(model_init[[current_node]]) <- marker_init
+
+          }
+
+          while (current_node>1 & length(marker_init)>0){ # get initial values from upper nodes
 
             current_node <- current_node%/%2
 
