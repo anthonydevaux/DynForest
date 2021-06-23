@@ -123,7 +123,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           if (current_node==1){ # starting values for mixed models
 
             model_init[[current_node]] <- lapply(Curve$model, FUN = function(x) x$init.param)
-            names(model_init[[current_node]]) <- colnames(Curve$X)
 
           }else{
 
