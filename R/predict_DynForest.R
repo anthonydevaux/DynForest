@@ -102,6 +102,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   parallel::stopCluster(cl)
 
   # for (t in 1:ncol(object$rf)){
+  #   cat(t,"\n")
   #   pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale)
   # }
 
@@ -143,6 +144,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
     pred <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
+    rownames(pred) <- Id.pred
 
     for (l in 1:dim(pred.feuille)[2]){
       pred_courant <- matrix(NA, nrow = ncol(object$rf), ncol = length(predTimes))
