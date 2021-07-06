@@ -380,6 +380,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
     if (count_split ==0 ){
 
       V_split <- V_split[order(V_split$num_noeud),]
+      V_split$depth <- floor(log(V_split$num_noeud, base = 2)) + 1 # depth level
 
       for (q in unique(id_feuille)){
         w <- which(id_feuille == q)
@@ -419,6 +420,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
   }
 
   V_split <- V_split[order(V_split$num_noeud),]
+  V_split$depth <- floor(log(V_split$num_noeud, base = 2)) + 1 # depth level
 
   for (q in unique(id_feuille)){
     w <- which(id_feuille == q)
