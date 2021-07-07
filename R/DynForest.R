@@ -104,7 +104,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   cat("OOB Forest error...")
   oob.err <- OOB.rfshape(rf,Curve = Curve,Scalar =Scalar,Factor=Factor, Y=Y, timeScale=timeScale, d_out=d_out,
-                         IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
+                         IBS.min = IBS.min, IBS.max = IBS.max, cause = cause, ncores = ncores)
   cat("OK!\n")
 
   temps <- Sys.time() - debut

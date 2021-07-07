@@ -44,14 +44,18 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
         IBS.max <- max(allTimes)
       }
 
-      Y.surv <- data.frame(time.event = Y$Y[order(Y$Y[,1]),1],
-                           event = ifelse(Y$Y[order(Y$Y[,1]),2]==0,0,1))
-      # IPCW using all data
-      ipcw.res <- pec::ipcw(formula = Surv(time.event, event) ~ 1,
-                            data = Y.surv,
-                            method = "marginal",
-                            times=allTimes,
-                            subjectTimes=allTimes)$IPCW.times
+      Y.surv <- data.frame(id = Y$id,
+                           time.event = Y$Y[,1],
+                           event = ifelse(Y$Y[,2]==cause,1,0))
+
+      Y.surv <- Y.surv[order(Y.surv$time.event, -Y.surv$event),]
+
+      # KM estimate of the survival function for the censoring
+      G <- pec::ipcw(formula = Surv(time.event, event) ~ 1,
+                     data = Y.surv,
+                     method = "marginal",
+                     times=allTimes,
+                     subjectTimes=allTimes)
 
     }
 
@@ -89,11 +93,15 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
         if (Y$type == "surv"){
 
-          # individual IBS with IPCW using all data
+          # IPCW
+          Wi_event <- (ifelse(Y$Y[id_wY,1] <= allTimes, 1, 0)*ifelse(Y$Y[id_wY,2]!=0,1,0))/(G$IPCW.subjectTimes[which(Y.surv$id==i)])
+          Wi_censored <- ifelse(Y$Y[id_wY,1] > allTimes, 1, 0)/(G$IPCW.times)
+          Wi <- Wi_event + Wi_censored
 
+          # Individual Brier Score
           Di <- ifelse(Y$Y[id_wY,1] <= allTimes, 1, 0)*ifelse(Y$Y[id_wY,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
           pec.res <- list()
-          pec.res$AppErr$matrix <- ipcw.res*(Di-tree$Y_pred[[pred_courant]]$traj)^2 # BS(t)
+          pec.res$AppErr$matrix <- Wi*(Di-tree$Y_pred[[pred_courant]]$traj)^2 # BS(t)
           pec.res$models <- "matrix"
           pec.res$time <- allTimes
           pec.res$start <- 0
