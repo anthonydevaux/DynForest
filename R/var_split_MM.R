@@ -40,6 +40,12 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
           for (l in L[[k]]){
             split_courant[[k]][which(X$id==l)] <- 1
           }
+
+          if (length(unique(split_courant[[k]]))==1){
+            impur_courant[k] <- Inf
+            next()
+          }
+
           # Il faut maintenant regarder la qualité du découpage ::
           impurete <- impurity_split(Y,split_courant[[k]], cause = cause)
           impur_courant[k] <- impurete$impur
