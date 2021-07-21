@@ -1,20 +1,22 @@
-#' Dynamic Random Forest
+#' Joint random forest for longitudinal and survival data
 #'
-#' This function builds Frechet random Forest introduced by Capitaine et.al, this includes the OOB predictions, OOB errors and variable importance computations.
+#' DynForest function builds a joint random forest for survival analysis (Devaux et al., 2021), trajectory, regression or classification. Longitudinal data, factors and scalars are allowed as predictors.
+#' Nodes are split on the candidate variable that maximize the splitting rule according to the outcome. To allow longitudinal data as candidate variable, mixed models are computed on those which are selected at each node.
+#' Then, the random-effects are used are candidate variables. Out-of-bag prediction error and variable importance (VIMP) are also provided.
 #'
 #'
-#' @param Curve [list]: A list that contains the different input curves. It must contain the following elements (no choice): \code{X} the matrix of the different curves, each column code for a different curve variable; \code{id} is the vector of the identifiers for the different trajectories contained in \code{X}; \code{time} is the vector of the measurement times associated with the trajectories contained in \code{X}.
-#' @param Scalar [list]: A list that contains the different input scalars. It must contain the following elements (no choice):  \code{X} the matrix of the scalars, each column code for a different variable; \code{id} is the vector of the identifiers for each individual.
-#' @param Factor [list]: A list that contains the different input factors. It must contain the following elements (no choice):  \code{X} the matrix of the factors, each column code for a different variable; \code{id} is the vector of the identifiers for each individual.
-#' @param Y [list]: A list that contains the output, It must contain the following elements (no choice): \code{type} defines the nature of the output, can be "\code{curve}", "\code{sclalar}", "\code{factor}", "\code{shape}", "\code{image}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.
-#' @param mtry [numeric]: Number of variables randomly sampled as candidates at each split. The default value \code{p/3}
+#' @param Curve [list]: A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
+#' @param Scalar [list]: A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Factor [list]: A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Y [list]: A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.
+#' @param mtry [numeric]: Number of variables randomly drown as candidates at each split. The default value \code{p/3} but has to be tuned according to the OOB prediction error.
+#' @param nodesize [numeric]
 #' @param ntree [numeric]: Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
 #' @param ncores [numeric]: Number of cores used to build Frechet randomized trees in parallel, defaulting to number of cores of the computer minus 1.
 #' @param timeScale [numeric]: Allow to modify the time scale, increasing or decreasing the cost of the horizontal shift. If timeScale is very big, then the Frechet mean tends to the Euclidean distance. If timeScale is very small, then it tends to the Dynamic Time Warping. Only used when there are trajectories either in input or output.
 #' @param imp [logical]: TRUE to compute the variables importance FALSE otherwise (default \code{imp=}TRUE)
 #' @param d_out [string]: "euc" or "frec".
 #' @param nsplit_option
-#' @param nodesize
 #' @param cause
 #' @param IBS.min
 #' @param IBS.max
