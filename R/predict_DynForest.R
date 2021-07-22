@@ -73,52 +73,55 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   #####################
   # Handle missing data
 
-  # Curve
-  curve_na_row <- which(rowSums(is.na(Curve$X))>0)
+  if (!is.null(Curve) & !is.null(Scalar) & !is.null(Factor)){
 
-  if (length(curve_na_row)>0){
-    Curve$X <- Curve$X[-curve_na_row,, drop = FALSE]
-    Curve$id <- Curve$id[-curve_na_row]
-    Curve$time <- Curve$time[-curve_na_row]
+    # Curve
+    curve_na_row <- which(rowSums(is.na(Curve$X))>0)
+
+    if (length(curve_na_row)>0){
+      Curve$X <- Curve$X[-curve_na_row,, drop = FALSE]
+      Curve$id <- Curve$id[-curve_na_row]
+      Curve$time <- Curve$time[-curve_na_row]
+    }
+
+    curve_idnoNA <- unique(Curve$id)
+
+    # Scalar
+    scalar_na_row <- which(rowSums(is.na(Scalar$X))>0)
+
+    if (length(scalar_na_row)>0){
+      Scalar$X <- Scalar$X[-scalar_na_row,, drop = FALSE]
+      Scalar$id <- Scalar$id[-scalar_na_row]
+    }
+
+    scalar_idnoNA <- unique(Scalar$id)
+
+    # Factor
+    factor_na_row <- which(rowSums(is.na(Factor$X))>0)
+
+    if (length(factor_na_row)>0){
+      Factor$X <- Factor$X[-factor_na_row,, drop = FALSE]
+      Factor$id <- Factor$id[-factor_na_row]
+    }
+
+    factor_idnoNA <- unique(Factor$id)
+
+    # all idnoNA
+    idnoNA <- intersect(curve_idnoNA, scalar_idnoNA)
+    idnoNA <- intersect(idnoNA, factor_idnoNA)
+
+    # Keep id with noNA
+    Curve$X <- Curve$X[which(Curve$id%in%idnoNA),, drop = FALSE]
+    Curve$id <- Curve$id[which(Curve$id%in%idnoNA)]
+    Curve$time <- Curve$time[which(Curve$id%in%idnoNA)]
+
+    Scalar$X <- Scalar$X[which(Scalar$id%in%idnoNA),, drop = FALSE]
+    Scalar$id <- Scalar$id[which(Scalar$id%in%idnoNA)]
+
+    Factor$X <- Factor$X[which(Factor$id%in%idnoNA),, drop = FALSE]
+    Factor$id <- Factor$id[which(Factor$id%in%idnoNA)]
+
   }
-
-  curve_idnoNA <- unique(Curve$id)
-
-  # Scalar
-  scalar_na_row <- which(rowSums(is.na(Scalar$X))>0)
-
-  if (length(scalar_na_row)>0){
-    Scalar$X <- Scalar$X[-scalar_na_row,, drop = FALSE]
-    Scalar$id <- Scalar$id[-scalar_na_row]
-  }
-
-  scalar_idnoNA <- unique(Scalar$id)
-
-  # Factor
-  factor_na_row <- which(rowSums(is.na(Factor$X))>0)
-
-  if (length(factor_na_row)>0){
-    Factor$X <- Factor$X[-factor_na_row,, drop = FALSE]
-    Factor$id <- Factor$id[-factor_na_row]
-  }
-
-  factor_idnoNA <- unique(Factor$id)
-
-  # all idnoNA
-  idnoNA <- intersect(curve_idnoNA, scalar_idnoNA)
-  idnoNA <- intersect(idnoNA, factor_idnoNA)
-
-  # Keep id with noNA
-  Curve$X <- Curve$X[which(Curve$id%in%idnoNA),, drop = FALSE]
-  Curve$id <- Curve$id[which(Curve$id%in%idnoNA)]
-  Curve$time <- Curve$time[which(Curve$id%in%idnoNA)]
-
-  Scalar$X <- Scalar$X[which(Scalar$id%in%idnoNA),, drop = FALSE]
-  Scalar$id <- Scalar$id[which(Scalar$id%in%idnoNA)]
-
-  Factor$X <- Factor$X[which(Factor$id%in%idnoNA),, drop = FALSE]
-  Factor$id <- Factor$id[which(Factor$id%in%idnoNA)]
-
   #####################
 
   ## Puis on prend les prédicteurs:
@@ -143,9 +146,9 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   doParallel::registerDoParallel(cl)
 
   pred.feuille <- foreach(t=1:ncol(object$rf),
-                       .combine='rbind', .multicombine = TRUE
-                       #, .packages = c()
-                       ) %dopar%
+                          .combine='rbind', .multicombine = TRUE
+                          #, .packages = c()
+  ) %dopar%
     {
 
       return(pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale))
