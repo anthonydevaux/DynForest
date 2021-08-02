@@ -39,7 +39,7 @@ rf_shape_para <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y, mtry, ntree, 
   # trees <- list()
   # for (i in 1:ntree){
   #   cat(paste0("Tree ",i,"\n"))
-  #   #browser(expr = {i == 34})
+  #   browser(expr = {i == 21})
   #   trees[[i]] <- Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
   #                       nsplit_option = nsplit_option, nodesize = nodesize, cause = cause)
   # }

@@ -104,7 +104,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
             if (is.na(pred.node)){
               pred.mat[t,] <- NA
             }else{
-              pred.mat[t,] <- rf$rf[,t]$Y_pred[[pred.node]]$traj
+              pred.mat[t,] <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj
             }
 
           }

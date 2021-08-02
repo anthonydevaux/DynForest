@@ -383,6 +383,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
       V_split$depth <- floor(log(V_split$num_noeud, base = 2)) + 1 # depth level
 
       for (q in unique(id_feuille)){
+        cat(q,"\n")
         w <- which(id_feuille == q)
         if (Y$type=="curve"){
           Y_pred[[q]] <- kmlShape::meanFrechet(data.frame(Y_boot$id[w], Y_boot$time[w], Y_boot$Y[w]))
@@ -400,15 +401,21 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
                          type = "risk")
 
           if (is.null(fit$cuminc)){
-            pred <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
+            pred <- list()
+            current.cause <- as.character(unique(datasurv$event[which(datasurv$event!=0)])) # num cause
+            pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
           }else{
-            pred <- data.frame(times=fit$time, traj=fit$cuminc[[cause]]) # CIF Aalen-Johansen
+            pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
           }
 
-          Y_pred[[q]] <- combine_times(pred = pred, newtimes = unique(Y$Y[,1]), type = "risk")
+          Y_pred[[q]] <- lapply(pred, function(x){
+            combine_times(pred = x, newtimes = unique(Y$Y[,1]), type = "risk")
+          })
+
         }
 
       }
+
       if (Y$type=="factor"){
         Ylevels <- unique(Y_boot$Y)
         return(list(feuilles = id_feuille, idY=Y_boot$id,Ytype=Y_boot$type, V_split=V_split, hist_nodes=hist_nodes, Y_pred = Y_pred, time = time, Y=Y, boot=boot, Ylevels=Ylevels,
@@ -443,12 +450,16 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
                      type = "risk")
 
       if (is.null(fit$cuminc)){
-        pred <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
+        pred <- list()
+        current.cause <- as.character(unique(sort(datasurv$event))[-1])
+        pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
       }else{
-        pred <- data.frame(times=fit$time, traj=fit$cuminc[[cause]]) # CIF Aalen-Johansen
+        pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
       }
 
-      Y_pred[[q]] <- combine_times(pred = pred, newtimes = unique(Y$Y[,1]), type = "risk")
+      Y_pred[[q]] <- lapply(pred, function(x){
+        combine_times(pred = x, newtimes = unique(Y$Y[,1]), type = "risk")
+      })
     }
 
   }

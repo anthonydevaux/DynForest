@@ -44,6 +44,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   if (Y$type=="surv"){
     Y$comp <- ifelse(length(unique(Y$Y[,2]))>2, TRUE, FALSE)
+    causes <- sort(unique(Y$Y[which(Y$Y[,2]!=0),2]))
   }
 
   ### On va regarder les différentes entrées:
@@ -126,7 +127,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   }
 
   if (imp == FALSE && Y$type=="surv"){
-    drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred,
+    drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), causes = causes,
+                xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred,
                 Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
                 Curve.model = Curve$model, comput.time=temps)
     class(drf) <- c("DynForest")
@@ -261,7 +263,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   cat("DynForest DONE!\n")
 
   if (Y$type == "surv"){
-    drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance,
+    drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), causes = causes,
+                xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance,
                 Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
                 Curve.model = Curve$model, comput.time=temps)
     class(drf) <- c("DynForest")

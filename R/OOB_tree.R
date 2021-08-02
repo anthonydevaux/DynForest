@@ -88,7 +88,11 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
       }else{
 
         if (Y$type == "curve"){
-          xerror[which(OOB==i)] <- kmlShape::distFrechet(tree$Y_pred[[pred_courant]]$times, tree$Y_pred[[pred_courant]]$traj, Y$time[id_wY], Y$Y[id_wY], timeScale = d_out)^2
+          xerror[which(OOB==i)] <- kmlShape::distFrechet(tree$Y_pred[[pred_courant]]$times,
+                                                         tree$Y_pred[[pred_courant]]$traj,
+                                                         Y$time[id_wY],
+                                                         Y$Y[id_wY],
+                                                         timeScale = d_out)^2
         }
 
         if (Y$type == "surv"){
@@ -101,7 +105,7 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
           # Individual Brier Score
           Di <- ifelse(Y$Y[id_wY,1] <= allTimes, 1, 0)*ifelse(Y$Y[id_wY,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
           pec.res <- list()
-          pec.res$AppErr$matrix <- Wi*(Di-tree$Y_pred[[pred_courant]]$traj)^2 # BS(t)
+          pec.res$AppErr$matrix <- Wi*(Di-tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj)^2 # BS(t)
           pec.res$models <- "matrix"
           pec.res$time <- allTimes
           pec.res$start <- 0

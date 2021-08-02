@@ -202,12 +202,21 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     pred <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
     rownames(pred) <- Id.pred
 
+    browser()
+
     for (l in 1:dim(pred.feuille)[2]){
-      pred_courant <- matrix(NA, nrow = ncol(object$rf), ncol = length(predTimes))
+
+      pred_courant <- lapply(object$causes, matrix, data = NA, nrow = ncol(object$rf), ncol = length(predTimes))
+      names(pred_courant) <- as.character(object$causes)
+
       for(k in 1:dim(pred.feuille)[1]){
 
         if (!is.na(pred.feuille[k,l])){
-          pred_courant[k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]]$traj[id.predTimes]
+
+          for (cause in as.character(object$causes)){
+            pred_courant[[cause]][k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
+          }
+
         }else{
           pred_courant[k,] <- NA
         }
