@@ -199,10 +199,14 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     predTimes <- c(t0, predTimes)
 
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
-    pred <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
-    rownames(pred) <- Id.pred
 
-    browser()
+    pred <- lapply(object$causes, FUN = function(x){
+
+      pred.cause <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
+      rownames(pred.cause) <- Id.pred
+      return(pred.cause)
+    })
+    names(pred) <- as.character(object$causes)
 
     for (l in 1:dim(pred.feuille)[2]){
 
@@ -214,24 +218,40 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
         if (!is.na(pred.feuille[k,l])){
 
           for (cause in as.character(object$causes)){
-            pred_courant[[cause]][k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
+            if (!is.null(object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes])){
+              pred_courant[[cause]][k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
+            }else{
+              pred_courant[[cause]][k,] <- rep(NA, length(id.predTimes))
+            }
           }
 
         }else{
-          pred_courant[k,] <- NA
+          for (cause in as.character(object$causes)){
+            pred_courant[[cause]][k,] <- NA
+          }
         }
       }
 
-      pred[l,] <- apply(pred_courant, 2, mean, na.rm = TRUE)
-
+      for (cause in as.character(object$causes)){
+        pred[[cause]][l,] <- apply(pred_courant[[cause]], 2, mean, na.rm = TRUE)
+      }
     }
 
     # S landmark time / t horizon time
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
     #                = ( F(S+t) - F(S) ) / S(S)
     # A faire CR => S(S) n'est pas egale a 1-F(S) mais a la somme des Fj(S) avec j event
-    pred <- apply(pred[,-1], MARGIN = 2, FUN = function(x) {(x-pred[,1])/(1-pred[,1])})
+    pred.cause <- apply(pred[[object$cause]][,-1], MARGIN = 2,
+                        FUN = function(x) {
+                          if (length(pred)>1){
+                            surv <- 1 - Reduce("+", lapply(pred, FUN = function(x) x[,1]))
+                          }else{
+                            surv <- 1 - pred[[1]][,1]
+                          }
+
+                          return((x-pred[[object$cause]][,1])/surv)
+                          })
 
   }
-  return(pred)
+  return(pred.cause)
 }

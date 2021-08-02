@@ -383,7 +383,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
       V_split$depth <- floor(log(V_split$num_noeud, base = 2)) + 1 # depth level
 
       for (q in unique(id_feuille)){
-        cat(q,"\n")
         w <- which(id_feuille == q)
         if (Y$type=="curve"){
           Y_pred[[q]] <- kmlShape::meanFrechet(data.frame(Y_boot$id[w], Y_boot$time[w], Y_boot$Y[w]))
