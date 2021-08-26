@@ -83,6 +83,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
     count_split <- 0
     for (i in 1:length(feuilles_courantes)){
+
       # Il faut que l'on regarde le tirage des variables de manière aléatoire :
       V <- NULL
       for (v in Inputs){
@@ -107,8 +108,6 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
       }
 
       if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[feuilles_courantes[i]]] >0){
-
-        # On est ici
 
         # mtry des variables de chaque espace
 
@@ -429,6 +428,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
   V_split$depth <- floor(log(V_split$num_noeud, base = 2)) + 1 # depth level
 
   for (q in unique(id_feuille)){
+
     w <- which(id_feuille == q)
     if (Y$type=="curve"){
       Y_pred[[q]] <- kmlShape::meanFrechet(data.frame(Y_boot$id[w], Y_boot$time[w], Y_boot$Y[w]))

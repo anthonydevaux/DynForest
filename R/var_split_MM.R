@@ -98,7 +98,9 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
                                stderr = tail(model_output$best, n = 1),
                                idea0 = model_output$idea0)
 
-      RE <- predRE(model_param[[i]], X$model[[i]], data_model)$bi
+      #RE <- predRE(model_param[[i]], X$model[[i]], data_model)$bi
+      RE <- model_output$predRE[order(match(model_output$predRE$id, Y$id)), -1]
+      rownames(RE) <- Y$id
 
       ###########################
 
@@ -123,12 +125,12 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
         if (!all(is.na(data_summaries[,i_sum]))){
 
           if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
-            split_threholds <- quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit),
-                                        na.rm = T)[-c(1,nsplit+1)]
+            split_threholds <- unique(quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit),
+                                               na.rm = T)[-c(1,nsplit+1)])
           }
 
           if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
-            split_threholds <- sample(data_summaries[,i_sum], nsplit)
+            split_threholds <- unique(sample(data_summaries[,i_sum], nsplit))
           }
 
           impurete_nsplit <- rep(NA, length(split_threholds))
@@ -177,12 +179,12 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
         nsplit <- 10
 
         if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
-          split_threholds <- quantile(X$X[,i], probs = seq(0,1,1/nsplit),
-                                      na.rm = T)[-c(1,nsplit+1)]
+          split_threholds <- unique(quantile(X$X[,i], probs = seq(0,1,1/nsplit),
+                                             na.rm = T)[-c(1,nsplit+1)])
         }
 
         if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
-          split_threholds <- sample(X$X[,i], nsplit)
+          split_threholds <- unique(sample(X$X[,i], nsplit))
         }
 
         impurete_nsplit <- rep(NA, length(split_threholds))
