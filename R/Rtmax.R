@@ -82,12 +82,13 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
 
     count_split <- 0
+
     for (i in 1:length(feuilles_courantes)){
 
       # Il faut que l'on regarde le tirage des variables de manière aléatoire :
       V <- NULL
       for (v in Inputs){
-        V <- c(V, rep(get(v)$type,dim(get(v)$X)[length(dim(get(v)$X))]))
+        V <- c(V, rep(get(v)$type, ncol(get(v)$X)))
       }
 
       # mtry des espaces
@@ -107,7 +108,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
         if (is.element("factor",inputs)==TRUE) wXFactor <- c(wXFactor, which(Factor_boot$id==l))
       }
 
-      if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[feuilles_courantes[i]]] >0){
+      if (imp_nodes[[feuilles_courantes[i]]] >0){
 
         # mtry des variables de chaque espace
 
@@ -183,7 +184,8 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           N_courant <- length(unique(Y_courant$id))  # nb id
         }
 
-        if (N_courant >= nodesize*2){ # si nb sujet/event inferieur a nodesize*2, feuille avec moins de nodesize
+        #if (N_courant >= nodesize*2){ # si nb sujet/event inferieur a nodesize*2, feuille avec moins de nodesize
+        if (N_courant >= nodesize){
 
           if (is.element("factor",split.spaces)==TRUE){
 
@@ -283,22 +285,25 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
             LNevent <- sum(Y_courant$Y[,2][which(feuille_split$split==1)]==cause)
             RNevent <- sum(Y_courant$Y[,2][which(feuille_split$split==2)]==cause)
 
-            if (LNevent>=nodesize & RNevent>=nodesize){
-              imp_nodes[[2*feuilles_courantes[i]]] <- Inf
-              imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
-            }else{
-              feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
-              Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
+            imp_nodes[[2*feuilles_courantes[i]]] <- Inf
+            imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
 
-              # add leafs to V_split
-              V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
-                                         var_summary = NA, threshold = NA, N = length(Y_courant$id),
-                                         Nevent = Nevent, stringsAsFactors = FALSE)
-
-              V_split <- merge(V_split, V_split_node, all = T)
-
-              next()
-            }
+            # if (LNevent>=nodesize & RNevent>=nodesize){
+            #   imp_nodes[[2*feuilles_courantes[i]]] <- Inf
+            #   imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
+            # }else{
+            #   feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
+            #   Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
+            #
+            #   # add leafs to V_split
+            #   V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
+            #                              var_summary = NA, threshold = NA, N = length(Y_courant$id),
+            #                              Nevent = Nevent, stringsAsFactors = FALSE)
+            #
+            #   V_split <- merge(V_split, V_split_node, all = T)
+            #
+            #   next()
+            # }
 
           }else{
             imp_nodes[[2*feuilles_courantes[i]]] <- feuille_split$impur_list[[1]]
@@ -369,7 +374,42 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           hist_nodes[[2*(feuilles_courantes[i])+1]] <- meanFd
           count_split <- count_split+1
 
+        }else{
+
+          feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
+
+          if (Y_courant$type=="surv"){
+            Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
+          }else{
+            Nevent <- NA
+          }
+
+          # add leafs to V_split
+          V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
+                                     var_summary = NA, threshold = NA, N = length(Y_courant$id),
+                                     Nevent = Nevent, stringsAsFactors = FALSE)
+
+          V_split <- merge(V_split, V_split_node, all = T)
+
         }
+
+      }else{
+
+        feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
+
+        if (Y_courant$type=="surv"){
+          Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
+        }else{
+          Nevent <- NA
+        }
+
+        # add leafs to V_split
+        V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
+                                   var_summary = NA, threshold = NA, N = length(Y_courant$id),
+                                   Nevent = Nevent, stringsAsFactors = FALSE)
+
+        V_split <- merge(V_split, V_split_node, all = T)
+
       }
     }
 
@@ -401,6 +441,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           if (is.null(fit$cuminc)){
             pred <- list()
             current.cause <- as.character(unique(datasurv$event[which(datasurv$event!=0)])) # num cause
+
+            if (length(current.cause)==0){
+              current.cause <- "1"
+            }
+
             pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
           }else{
             pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
@@ -451,6 +496,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
       if (is.null(fit$cuminc)){
         pred <- list()
         current.cause <- as.character(unique(sort(datasurv$event))[-1])
+
+        if (length(current.cause)==0){
+          current.cause <- "1"
+        }
+
         pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
       }else{
         pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
