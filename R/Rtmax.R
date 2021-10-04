@@ -87,7 +87,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
       # Il faut que l'on regarde le tirage des variables de manière aléatoire :
       V <- NULL
       for (v in Inputs){
-        V <- c(V, rep(get(v)$type,dim(get(v)$X)[length(dim(get(v)$X))]))
+        V <- c(V, rep(get(v)$type, ncol(get(v)$X)))
       }
 
       # mtry des espaces
@@ -370,6 +370,23 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           count_split <- count_split+1
 
         }
+      }else{
+
+        feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
+
+        if (Y_courant$type=="surv"){
+          Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
+        }else{
+          Nevent <- NA
+        }
+
+        # add leafs to V_split
+        V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
+                                   var_summary = NA, threshold = NA, N = length(Y_courant$id),
+                                   Nevent = Nevent, stringsAsFactors = FALSE)
+
+        V_split <- merge(V_split, V_split_node, all = T)
+
       }
     }
 
@@ -401,6 +418,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           if (is.null(fit$cuminc)){
             pred <- list()
             current.cause <- as.character(unique(datasurv$event[which(datasurv$event!=0)])) # num cause
+
+            if (length(current.cause)==0){
+              current.cause <- "1"
+            }
+
             pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
           }else{
             pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
@@ -451,6 +473,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
       if (is.null(fit$cuminc)){
         pred <- list()
         current.cause <- as.character(unique(sort(datasurv$event))[-1])
+
+        if (length(current.cause)==0){
+          current.cause <- "1"
+        }
+
         pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
       }else{
         pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
