@@ -88,7 +88,6 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   rf <- list(type=Y$type, rf=rf, levels=levels(Y$Y))
 
-
   print("OOB trees error...")
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)

@@ -18,15 +18,16 @@
 var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
                          nodesize = 1, cause = 1, init = NULL){
   # Pour le moment on se concentre sur le cas des variables courbes ::
-  impur <- rep(0,dim(X$X)[length(dim(X$X))])
+  impur <- rep(0,ncol(X$X))
   toutes_imp <- list()
   split <- list()
   centers <- list() # On va stocker les centres associés aux kmeans
   Pure <- FALSE
   model_param <- list()
   threshold <- variable_summary <- rep(NA, ncol(X$X))
+  impurete <- NULL
 
-  for (i in 1:dim(X$X)[length(dim(X$X))]){
+  for (i in 1:ncol(X$X)){
 
     if (X$type=="factor"){
       if (length(unique(X$X[,i]))>1){
@@ -51,10 +52,17 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
           impur_courant[k] <- impurete$impur
           toutes_imp_courant[[k]] <- impurete$imp_list
         }
-        select <- which.min(impur_courant)
-        split[[i]] <- split_courant[[select]]
-        impur[i] <- impur_courant[select]
-        toutes_imp[[i]] <- toutes_imp_courant[[select]]
+
+        if (!is.null(impurete)){
+          select <- which.min(impur_courant)
+          split[[i]] <- split_courant[[select]]
+          impur[i] <- impur_courant[select]
+          toutes_imp[[i]] <- toutes_imp_courant[[select]]
+        }else{
+          split[[i]] <- Inf
+          impur[i] <- Inf
+        }
+
       }
       else {
         impur[i] <- Inf
@@ -110,8 +118,6 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
       data_summaries <- RE # on merge tous les resumes
 
-      nsplit <- 10
-
       mtry2 <- ncol(data_summaries) # nombre de resumes qu'on tire pour chaque variable
       #var_mtry2 <- sample(1:ncol(data_summaries), mtry2)
       var_mtry2 <- seq(ncol(data_summaries))
@@ -123,6 +129,15 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
       for (i_sum in var_mtry2){ # boucle sur les resumes tires
 
         if (!all(is.na(data_summaries[,i_sum]))){
+
+          nsplit <- ifelse(length(unique(data_summaries[,i_sum]))>10, 10, length(unique(data_summaries[,i_sum])))
+
+          if (nsplit==1) {
+            impurete_sum[i_sum] <- NA
+            split_sum[[i_sum]] <- NA
+            split_threholds_sum[i_sum] <- NA
+            next()
+          }
 
           if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
             split_threholds <- unique(quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit),
@@ -150,9 +165,15 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
           }
 
-          impurete_sum[i_sum] <- impurete_nsplit[which.min(impurete_nsplit)]
-          split_sum[[i_sum]] <- split_nsplit[[which.min(impurete_nsplit)]]
-          split_threholds_sum[i_sum] <- split_threholds[which.min(impurete_nsplit)]
+          if (!is.null(impurete)){
+            impurete_sum[i_sum] <- impurete_nsplit[which.min(impurete_nsplit)]
+            split_sum[[i_sum]] <- split_nsplit[[which.min(impurete_nsplit)]]
+            split_threholds_sum[i_sum] <- split_threholds[which.min(impurete_nsplit)]
+          }else{
+            impurete_sum[i_sum] <- NA
+            split_sum[[i_sum]] <- NA
+            split_threholds_sum[i_sum] <- NA
+          }
 
         }else{
 
@@ -165,18 +186,23 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
       }
 
-      variable_summary[i] <- var_mtry2[which.min(impurete_sum)]
-      split[[i]] <- split_sum[[which.min(impurete_sum)]]
-      impur[i] <- impurete_sum[which.min(impurete_sum)]
-      threshold[i] <- split_threholds_sum[which.min(impurete_sum)]
-      toutes_imp[[i]] <- impurete$imp_list # NULL pour surv
+      if (length(which.min(impurete_sum))>0){
+        variable_summary[i] <- var_mtry2[which.min(impurete_sum)]
+        split[[i]] <- split_sum[[which.min(impurete_sum)]]
+        impur[i] <- impurete_sum[which.min(impurete_sum)]
+        threshold[i] <- split_threholds_sum[which.min(impurete_sum)]
+        toutes_imp[[i]] <- impurete$imp_list # NULL pour surv
+      }else{
+        impur[i] <- Inf
+        split[[i]] <- Inf
+      }
 
     }
 
     if(X$type=="scalar"){
       if (length(unique(X$X[,i]))>2){
 
-        nsplit <- 10
+        nsplit <- ifelse(length(unique(X$X[,i]))>10, 10, length(unique(X$X[,i])))
 
         if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
           split_threholds <- unique(quantile(X$X[,i], probs = seq(0,1,1/nsplit),
@@ -204,10 +230,15 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
         }
 
-        split[[i]] <- split_nsplit[[which.min(impurete_nsplit)]]
-        impur[i] <- impurete_nsplit[which.min(impurete_nsplit)]
-        threshold[i] <- split_threholds[which.min(impurete_nsplit)]
-        toutes_imp[[i]] <- impurete$imp_list # NULL pour surv
+        if (!is.null(impurete)){
+          split[[i]] <- split_nsplit[[which.min(impurete_nsplit)]]
+          impur[i] <- impurete_nsplit[which.min(impurete_nsplit)]
+          threshold[i] <- split_threholds[which.min(impurete_nsplit)]
+          toutes_imp[[i]] <- impurete$imp_list # NULL pour surv
+        }else{
+          impur[i] <- Inf
+          split[[i]] <- Inf
+        }
 
       }
 

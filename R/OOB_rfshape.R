@@ -72,13 +72,15 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
                        .packages = c("pec", "prodlim")) %dopar%
       {
 
-    # for (i in 1:length(Y$id)){
+    #for (i in 1:length(Y$id)){
+
         indiv <- Y$id[i]
         w_y <- which(Y$id==indiv)
 
         pred.mat <- matrix(NA, nrow = ncol(rf$rf), ncol = length(allTimes))
 
         for (t in 1:ncol(rf$rf)){
+
           BOOT <- rf$rf[,t]$boot
           oob <- setdiff(Y$id,BOOT)
           if (is.element(indiv, oob)== TRUE){
