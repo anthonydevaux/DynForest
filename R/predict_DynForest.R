@@ -70,12 +70,20 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     ncores <- parallel::detectCores()-1
   }
 
+  #
+
+  inputs <- read.Xarg(c(Curve,Scalar,Factor))
+  Inputs <- inputs
+
+  for (k in 1:length(Inputs)){
+    str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
+  }
+
   #####################
   # Handle missing data
 
-  if (!is.null(Curve) & !is.null(Scalar) & !is.null(Factor)){
+  if (!is.null(Curve)){ # Curve
 
-    # Curve
     curve_na_row <- which(rowSums(is.na(Curve$X))>0)
 
     if (length(curve_na_row)>0){
@@ -83,56 +91,49 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
       Curve$id <- Curve$id[-curve_na_row]
       Curve$time <- Curve$time[-curve_na_row]
     }
+  }
 
-    curve_idnoNA <- unique(Curve$id)
+  if (!is.null(Scalar)){ # Scalar
 
-    # Scalar
     scalar_na_row <- which(rowSums(is.na(Scalar$X))>0)
 
     if (length(scalar_na_row)>0){
       Scalar$X <- Scalar$X[-scalar_na_row,, drop = FALSE]
       Scalar$id <- Scalar$id[-scalar_na_row]
     }
+  }
 
-    scalar_idnoNA <- unique(Scalar$id)
+  if (!is.null(Factor)){ # Factor
 
-    # Factor
     factor_na_row <- which(rowSums(is.na(Factor$X))>0)
 
     if (length(factor_na_row)>0){
       Factor$X <- Factor$X[-factor_na_row,, drop = FALSE]
       Factor$id <- Factor$id[-factor_na_row]
     }
+  }
 
-    factor_idnoNA <- unique(Factor$id)
+  # all idnoNA
+  idnoNA <- Reduce(intersect, lapply(Inputs, FUN = function(x) return(unique(get(x)$id))))
 
-    # all idnoNA
-    idnoNA <- intersect(curve_idnoNA, scalar_idnoNA)
-    idnoNA <- intersect(idnoNA, factor_idnoNA)
-
-    # Keep id with noNA
+  # Keep id with noNA
+  if (!is.null(Curve)){
     Curve$X <- Curve$X[which(Curve$id%in%idnoNA),, drop = FALSE]
     Curve$id <- Curve$id[which(Curve$id%in%idnoNA)]
     Curve$time <- Curve$time[which(Curve$id%in%idnoNA)]
+  }
 
+  if (!is.null(Scalar)){
     Scalar$X <- Scalar$X[which(Scalar$id%in%idnoNA),, drop = FALSE]
     Scalar$id <- Scalar$id[which(Scalar$id%in%idnoNA)]
+  }
 
+  if (!is.null(Factor)){
     Factor$X <- Factor$X[which(Factor$id%in%idnoNA),, drop = FALSE]
     Factor$id <- Factor$id[which(Factor$id%in%idnoNA)]
-
   }
+
   #####################
-
-  ## Puis on prend les prédicteurs:
-
-  inputs <- read.Xarg(c(Curve,Scalar,Factor))
-  Inputs <- inputs
-  # On va les lires en mettant la maj sur les différents éléments qui le constituent :
-
-  for (k in 1:length(Inputs)){
-    str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
-  }
 
   Id.pred <- unique(get(Inputs[1])$id)
   pred.feuille <- matrix(0, ncol(object$rf), length(Id.pred))
@@ -250,7 +251,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
                           }
 
                           return((x-pred[[object$cause]][,1])/surv)
-                          })
+                        })
 
   }
   return(pred.cause)
