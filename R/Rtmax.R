@@ -184,11 +184,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           N_courant <- length(unique(Y_courant$id))  # nb id
         }
 
-<<<<<<< Updated upstream
-        if (N_courant >= nodesize*2){ # si nb sujet/event inferieur a nodesize*2, feuille avec moins de nodesize
-=======
         if (Nevent_courant >= minsplit & N_courant >= nodesize*2){
->>>>>>> Stashed changes
 
           if (is.element("factor",split.spaces)==TRUE){
 
@@ -286,14 +282,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
             LN <- length(gauche_id)
             RN <- length(droit_id)
 
-<<<<<<< Updated upstream
-            if (LNevent>=nodesize & RNevent>=nodesize){
-=======
-            imp_nodes[[2*feuilles_courantes[i]]] <- Inf
-            imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
-
             if (LN>=nodesize & RN>=nodesize){
->>>>>>> Stashed changes
               imp_nodes[[2*feuilles_courantes[i]]] <- Inf
               imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
             }else{
