@@ -21,7 +21,7 @@
 #'
 #' @keywords internal
 Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeScale = 0.1,
-                  nsplit_option = "quantile", nodesize = 1, cause = 1){
+                  nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1){
 
   inputs <- read.Xarg(c(Curve,Scalar,Factor))
   Inputs <- inputs
@@ -178,17 +178,21 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
         if (Y_courant$type == "surv"){
           #N_courant <- sum(Y_courant$Y[,2]!=0) # nb event
-          N_courant <- sum(Y_courant$Y[,2]==cause)
+          Nevent_courant <- sum(Y_courant$Y[,2]==cause)
+          N_courant <- length(Y_courant$id)
         }else{
           N_courant <- length(unique(Y_courant$id))  # nb id
         }
 
+<<<<<<< Updated upstream
         if (N_courant >= nodesize*2){ # si nb sujet/event inferieur a nodesize*2, feuille avec moins de nodesize
+=======
+        if (Nevent_courant >= minsplit & N_courant >= nodesize*2){
+>>>>>>> Stashed changes
 
           if (is.element("factor",split.spaces)==TRUE){
 
-            feuille_split_Factor <- var_split_MM(X = Factor_courant, Y = Y_courant, timeScale = timeScale,
-                                                 nodesize = nodesize, cause = cause)
+            feuille_split_Factor <- var_split_MM(X = Factor_courant, Y = Y_courant, timeScale = timeScale, cause = cause)
 
             if (feuille_split_Factor$Pure==FALSE){
               F_SPLIT <- merge(F_SPLIT,
@@ -204,7 +208,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           if (is.element("curve",split.spaces)==TRUE){
 
             feuille_split_Curve <- var_split_MM(X = Curve_courant, Y = Y_courant, timeScale = timeScale,
-                                                nsplit_option = nsplit_option, nodesize = nodesize,
+                                                nsplit_option = nsplit_option,
                                                 cause = cause, init = model_init[[feuilles_courantes[i]]])
 
             if (feuille_split_Curve$Pure==FALSE){
@@ -220,8 +224,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           if (is.element("scalar",split.spaces)==TRUE){
 
             feuille_split_Scalar <- var_split_MM(X = Scalar_courant, Y = Y_courant, timeScale = timeScale,
-                                                 nsplit_option = nsplit_option, nodesize = nodesize,
-                                                 cause = cause)
+                                                 nsplit_option = nsplit_option, cause = cause)
 
             if (feuille_split_Scalar$Pure==FALSE){
               F_SPLIT <- merge(F_SPLIT,
@@ -280,10 +283,17 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
           if (Y$type=="surv"){
 
-            LNevent <- sum(Y_courant$Y[,2][which(feuille_split$split==1)]==cause)
-            RNevent <- sum(Y_courant$Y[,2][which(feuille_split$split==2)]==cause)
+            LN <- length(gauche_id)
+            RN <- length(droit_id)
 
+<<<<<<< Updated upstream
             if (LNevent>=nodesize & RNevent>=nodesize){
+=======
+            imp_nodes[[2*feuilles_courantes[i]]] <- Inf
+            imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
+
+            if (LN>=nodesize & RN>=nodesize){
+>>>>>>> Stashed changes
               imp_nodes[[2*feuilles_courantes[i]]] <- Inf
               imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
             }else{

@@ -20,8 +20,8 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-rf_shape_para <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y, mtry, ntree, ncores, timeScale=0.1,
-                          nsplit_option="quantile", nodesize=1, cause = 1){
+rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, ntree, ncores, timeScale = 0.1,
+                          nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1){
 
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
@@ -31,7 +31,7 @@ rf_shape_para <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y, mtry, ntree, 
 
   trees <- pbsapply(1:ntree, FUN=function(i){
     Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
-          nsplit_option = nsplit_option, nodesize = nodesize, cause = cause)
+          nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
   },cl=cl)
 
   parallel::stopCluster(cl)
@@ -41,7 +41,7 @@ rf_shape_para <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y, mtry, ntree, 
   #   cat(paste0("Tree ",i,"\n"))
   #   #browser(expr = {i == 21})
   #   trees[[i]] <- Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
-  #                       nsplit_option = nsplit_option, nodesize = nodesize, cause = cause)
+  #                       nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
   # }
 
   return(trees)

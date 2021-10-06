@@ -33,6 +33,7 @@ impurity_split <- function(Y,split,cause=1){
     }
 
     if (Y$type == "surv"){
+
       if (Y$comp){
 
         # Fine & Gray splitting rule

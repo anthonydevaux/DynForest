@@ -4,7 +4,6 @@
 #' @param Y
 #' @param timeScale
 #' @param nsplit_option
-#' @param nodesize
 #' @param cause
 #' @param init
 #'
@@ -16,7 +15,7 @@
 #'
 #' @keywords internal
 var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
-                         nodesize = 1, cause = 1, init = NULL){
+                         cause = 1, init = NULL){
   # Pour le moment on se concentre sur le cas des variables courbes ::
   impur <- rep(0,ncol(X$X))
   toutes_imp <- list()

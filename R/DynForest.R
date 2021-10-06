@@ -11,6 +11,7 @@
 #' @param Y [list]: A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.
 #' @param mtry [numeric]: Number of variables randomly drown as candidates at each split. The default value \code{p/3} but has to be tuned according to the OOB prediction error.
 #' @param nodesize [numeric]
+#' @param minsplit [numeric]
 #' @param ntree [numeric]: Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
 #' @param ncores [numeric]: Number of cores used to build Frechet randomized trees in parallel, defaulting to number of cores of the computer minus 1.
 #' @param timeScale [numeric]: Allow to modify the time scale, increasing or decreasing the cost of the horizontal shift. If timeScale is very big, then the Frechet mean tends to the Euclidean distance. If timeScale is very small, then it tends to the Dynamic Time Warping. Only used when there are trajectories either in input or output.
@@ -39,7 +40,7 @@
 #' @export
 #'
 DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=100, ncores=NULL, timeScale=0.1, imp=TRUE, d_out=0.1,
-                      nsplit_option = "quantile", nodesize = 1, cause = 1, IBS.min = 0, IBS.max = NULL, ...){
+                      nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1, IBS.min = 0, IBS.max = NULL, ...){
 
 
   if (Y$type=="surv"){
@@ -84,7 +85,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   debut <- Sys.time()
   rf <-  rf_shape_para(Curve=Curve,Scalar=Scalar, Factor=Factor, Y=Y, mtry=mtry, ntree=ntree, timeScale = timeScale,ncores=ncores,
-                       nsplit_option = nsplit_option, nodesize = nodesize, cause = cause)
+                       nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
 
   rf <- list(type=Y$type, rf=rf, levels=levels(Y$Y))
 
