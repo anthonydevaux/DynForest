@@ -242,7 +242,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
     #                = ( F(S+t) - F(S) ) / S(S)
     # A faire CR => S(S) n'est pas egale a 1-F(S) mais a la somme des Fj(S) avec j event
-    pred.cause <- apply(pred[[object$cause]][,-1], MARGIN = 2,
+    pred.cause <- apply(pred[[as.character(object$cause)]][,-1], MARGIN = 2,
                         FUN = function(x) {
                           if (length(pred)>1){
                             surv <- 1 - Reduce("+", lapply(pred, FUN = function(x) x[,1]))
@@ -250,7 +250,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
                             surv <- 1 - pred[[1]][,1]
                           }
 
-                          return((x-pred[[object$cause]][,1])/surv)
+                          return((x-pred[[as.character(object$cause)]][,1])/surv)
                         })
 
   }
