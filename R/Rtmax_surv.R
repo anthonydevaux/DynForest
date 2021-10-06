@@ -5,7 +5,6 @@
 #' @param Factor [list]:
 #' @param Y [list]:
 #' @param mtry [integer]:
-#' @param timeScale [numeric]:
 #' @param nsplit_option
 #' @param nodesize
 #' @param cause
@@ -20,8 +19,8 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeScale = 0.1,
-                  nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1){
+Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
+                       nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1){
 
   inputs <- read.Xarg(c(Curve,Scalar,Factor))
   Inputs <- inputs
@@ -61,18 +60,11 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
   if (is.element("factor",inputs)==TRUE) Factor_boot <- list(type=Factor$type,   X=Factor$X[wXFactor,, drop=FALSE], id= Factor$id[wXFactor])
 
 
-  if (Y$type=="curve") {Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY], time=Y$time[wY])} ### idem pour Y
-  if (Y$type=="surv") {Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY], comp=Y$comp)}
-  if (Y$type=="factor" || Y$type=="scalar") {Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY])}
-
+  Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY], comp=Y$comp)
 
   imp_nodes <- list()
   imp_nodes[[1]] = Inf
   impurete = Inf
-  if (Y$type!="surv"){
-    impurete <- impurity(Y_boot, timeScale)
-    imp_nodes[[1]] <- impurete
-  }
 
   id_feuille <- rep(1,length(Y_boot$id)) #### localisation des feuilles de l'arbre
   id_feuille_prime <- id_feuille
@@ -158,31 +150,15 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
           Factor_courant <- list(type = Factor_boot$type, X=Factor_boot$X[wXFactor,tirageFactor, drop=FALSE], id=Factor_boot$id[wXFactor, drop=FALSE])
         }
 
-        if (Y_boot$type=="curve"){
-          Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w], time=Y_boot$time[w])
-        }
-
-        if (Y_boot$type=="surv"){
-          Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w], comp=Y$comp)
-        }
-
-        if (Y_boot$type=="factor" || Y_boot$type=="scalar"){
-          Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[w, drop=FALSE], id=Y_boot$id[w, drop=FALSE])
-        }
-
+        Y_courant <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w], comp=Y$comp)
 
         F_SPLIT <- data.frame(TYPE = character(), Impurity = numeric(), stringsAsFactors = FALSE)
         decoupe <- 0
 
         # on test les meilleurs splits sur chacun des variables factor tire par mtry
 
-        if (Y_courant$type == "surv"){
-          #N_courant <- sum(Y_courant$Y[,2]!=0) # nb event
-          Nevent_courant <- sum(Y_courant$Y[,2]==cause)
-          N_courant <- length(Y_courant$id)
-        }else{
-          N_courant <- length(unique(Y_courant$id))  # nb id
-        }
+        Nevent_courant <- sum(Y_courant$Y[,2]==cause)
+        N_courant <- length(Y_courant$id)
 
         if (Nevent_courant >= minsplit & N_courant >= nodesize*2){
 
@@ -236,11 +212,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
         }else{
           feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
 
-          if (Y_courant$type=="surv"){
-            Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
-          }else{
-            Nevent <- NA
-          }
+          Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
 
           # add leafs to V_split
           V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
@@ -277,38 +249,29 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
             na_id <- NULL
           }
 
-          if (Y$type=="surv"){
 
-            LN <- length(gauche_id)
-            RN <- length(droit_id)
 
-            if (LN>=nodesize & RN>=nodesize){
-              imp_nodes[[2*feuilles_courantes[i]]] <- Inf
-              imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
-            }else{
-              feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
-              Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
+          LN <- length(gauche_id)
+          RN <- length(droit_id)
 
-              # add leafs to V_split
-              V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
-                                         var_summary = NA, threshold = NA, N = length(Y_courant$id),
-                                         Nevent = Nevent, stringsAsFactors = FALSE)
-
-              V_split <- merge(V_split, V_split_node, all = T)
-
-              next()
-            }
-
+          if (LN>=nodesize & RN>=nodesize){
+            imp_nodes[[2*feuilles_courantes[i]]] <- Inf
+            imp_nodes[[2*feuilles_courantes[i]+1]] <- Inf
           }else{
-            imp_nodes[[2*feuilles_courantes[i]]] <- feuille_split$impur_list[[1]]
-            imp_nodes[[2*feuilles_courantes[i]+1]] <- feuille_split$impur_list[[2]]
-          }
-
-          if (Y_courant$type=="surv"){
+            feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
             Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
-          }else{
-            Nevent <- NA
+
+            # add leafs to V_split
+            V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
+                                       var_summary = NA, threshold = NA, N = length(Y_courant$id),
+                                       Nevent = Nevent, stringsAsFactors = FALSE)
+
+            V_split <- merge(V_split, V_split_node, all = T)
+
+            next()
           }
+
+          Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
 
           # add node split to V_split
           V_split_node <- data.frame(type = TYPE, num_noeud = feuilles_courantes[i],
@@ -373,11 +336,7 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
         feuilles_terminales <- c(feuilles_terminales, feuilles_courantes[i])
 
-        if (Y_courant$type=="surv"){
-          Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
-        }else{
-          Nevent <- NA
-        }
+        Nevent <- sum(Y_courant$Y[,2]==cause) # nb event
 
         # add leafs to V_split
         V_split_node <- data.frame(type = "Leaf", num_noeud = feuilles_courantes[i], var_split = NA,
@@ -399,47 +358,35 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
 
       for (q in unique(id_feuille)){
         w <- which(id_feuille == q)
-        if (Y$type=="curve"){
-          Y_pred[[q]] <- kmlShape::meanFrechet(data.frame(Y_boot$id[w], Y_boot$time[w], Y_boot$Y[w]))
-        }
-        if(Y$type=="scalar"){
-          Y_pred[[q]]<- mean(Y_boot$Y[w])
-        }
-        if(Y$type=="factor"){
-          Table <- which.max(table(Y_boot$Y[w]))
-          Y_pred[[q]] <-  as.factor(attributes(Table)$names)
-        }
-        if (Y$type=="surv"){
-          datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
-          fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
-                         type = "risk")
 
-          if (is.null(fit$cuminc)){
-            pred <- list()
-            current.cause <- as.character(unique(datasurv$event[which(datasurv$event!=0)])) # num cause
+        datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
+        fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
+                       type = "risk")
 
-            if (length(current.cause)==0){
-              current.cause <- "1"
-            }
+        if (is.null(fit$cuminc)){
+          pred <- list()
+          current.cause <- as.character(unique(datasurv$event[which(datasurv$event!=0)])) # num cause
 
-            pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
-          }else{
-            pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
+          if (length(current.cause)==0){
+            current.cause <- "1"
           }
 
-          Y_pred[[q]] <- lapply(pred, function(x){
-            combine_times(pred = x, newtimes = unique(Y$Y[,1]), type = "risk")
-          })
+          pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
 
+          if (is.null(pred[[as.character(cause)]])){
+            pred[[as.character(cause)]] <- data.frame(times=fit$time, traj = 0) # no event => no risk
+          }
+
+        }else{
+          pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
         }
 
+        Y_pred[[q]] <- lapply(pred, function(x){
+          combine_times(pred = x, newtimes = unique(Y$Y[,1]), type = "risk")
+        })
+
       }
 
-      if (Y$type=="factor"){
-        Ylevels <- unique(Y_boot$Y)
-        return(list(feuilles = id_feuille, idY=Y_boot$id,Ytype=Y_boot$type, V_split=V_split, hist_nodes=hist_nodes, Y_pred = Y_pred, time = time, Y=Y, boot=boot, Ylevels=Ylevels,
-                    model_param = model_param))
-      }
       return(list(feuilles = id_feuille, idY=Y_boot$id,Ytype=Y_boot$type, V_split=V_split, hist_nodes=hist_nodes, Y_pred = Y_pred, time = time, Y=Y, boot=boot,
                   model_param = model_param))
     }
@@ -451,46 +398,35 @@ Rtmax <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1, timeSc
   for (q in unique(id_feuille)){
 
     w <- which(id_feuille == q)
-    if (Y$type=="curve"){
-      Y_pred[[q]] <- kmlShape::meanFrechet(data.frame(Y_boot$id[w], Y_boot$time[w], Y_boot$Y[w]))
-    }
 
-    if(Y$type=="scalar"){
-      Y_pred[[q]]<- mean(Y_boot$Y[w])
-    }
+    datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
+    fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
+                   type = "risk")
 
-    if(Y$type=="factor"){
-      Table <- which.max(table(Y_boot$Y[w]))
-      Y_pred[[q]] <-  as.factor(attributes(Table)$names)
-    }
+    if (is.null(fit$cuminc)){
+      pred <- list()
+      current.cause <- as.character(unique(sort(datasurv$event))[-1])
 
-    if (Y$type=="surv"){
-      datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
-      fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
-                     type = "risk")
-
-      if (is.null(fit$cuminc)){
-        pred <- list()
-        current.cause <- as.character(unique(sort(datasurv$event))[-1])
-
-        if (length(current.cause)==0){
-          current.cause <- "1"
-        }
-
-        pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
-      }else{
-        pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
+      if (length(current.cause)==0){
+        current.cause <- "1"
       }
 
-      Y_pred[[q]] <- lapply(pred, function(x){
-        combine_times(pred = x, newtimes = unique(Y$Y[,1]), type = "risk")
-      })
+      pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
+
+      if (is.null(pred[[as.character(cause)]])){
+        pred[[as.character(cause)]] <- data.frame(times=fit$time, traj = 0) # no event => no risk
+      }
+
+    }else{
+      pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
     }
 
+    Y_pred[[q]] <- lapply(pred, function(x){
+      combine_times(pred = x, newtimes = unique(Y$Y[,1]), type = "risk")
+    })
+
+
   }
-  if (Y$type=="factor"){
-    Ylevels <- unique(Y_boot$Y)
-    return(list(feuilles = id_feuille, idY=Y_boot$id,Ytype=Y_boot$type, V_split=V_split, hist_nodes=hist_nodes, Y_pred = Y_pred, time = time, Y=Y, Ylevels=Ylevels, boot=boot))
-  }
+
   return(list(feuilles = id_feuille,Ytype=Y_boot$type, idY=Y_boot$id, V_split=V_split, hist_nodes=hist_nodes, Y_pred= Y_pred, time=time, Y=Y, boot=boot))
 }

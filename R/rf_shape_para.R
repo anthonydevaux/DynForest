@@ -6,6 +6,7 @@
 #' @param Y
 #' @param mtry
 #' @param ntree
+#' @param timeScale
 #' @param ncores
 #' @param timeScale
 #' @param nsplit_option
@@ -20,7 +21,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, ntree, ncores, timeScale = 0.1,
+rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, ntree, timeScale, ncores,
                           nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1){
 
   cl <- parallel::makeCluster(ncores)
@@ -29,19 +30,40 @@ rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, n
                           #envir = globalenv())
                           envir = environment())
 
-  trees <- pbsapply(1:ntree, FUN=function(i){
-    Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
-          nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
-  },cl=cl)
+  if (Y$type=="surv"){
+    trees <- pbsapply(1:ntree, FUN=function(i){
+      Rtmax_surv(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry,
+                 nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+    },cl=cl)
+  }else{
+    trees <- pbsapply(1:ntree, FUN=function(i){
+      Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
+            nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+    },cl=cl)
+  }
 
   parallel::stopCluster(cl)
 
   # trees <- list()
-  # for (i in 1:ntree){
-  #   cat(paste0("Tree ",i,"\n"))
-  #   #browser(expr = {i == 21})
-  #   trees[[i]] <- Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
-  #                       nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+  #
+  # if (Y$type=="surv"){
+  #
+  #   for (i in 1:ntree){
+  #     cat(paste0("Tree ",i,"\n"))
+  #     #browser(expr = {i == 21})
+  #     trees[[i]] <- Rtmax_surv(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry,
+  #                              nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+  #   }
+  #
+  # }else{
+  #
+  #   for (i in 1:ntree){
+  #     cat(paste0("Tree ",i,"\n"))
+  #     #browser(expr = {i == 21})
+  #     trees[[i]] <- Rtmax(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry, timeScale = timeScale,
+  #                         nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+  #   }
+  #
   # }
 
   return(trees)

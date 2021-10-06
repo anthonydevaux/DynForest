@@ -2,7 +2,6 @@
 #'
 #' @param X
 #' @param Y
-#' @param timeScale
 #' @param nsplit_option
 #' @param cause
 #' @param init
@@ -14,7 +13,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
+var_split_MM <- function(X ,Y, nsplit_option = "quantile",
                          cause = 1, init = NULL){
   # Pour le moment on se concentre sur le cas des variables courbes ::
   impur <- rep(0,ncol(X$X))
