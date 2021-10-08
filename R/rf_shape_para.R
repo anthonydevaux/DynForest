@@ -26,7 +26,7 @@ rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, n
 
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
-  parallel::clusterExport(cl,list("Y"),
+  parallel::clusterExport(cl,list("Y","minsplit","nodesize"),
                           #envir = globalenv())
                           envir = environment())
 
