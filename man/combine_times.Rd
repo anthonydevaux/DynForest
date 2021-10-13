@@ -9,6 +9,9 @@ combine_times(pred, newtimes, type = "surv")
 \arguments{
 \item{type}{}
 }
+\value{
+
+}
 \description{
 Title
 }

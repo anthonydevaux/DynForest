@@ -2,23 +2,38 @@
 % Please edit documentation in R/DynForest.R
 \name{DynForest}
 \alias{DynForest}
-\title{Dynamic Random Forest}
+\title{Joint random forest for longitudinal and survival data}
 \usage{
-DynForest(Curve = NULL, Scalar = NULL, Factor = NULL, Y,
-  mtry = NULL, ntree = 100, ncores = NULL, timeScale = 0.1,
-  imp = TRUE, d_out = 0.1, nsplit_option = "quantile",
-  nodesize = 1, cause = 1, IBS.min = 0, IBS.max = NULL, ...)
+DynForest(
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  Y,
+  mtry = NULL,
+  ntree = 100,
+  ncores = NULL,
+  timeScale = 0.1,
+  imp = TRUE,
+  d_out = 0.1,
+  nsplit_option = "quantile",
+  nodesize = 1,
+  minsplit = 2,
+  cause = 1,
+  IBS.min = 0,
+  IBS.max = NULL,
+  ...
+)
 }
 \arguments{
-\item{Curve}{[list]: A list that contains the different input curves. It must contain the following elements (no choice): \code{X} the matrix of the different curves, each column code for a different curve variable; \code{id} is the vector of the identifiers for the different trajectories contained in \code{X}; \code{time} is the vector of the measurement times associated with the trajectories contained in \code{X}.}
+\item{Curve}{[list]: A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
-\item{Scalar}{[list]: A list that contains the different input scalars. It must contain the following elements (no choice):  \code{X} the matrix of the scalars, each column code for a different variable; \code{id} is the vector of the identifiers for each individual.}
+\item{Scalar}{[list]: A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Factor}{[list]: A list that contains the different input factors. It must contain the following elements (no choice):  \code{X} the matrix of the factors, each column code for a different variable; \code{id} is the vector of the identifiers for each individual.}
+\item{Factor}{[list]: A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Y}{[list]: A list that contains the output, It must contain the following elements (no choice): \code{type} defines the nature of the output, can be "\code{curve}", "\code{sclalar}", "\code{factor}", "\code{shape}", "\code{image}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
+\item{Y}{[list]: A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
 
-\item{mtry}{[numeric]: Number of variables randomly sampled as candidates at each split. The default value \code{p/3}}
+\item{mtry}{[numeric]: Number of variables randomly drown as candidates at each split. The default value \code{p/3} but has to be tuned according to the OOB prediction error.}
 
 \item{ntree}{[numeric]: Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.}
 
@@ -29,6 +44,10 @@ DynForest(Curve = NULL, Scalar = NULL, Factor = NULL, Y,
 \item{imp}{[logical]: TRUE to compute the variables importance FALSE otherwise (default \code{imp=}TRUE)}
 
 \item{d_out}{[string]: "euc" or "frec".}
+
+\item{nodesize}{[numeric]}
+
+\item{minsplit}{[numeric]}
 
 \item{...}{: optional parameters to be passed to the low level function}
 }
@@ -43,5 +62,7 @@ A Frechet random forest which is a list of the following elements: \itemize{
 }
 }
 \description{
-This function builds Frechet random Forest introduced by Capitaine et.al, this includes the OOB predictions, OOB errors and variable importance computations.
+DynForest function builds a joint random forest for survival analysis (Devaux et al., 2021), trajectory, regression or classification. Longitudinal data, factors and scalars are allowed as predictors.
+Nodes are split on the candidate variable that maximize the splitting rule according to the outcome. To allow longitudinal data as candidate variable, mixed models are computed on those which are selected at each node.
+Then, the random-effects are used are candidate variables. Out-of-bag prediction error and variable importance (VIMP) are also provided.
 }

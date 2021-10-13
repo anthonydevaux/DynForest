@@ -4,8 +4,17 @@
 \alias{predict.DynForest}
 \title{Predict with Dynamic random forests}
 \usage{
-\method{predict}{DynForest}(object, Curve = NULL, Scalar = NULL,
-  Factor = NULL, timeScale = 0.1, ncores = NULL, ...)
+\method{predict}{DynForest}(
+  object,
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  timeScale = 0.1,
+  predTimes = NULL,
+  t0 = NULL,
+  ncores = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{: Dynamic random forest}
@@ -18,9 +27,14 @@
 
 \item{timeScale}{[numeric]:}
 
+\item{predTimes}{[numeric]:}
+
 \item{ncores}{[numeric]:}
 
 \item{...}{: optional parameters to be passed to the low level function}
+}
+\value{
+
 }
 \description{
 Predict with Dynamic random forests

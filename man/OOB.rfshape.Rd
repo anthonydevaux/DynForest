@@ -4,12 +4,22 @@
 \alias{OOB.rfshape}
 \title{OOB for random Forest}
 \usage{
-OOB.rfshape(rf, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
-  timeScale = 0.1, d_out = 0.1, IBS.min = 0, IBS.max = NULL,
-  cause = 1)
+OOB.rfshape(
+  rf,
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  Y,
+  timeScale = 0.1,
+  d_out = 0.1,
+  IBS.min = 0,
+  IBS.max = NULL,
+  cause = 1,
+  ncores = NULL
+)
 }
 \arguments{
-\item{cause}{}
+\item{ncores}{}
 }
 \description{
 OOB for random Forest

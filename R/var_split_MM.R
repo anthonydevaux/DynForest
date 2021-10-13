@@ -96,6 +96,14 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
 
       }
 
+      if (model_output$conv!=1){ # convergence issue
+
+        impur[i] <- Inf
+        split[[i]] <- Inf
+        next()
+
+      }
+
       init[[colnames(X$X)[i]]] <- model_output$best
 
       model_param[[i]] <- list(beta = model_output$best[(model_output$N[1]+1):model_output$N[2]],

@@ -109,33 +109,12 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
                                 model = Curve_boot$model[tirageCurve])
 
           current_node <- feuilles_courantes[i]
-          marker_init <- colnames(Curve_courant$X)
 
-          if (current_node==1){ # starting values for mixed models
-
-            model_init[[current_node]] <- lapply(Curve$model, FUN = function(x) x$init.param)
-
+          if (current_node > 1){
+            model_init <- getParamMM(current_node = current_node, markers = colnames(Curve_courant$X),
+                                     params = model_init)
           }else{
-
-            model_init[[current_node]] <- rep(list(NA), length(tirageCurve))
-            names(model_init[[current_node]]) <- marker_init
-
-          }
-
-          while (current_node>1 & length(marker_init)>0){ # get initial values from upper nodes
-
-            current_node <- current_node%/%2
-
-            current_node_marker <-
-              names(model_init[[current_node]])[which(names(model_init[[current_node]])%in%marker_init)]
-
-            if (length(current_node_marker)>0){
-
-              model_init[[feuilles_courantes[i]]][current_node_marker] <- model_init[[current_node]][current_node_marker]
-              marker_init <- marker_init[-which(marker_init%in%current_node_marker)]
-
-            }
-
+            model_init[[current_node]] <- lapply(Curve$model, FUN = function(x) x$init.param)
           }
 
         }

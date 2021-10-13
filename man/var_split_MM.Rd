@@ -4,11 +4,10 @@
 \alias{var_split_MM}
 \title{Mixed-Model Split function}
 \usage{
-var_split_MM(X, Y, timeScale = 0.1, nsplit_option = "quantile",
-  nodesize = 1, cause = 1)
+var_split_MM(X, Y, nsplit_option = "quantile", cause = 1, init = NULL)
 }
 \arguments{
-\item{cause}{}
+\item{init}{}
 }
 \description{
 Mixed-Model Split function
