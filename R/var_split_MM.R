@@ -85,6 +85,7 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
                              random = X$model[[i]]$random,
                              subject = "id", data = data_model,
                              B = init[[colnames(X$X)[i]]],
+                             maxiter = 100,
                              verbose = FALSE)
 
       }else{
@@ -92,11 +93,12 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
         model_output <- hlme(fixed = X$model[[i]]$fixed,
                              random = X$model[[i]]$random,
                              subject = "id", data = data_model,
+                             maxiter = 100,
                              verbose = FALSE)
 
       }
 
-      if (model_output$conv!=1){ # convergence issue
+      if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04){ # convergence issue
 
         impur[i] <- Inf
         split[[i]] <- Inf
