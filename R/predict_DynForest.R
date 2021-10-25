@@ -235,7 +235,8 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
             if (!is.null(object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes])){
               pred_courant[[cause]][k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
             }else{
-              pred_courant[[cause]][k,] <- rep(NA, length(id.predTimes))
+              #pred_courant[[cause]][k,] <- rep(NA, length(id.predTimes))
+              pred_courant[[cause]][k,] <- rep(0, length(id.predTimes))
             }
           }
 
