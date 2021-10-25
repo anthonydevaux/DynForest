@@ -84,12 +84,25 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
   if (!is.null(Curve)){ # Curve
 
-    curve_na_row <- which(rowSums(is.na(Curve$X))>0)
+    Curve_df <- cbind(ID = Curve$id, time = Curve$time, Curve$X)
 
-    if (length(curve_na_row)>0){
-      Curve$X <- Curve$X[-curve_na_row,, drop = FALSE]
-      Curve$id <- Curve$id[-curve_na_row]
-      Curve$time <- Curve$time[-curve_na_row]
+    curve_id_noNA_list <- lapply(colnames(Curve_df)[3:ncol(Curve_df)], FUN = function(x){
+      df <- Curve_df[,c("ID",x)]
+      colnames(df) <- c("ID","var")
+      aggregate(var ~ ID, data = df, FUN = length)[,1]
+    })
+
+    curve_id_noNA <- Reduce(intersect, curve_id_noNA_list)
+
+    if (length(curve_id_noNA)>0){
+
+      wCurve <- which(Curve$id%in%curve_id_noNA)
+
+      Curve$X <- Curve$X[wCurve,, drop = FALSE]
+      Curve$id <- Curve$id[wCurve]
+      Curve$time <- Curve$time[wCurve]
+    }else{
+      stop("No subject has at least one measurement by marker !")
     }
   }
 
@@ -182,9 +195,9 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
   if (object$type=="curve"){
     pred <- NULL
-    for (l in 1:dim(pred.feuille)[2]){
+    for (l in 1:dim(pred.feuille)[2]){ # subject
       pred_courant <- NULL
-      for(k in 1:dim(pred.feuille)[1]){
+      for(k in 1:dim(pred.feuille)[1]){ # tree
         pred_courant <- rbind(pred_courant, cbind(rep(k,dim(object$rf[,k]$Y_pred[[pred.feuille[k,l]]])[1]),object$rf[,k]$Y_pred[[pred.feuille[k,l]]]))
       }
       predouille <- kmlShape::meanFrechet(pred_courant, timeScale = timeScale)
@@ -209,12 +222,12 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     })
     names(pred) <- as.character(object$causes)
 
-    for (l in 1:dim(pred.feuille)[2]){
+    for (l in 1:dim(pred.feuille)[2]){ # subject
 
       pred_courant <- lapply(object$causes, matrix, data = NA, nrow = ncol(object$rf), ncol = length(predTimes))
       names(pred_courant) <- as.character(object$causes)
 
-      for(k in 1:dim(pred.feuille)[1]){
+      for(k in 1:dim(pred.feuille)[1]){ # tree
 
         if (!is.na(pred.feuille[k,l])){
 
