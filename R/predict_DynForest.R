@@ -22,7 +22,7 @@
 #'
 predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1,
                               predTimes = NULL, t0 = NULL,
-                              ncores = NULL, ...){
+                              ncores = NULL, parallel = TRUE, ...){
 
   ##########
   # Checking
@@ -156,25 +156,32 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   }
 
   # leaf predictions of new subjects
-  cl <- parallel::makeCluster(ncores)
-  doParallel::registerDoParallel(cl)
 
-  pred.feuille <- foreach(t=1:ncol(object$rf),
-                          .combine='rbind', .multicombine = TRUE
-                          #, .packages = c()
-  ) %dopar%
-    {
+  if (parallel){
 
-      return(pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale))
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
 
+    pred.feuille <- foreach(t=1:ncol(object$rf),
+                            .combine='rbind', .multicombine = TRUE
+                            #, .packages = c()
+    ) %dopar%
+      {
+
+        return(pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale))
+
+      }
+
+    parallel::stopCluster(cl)
+
+  }else{
+
+    for (t in 1:ncol(object$rf)){
+      #cat(t,"\n")
+      pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale)
     }
 
-  parallel::stopCluster(cl)
-
-  # for (t in 1:ncol(object$rf)){
-  #   cat(t,"\n")
-  #   pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale)
-  # }
+  }
 
   if (object$type=="scalar"){
     pred <- apply(pred.feuille, 2, "mean")
@@ -222,12 +229,12 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     })
     names(pred) <- as.character(object$causes)
 
-    for (l in 1:dim(pred.feuille)[2]){ # subject
+    for (l in 1:ncol(pred.feuille)){ # subject
 
       pred_courant <- lapply(object$causes, matrix, data = NA, nrow = ncol(object$rf), ncol = length(predTimes))
       names(pred_courant) <- as.character(object$causes)
 
-      for(k in 1:dim(pred.feuille)[1]){ # tree
+      for(k in 1:nrow(pred.feuille)){ # tree
 
         if (!is.na(pred.feuille[k,l])){
 
