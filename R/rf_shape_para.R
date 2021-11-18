@@ -26,10 +26,16 @@ rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, n
 
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
-  parallel::clusterExport(cl,
-                          list("Y","minsplit","nodesize"),
-                          #envir = globalenv())
-                          envir = environment())
+  # parallel::clusterExport(cl,
+  #                         list("Y","minsplit","nodesize"),
+  #                         #envir = globalenv())
+  #                         envir = environment())
+
+  pck <- .packages()
+  dir0 <- find.package()
+  dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+  parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+  parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
   if (Y$type=="surv"){
     trees <- pbsapply(1:ntree, FUN=function(i){
