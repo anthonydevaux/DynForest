@@ -161,7 +161,15 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
-    Importance.Curve <- foreach::foreach(p=1:dim(Curve$X)[2],.packages = "kmlShape" ,.combine = "c") %dopar% {
+    pck <- .packages()
+    dir0 <- find.package()
+    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+    Importance.Curve <- foreach::foreach(p=1:dim(Curve$X)[2],
+                                         #.packages = "kmlShape" ,
+                                         .combine = "c") %dopar% {
       for (k in 1:ntree){
         BOOT <- rf$rf[,k]$boot
         nboot <- length(unique(Y$id))- length(BOOT)
@@ -198,7 +206,15 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
-    Importance.Scalar <- foreach::foreach(p=1:dim(Scalar$X)[2],.packages = "kmlShape" ,.combine = "c") %dopar% {
+    pck <- .packages()
+    dir0 <- find.package()
+    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+    Importance.Scalar <- foreach::foreach(p=1:dim(Scalar$X)[2],
+                                          #.packages = "kmlShape" ,
+                                          .combine = "c") %dopar% {
 
       for (k in 1:ntree){
         BOOT <- rf$rf[,k]$boot
@@ -232,7 +248,15 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
-    Importance.Factor <- foreach::foreach(p=1:dim(Factor$X)[2],.packages = "kmlShape" ,.combine = "c") %dopar% {
+    pck <- .packages()
+    dir0 <- find.package()
+    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+    Importance.Factor <- foreach::foreach(p=1:dim(Factor$X)[2],
+                                          #.packages = "kmlShape" ,
+                                          .combine = "c") %dopar% {
 
       for (k in 1:ntree){
         BOOT <- rf$rf[,k]$boot

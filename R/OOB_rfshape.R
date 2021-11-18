@@ -74,8 +74,9 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
     res.oob <- foreach(i=1:length(Y$id),
-                       .combine='comb', .multicombine = TRUE,
-                       .packages = c("pec", "prodlim")) %dopar%
+                       .combine='comb', .multicombine = TRUE
+                       #,.packages = c("pec", "prodlim")
+                       ) %dopar%
       {
 
     #for (i in 1:length(Y$id)){
