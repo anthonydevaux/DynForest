@@ -67,6 +67,12 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
+    pck <- .packages()
+    dir0 <- find.package()
+    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
     res.oob <- foreach(i=1:length(Y$id),
                        .combine='comb', .multicombine = TRUE,
                        .packages = c("pec", "prodlim")) %dopar%

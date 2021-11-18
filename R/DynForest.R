@@ -93,6 +93,12 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
 
+  pck <- .packages()
+  dir0 <- find.package()
+  dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+  parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+  parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
   xerror <- pbsapply(1:ntree, FUN=function(i){OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y, timeScale=timeScale,
                                                        d_out=d_out, IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)},cl=cl)
 
