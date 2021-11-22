@@ -45,6 +45,10 @@ impurity_split <- function(Y,split,cause=1){
           impur <- Inf
         }
 
+        if (is.nan(impur)){
+          impur <- Inf
+        }
+
       }else{
 
         # logrank splitting rule

@@ -51,7 +51,7 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
           toutes_imp_courant[[k]] <- impurete$imp_list
         }
 
-        if (!is.null(impurete)){
+        if (!is.null(impurete) & !all(impur_courant==Inf)){
           select <- which.min(impur_courant)
           split[[i]] <- split_courant[[select]]
           impur[i] <- impur_courant[select]
@@ -173,7 +173,7 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
 
           }
 
-          if (!is.null(impurete)){
+          if (!is.null(impurete) & !all(impurete_nsplit==Inf)){
             impurete_sum[i_sum] <- impurete_nsplit[which.min(impurete_nsplit)]
             split_sum[[i_sum]] <- split_nsplit[[which.min(impurete_nsplit)]]
             split_threholds_sum[i_sum] <- split_threholds[which.min(impurete_nsplit)]
@@ -238,7 +238,7 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
 
         }
 
-        if (!is.null(impurete)){
+        if (!is.null(impurete) & !all(impurete_nsplit==Inf)){
           split[[i]] <- split_nsplit[[which.min(impurete_nsplit)]]
           impur[i] <- impurete_nsplit[which.min(impurete_nsplit)]
           threshold[i] <- split_threholds[which.min(impurete_nsplit)]
