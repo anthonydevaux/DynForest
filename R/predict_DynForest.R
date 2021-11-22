@@ -162,6 +162,12 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
+    pck <- .packages()
+    dir0 <- find.package()
+    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
     pred.feuille <- foreach(t=1:ncol(object$rf),
                             .combine='rbind', .multicombine = TRUE
                             #, .packages = c()
