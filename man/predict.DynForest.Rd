@@ -13,6 +13,7 @@
   predTimes = NULL,
   t0 = NULL,
   ncores = NULL,
+  parallel = TRUE,
   ...
 )
 }
