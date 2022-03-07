@@ -22,7 +22,7 @@ var_depth <- function(DynForest_obj){
       }
 
       df <- aggregate(depth ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], min)
-      df <- data.frame(var = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
+      df <- data.frame(var = paste0(DynForest_obj$Inputs$Curve[df$var_split], ".bi", df$var_summary-1),
                        depth = df$depth)
       return(df)
 
@@ -48,7 +48,7 @@ var_depth <- function(DynForest_obj){
       }
 
       df <- aggregate(depth ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], length)
-      df <- data.frame(var = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
+      df <- data.frame(var = paste0(DynForest_obj$Inputs$Curve[df$var_split], ".bi", df$var_summary-1),
                        depth = df$depth)
       return(df)
 
@@ -79,7 +79,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
 
         df_scalar <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], min)
-        df_scalar <- data.frame(var = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+        df_scalar <- data.frame(var = DynForest_obj$Inputs$Scalar[df_scalar$var_split],
                                 depth = df_scalar$depth)
 
       }else{
@@ -91,7 +91,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
         df_factor <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], min)
-        df_factor <- data.frame(var = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+        df_factor <- data.frame(var = DynForest_obj$Inputs$Factor[df_factor$var_split],
                                 depth = df_factor$depth)
 
       }else{
@@ -124,7 +124,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
 
         df_scalar <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], length)
-        df_scalar <- data.frame(var = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+        df_scalar <- data.frame(var = DynForest_obj$Inputs$Scalar[df_scalar$var_split],
                                 depth = df_scalar$depth)
 
       }else{
@@ -136,7 +136,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
         df_factor <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], length)
-        df_factor <- data.frame(var = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+        df_factor <- data.frame(var = DynForest_obj$Inputs$Factor[df_factor$var_split],
                                 depth = df_factor$depth)
 
       }else{

@@ -1,0 +1,44 @@
+#' Title
+#'
+#' @param DynForest_obj
+#' @param PCT
+#' @param ordering
+#'
+#' @import ggplot2
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_VIMP <- function(DynForest_obj, PCT = FALSE, ordering = TRUE){
+
+  # checking
+  if (!class(DynForest_obj)=="DynForest"){
+    stop("DynForest_obj argument should be DynForest class!")
+  }
+
+  vimp.df <- data.frame(var = unlist(DynForest_obj$Inputs),
+                        vimp = unlist(DynForest_obj$Importance))
+
+  if (PCT){
+    vimp.df$vimp <- vimp.df$vimp*100/mean(DynForest_obj$oob.err, na.rm = T) # vimp relative
+  }
+
+  if (ordering){
+    g <- ggplot(vimp.df) +
+      geom_bar(aes(reorder(var, vimp), vimp), stat = "identity") +
+      xlab("Predictors") +
+      ylab(ifelse(PCT,"% VIMP","VIMP")) +
+      coord_flip() +
+      theme_bw()
+  }else{
+    g <- ggplot(vimp.df) +
+      geom_bar(aes(var, vimp), stat = "identity") +
+      xlab("Predictors") +
+      ylab(ifelse(PCT,"% VIMP","VIMP")) +
+      coord_flip() +
+      theme_bw()
+  }
+
+  return(print(g))
+}
