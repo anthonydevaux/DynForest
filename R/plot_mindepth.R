@@ -4,6 +4,7 @@
 #' @param plot_level
 #'
 #' @import ggplot2
+#' @importFrom stringr str_order
 #'
 #' @return
 #' @export
@@ -37,7 +38,7 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("markers","summaries")){
       geom_boxplot(aes(fill = group)) +
       geom_text(data = depth.nbtree, aes(x = var, label = num_noeud),
                 y = max(depth.df$num_noeud, na.rm = T) - 1) +
-      scale_x_discrete(limits=rev(sort(unique(depth.df$var)))) +
+      scale_x_discrete(limits=rev(unique(depth.df$var)[str_order(unique(depth.df$var))])) +
       xlab("Predictors") +
       ylab("Minimal depth") +
       guides(fill = FALSE) +
@@ -60,7 +61,7 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("markers","summaries")){
       geom_boxplot(aes(fill = group)) +
       geom_text(data = depthVar.nbtree, aes(x = group, label = num_noeud),
                 y = max(depthVar.df$num_noeud, na.rm = T) - 1) +
-      scale_x_discrete(limits=rev(sort(unique(depthVar.df$group)))) +
+      scale_x_discrete(limits=rev(unique(depthVar.df$group)[str_order(unique(depthVar.df$group))])) +
       xlab("Predictors") +
       ylab("Minimal depth") +
       guides(fill = FALSE) +
