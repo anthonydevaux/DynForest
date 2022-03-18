@@ -8,6 +8,7 @@
 #' @param nsplit_option
 #' @param nodesize
 #' @param cause
+#' @param seed
 #'
 #' @import kmlShape
 #' @import RiemBase
@@ -20,7 +21,8 @@
 #'
 #' @keywords internal
 Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
-                       nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1){
+                       nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
+                       seed = 1234){
 
   inputs <- read.Xarg(c(Curve,Scalar,Factor))
   Inputs <- inputs
@@ -36,6 +38,7 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
   hist_nodes <- list()
   model_param <- list()
   model_init <- list()
+  set.seed(seed) # set seed for bootstrap
   id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
   boot <- id_boot
   decoupe <- 1
@@ -72,10 +75,11 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
   feuilles_terminales <- NULL
 
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
-
+    #cat(p, "\n")
+    #browser(expr = {p == 6})
     count_split <- 0
     for (i in 1:length(feuilles_courantes)){
-
+      #cat(i, "\n")
       # Il faut que l'on regarde le tirage des variables de manière aléatoire :
       V <- NULL
       for (v in Inputs){
@@ -143,7 +147,8 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
 
           if (is.element("factor",split.spaces)==TRUE){
 
-            feuille_split_Factor <- var_split_MM(X = Factor_courant, Y = Y_courant, cause = cause)
+            feuille_split_Factor <- var_split_MM(X = Factor_courant, Y = Y_courant,
+                                                 cause = cause, nodesize = nodesize)
 
             if (feuille_split_Factor$Pure==FALSE){
               F_SPLIT <- merge(F_SPLIT,
@@ -160,7 +165,8 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
 
             feuille_split_Curve <- var_split_MM(X = Curve_courant, Y = Y_courant,
                                                 nsplit_option = nsplit_option,
-                                                cause = cause, init = model_init[[feuilles_courantes[i]]])
+                                                cause = cause, nodesize = nodesize,
+                                                init = model_init[[feuilles_courantes[i]]])
 
             if (feuille_split_Curve$Pure==FALSE){
               model_init[[feuilles_courantes[i]]] <- feuille_split_Curve$init # update initial values at current node
@@ -175,7 +181,8 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
           if (is.element("scalar",split.spaces)==TRUE){
 
             feuille_split_Scalar <- var_split_MM(X = Scalar_courant, Y = Y_courant,
-                                                 nsplit_option = nsplit_option, cause = cause)
+                                                 nsplit_option = nsplit_option,
+                                                 cause = cause, nodesize = nodesize)
 
             if (feuille_split_Scalar$Pure==FALSE){
               F_SPLIT <- merge(F_SPLIT,

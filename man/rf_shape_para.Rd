@@ -16,7 +16,8 @@ rf_shape_para(
   nsplit_option = "quantile",
   nodesize = 1,
   minsplit = 2,
-  cause = 1
+  cause = 1,
+  seed = 1234
 )
 }
 \arguments{

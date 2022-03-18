@@ -21,6 +21,7 @@
 #' @param cause
 #' @param IBS.min
 #' @param IBS.max
+#' @param seed
 #' @param ... : optional parameters to be passed to the low level function
 #'
 #' @import stringr
@@ -40,7 +41,9 @@
 #' @export
 #'
 DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=100, ncores=NULL, timeScale=0.1, imp=TRUE, d_out=0.1,
-                      nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1, IBS.min = 0, IBS.max = NULL, ...){
+                      nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
+                      IBS.min = 0, IBS.max = NULL, seed = round(runif(1,0,10000)),
+                      ...){
 
 
   if (Y$type=="surv"){
@@ -85,7 +88,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   debut <- Sys.time()
   rf <-  rf_shape_para(Curve=Curve,Scalar=Scalar, Factor=Factor, Y=Y, mtry=mtry, ntree=ntree, timeScale = timeScale,ncores=ncores,
-                       nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+                       nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause, seed = seed)
 
   rf <- list(type=Y$type, rf=rf, levels=levels(Y$Y))
 

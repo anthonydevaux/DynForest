@@ -4,6 +4,7 @@
 #' @param Y
 #' @param nsplit_option
 #' @param cause
+#' @param nodesize
 #' @param init
 #'
 #' @import kmlShape
@@ -14,7 +15,7 @@
 #'
 #' @keywords internal
 var_split_MM <- function(X ,Y, nsplit_option = "quantile",
-                         cause = 1, init = NULL){
+                         cause = 1, nodesize = 1, init = NULL){
   # Pour le moment on se concentre sur le cas des variables courbes ::
   impur <- rep(0,ncol(X$X))
   toutes_imp <- list()
@@ -35,12 +36,11 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
         toutes_imp_courant <- list()
         # Il faut maintenant regarder quelles sont les meilleures combinaisons ::
         for (k in 1:length(L)){
-          split_courant[[k]] <- rep(2,length(X$id))
-          for (l in L[[k]]){
-            split_courant[[k]][which(X$id==l)] <- 1
-          }
 
-          if (length(unique(split_courant[[k]]))==1){
+          split_courant[[k]] <- rep(2,length(X$id))
+          split_courant[[k]][which(X$id%in%L[[k]])] <- 1
+
+          if ((length(unique(split_courant[[k]]))==1)|(any(table(split_courant[[k]])<nodesize))){
             impur_courant[k] <- Inf
             next()
           }
@@ -156,6 +156,21 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
             split_threholds <- unique(sample(data_summaries[,i_sum], nsplit))
           }
 
+          # remove partition according to nodesize criteria
+          group_length <- lapply(split_threholds, FUN = function(x){
+            table(data_summaries[,i_sum]<x)
+          })
+
+          split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))
+          split_threholds <- split_threholds[split_nodesize_ok]
+
+          if (length(split_threholds)==0){ # could happened with tie values
+            impurete_sum[i_sum] <- NA
+            split_sum[[i_sum]] <- NA
+            split_threholds_sum[i_sum] <- NA
+            next()
+          }
+
           impurete_nsplit <- rep(NA, length(split_threholds))
           split_nsplit <- list()
 
@@ -207,7 +222,7 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
 
     }
 
-    if(X$type=="scalar"){
+    if (X$type=="scalar"){
       if (length(unique(X$X[,i]))>2){
 
         nsplit <- ifelse(length(unique(X$X[,i]))>10, 10, length(unique(X$X[,i])))
@@ -221,21 +236,34 @@ var_split_MM <- function(X ,Y, nsplit_option = "quantile",
           split_threholds <- unique(sample(X$X[,i], nsplit))
         }
 
-        impurete_nsplit <- rep(NA, length(split_threholds))
-        split_nsplit <- list()
+        # remove partition according to nodesize criteria
+        group_length <- lapply(split_threholds, FUN = function(x){
+          table(X$X[,i]<x)
+        })
 
-        for (j in 1:length(split_threholds)){ # boucle sur les nsplit
+        split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))
+        split_threholds <- split_threholds[split_nodesize_ok]
 
-          split_nsplit[[j]] <- factor(ifelse(X$X[,i]<=split_threholds[j],1,2))
+        if (length(split_threholds)>0){ # could happened with tie values
 
-          if (length(unique(split_nsplit[[j]]))==1){
-            impurete_nsplit[j] <- Inf
-            next()
+          impurete_nsplit <- rep(NA, length(split_threholds))
+          split_nsplit <- list()
+
+          for (j in 1:length(split_threholds)){ # boucle sur les nsplit
+
+            split_nsplit[[j]] <- factor(ifelse(X$X[,i]<=split_threholds[j],1,2))
+
+            if (length(unique(split_nsplit[[j]]))==1){
+              impurete_nsplit[j] <- Inf
+              next()
+            }
+
+            impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
+            impurete_nsplit[j] <- impurete$impur
+
           }
-
-          impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
-          impurete_nsplit[j] <- impurete$impur
-
+        }else{
+          impurete_nsplit <- Inf
         }
 
         if (!is.null(impurete) & !all(impurete_nsplit==Inf)){

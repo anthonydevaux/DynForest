@@ -21,6 +21,7 @@ DynForest(
   cause = 1,
   IBS.min = 0,
   IBS.max = NULL,
+  seed = round(runif(1, 0, 10000)),
   ...
 )
 }

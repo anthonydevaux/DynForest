@@ -12,6 +12,7 @@
 #' @param nsplit_option
 #' @param nodesize
 #' @param cause
+#' @param seed
 #' @param ...
 #'
 #' @import foreach
@@ -22,14 +23,11 @@
 #'
 #' @keywords internal
 rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, ntree, timeScale, ncores,
-                          nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1){
+                          nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
+                          seed = 1234){
 
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
-  # parallel::clusterExport(cl,
-  #                         list("Y","minsplit","nodesize"),
-  #                         #envir = globalenv())
-  #                         envir = environment())
 
   pck <- .packages()
   dir0 <- find.package()
@@ -40,7 +38,8 @@ rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, n
   if (Y$type=="surv"){
     trees <- pbsapply(1:ntree, FUN=function(i){
       Rtmax_surv(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry,
-                 nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+                 nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause,
+                 seed = seed*i)
     },cl=cl)
   }else{
     trees <- pbsapply(1:ntree, FUN=function(i){
@@ -57,9 +56,9 @@ rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, n
   #
   #   for (i in 1:ntree){
   #     cat(paste0("Tree ",i,"\n"))
-  #     #browser(expr = {i == 58})
+  #     #browser(expr = {i == 98})
   #     trees[[i]] <- Rtmax_surv(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry,
-  #                              nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause)
+  #                              nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause, seed = seed*i)
   #   }
   #
   # }else{

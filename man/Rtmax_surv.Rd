@@ -13,7 +13,8 @@ Rtmax_surv(
   nsplit_option = "quantile",
   nodesize = 1,
   minsplit = 2,
-  cause = 1
+  cause = 1,
+  seed = 1234
 )
 }
 \arguments{
@@ -27,7 +28,7 @@ Rtmax_surv(
 
 \item{mtry}{[integer]:}
 
-\item{cause}{}
+\item{seed}{}
 }
 \description{
 Randomized Dynamic tree
