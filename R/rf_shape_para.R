@@ -56,7 +56,7 @@ rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, n
   #
   #   for (i in 1:ntree){
   #     cat(paste0("Tree ",i,"\n"))
-  #     #browser(expr = {i == 98})
+  #     browser(expr = {i == 35})
   #     trees[[i]] <- Rtmax_surv(Curve=Curve,Scalar = Scalar,Factor = Factor, Y = Y, mtry = mtry,
   #                              nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause, seed = seed*i)
   #   }

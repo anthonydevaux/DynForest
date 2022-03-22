@@ -86,6 +86,7 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
         V <- c(V, rep(get(v)$type, ncol(get(v)$X)))
       }
 
+      set.seed(seed+p*i)
       # mtry des espaces
       variables <- sample(V,mtry) # Maintenant on sait combien on doit en tirer dans chaque espace
       # On ne va regarder que les espaces tirés :
@@ -108,6 +109,7 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
         # mtry des variables de chaque espace
 
         if (is.element("curve",split.spaces)==TRUE){
+
           tirageCurve <- sample(1:ncol(Curve$X),length(which(variables=="curve")))
           Curve_courant <- list(type = Curve_boot$type, X=Curve_boot$X[wXCurve,tirageCurve, drop=FALSE], id=Curve_boot$id[wXCurve, drop=FALSE], time=Curve_boot$time[wXCurve, drop=FALSE],
                                 model = Curve_boot$model[tirageCurve])
@@ -124,11 +126,13 @@ Rtmax_surv <- function(Curve=NULL, Scalar=NULL, Factor=NULL, Y=NULL, mtry = 1,
         }
 
         if (is.element("scalar",split.spaces)==TRUE){
+
           tirageScalar <- sample(1:ncol(Scalar$X),length(which(variables=="scalar")))
           Scalar_courant <- list(type = Scalar_boot$type, X=Scalar_boot$X[wXScalar,tirageScalar, drop=FALSE], id=Scalar_boot$id[wXScalar, drop=FALSE])
         }
 
         if (is.element("factor",split.spaces)==TRUE){
+
           tirageFactor <- sample(1:ncol(Factor$X),length(which(variables=="factor")))
           Factor_courant <- list(type = Factor_boot$type, X=Factor_boot$X[wXFactor,tirageFactor, drop=FALSE], id=Factor_boot$id[wXFactor, drop=FALSE])
         }

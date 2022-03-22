@@ -52,7 +52,14 @@ impurity_split <- function(Y,split,cause=1){
       }else{
 
         # logrank splitting rule
-        impur <- 1/(1+survival::survdiff(Y$Y~split)$chisq)
+        surv.res <- tryCatch(survival::survdiff(Y$Y~split),
+                             error = function(e) return(list(chisq = NULL)))
+
+        if (!is.null(surv.res$chisq)){
+          impur <- 1/(1+surv.res$chisq)
+        }else{
+          impur <- Inf
+        }
 
       }
       break
