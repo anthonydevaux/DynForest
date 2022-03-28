@@ -14,6 +14,7 @@ DynForest(
   ncores = NULL,
   timeScale = 0.1,
   imp = TRUE,
+  imp.group = NULL,
   d_out = 0.1,
   nsplit_option = "quantile",
   nodesize = 1,

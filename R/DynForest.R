@@ -16,6 +16,7 @@
 #' @param ncores [numeric]: Number of cores used to build Frechet randomized trees in parallel, defaulting to number of cores of the computer minus 1.
 #' @param timeScale [numeric]: Allow to modify the time scale, increasing or decreasing the cost of the horizontal shift. If timeScale is very big, then the Frechet mean tends to the Euclidean distance. If timeScale is very small, then it tends to the Dynamic Time Warping. Only used when there are trajectories either in input or output.
 #' @param imp [logical]: TRUE to compute the variables importance FALSE otherwise (default \code{imp=}TRUE)
+#' @param imp.group
 #' @param d_out [string]: "euc" or "frec".
 #' @param nsplit_option
 #' @param cause
@@ -40,7 +41,8 @@
 #' }
 #' @export
 #'
-DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=100, ncores=NULL, timeScale=0.1, imp=TRUE, d_out=0.1,
+DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=100, ncores=NULL, timeScale=0.1,
+                      imp=TRUE, imp.group = NULL, d_out=0.1,
                       nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
                       IBS.min = 0, IBS.max = NULL, seed = round(runif(1,0,10000)),
                       ...){
@@ -61,6 +63,11 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   }
   if (is.null(Factor)==FALSE){
     Factor <- list(type="factor",X=Factor$X,id=Factor$id)
+  }
+  if (!is.null(imp.group)){
+    if (!all(unlist(imp.group)%in%c(colnames(Curve$X),colnames(Factor$X),colnames(Scalar$X)))){
+      stop("Unknown predictor(s) from 'imp.group' argument!")
+    }
   }
 
   inputs <- read.Xarg(c(Curve,Scalar,Factor))
@@ -174,26 +181,22 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
                                          #.packages = "kmlShape" ,
                                          .combine = "c") %dopar% {
       for (k in 1:ntree){
-        BOOT <- rf$rf[,k]$boot
-        nboot <- length(unique(Y$id))- length(BOOT)
+      BOOT <- rf$rf[,k]$boot
+      nboot <- length(unique(Y$id))- length(BOOT)
+      id_boot_Curve <- which(Curve$id%in%BOOT)
 
-        id_boot_Curve <- NULL
-        for (i in 1:length(BOOT)){
-          id_boot_Curve <- c(id_boot_Curve, which(Curve$id==BOOT[i]))
-        }
+      # Il faut maintenant faire la permutation :
 
-        # Il faut maintenant faire la permutation :
-
-        Curve.perm$X[-id_boot_Curve,p] <- permutation_courbes(Curve$X[-id_boot_Curve,p], Curve$id[-id_boot_Curve])
+      Curve.perm$X[-id_boot_Curve,p] <- sample(Curve.perm$X[-id_boot_Curve,p])
 
 
-        Curve.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve.perm, Scalar = Scalar, Factor=Factor, Y, timeScale=timeScale,
-                                   IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
+      Curve.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve.perm, Scalar = Scalar, Factor=Factor, Y, timeScale=timeScale,
+                                IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
 
       }
       Curve.perm$X[,p] <- Curve$X[,p]
       res <- mean(Curve.err[,p]- xerror)
-    }
+      }
 
     parallel::stopCluster(cl)
 
@@ -222,12 +225,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
       for (k in 1:ntree){
         BOOT <- rf$rf[,k]$boot
         nboot <- length(unique(Y$id))- length(BOOT)
-
-        id_boot_Scalar <- NULL
-        for (i in 1:length(BOOT)){
-          id_boot_Scalar <- c(id_boot_Scalar, which(Scalar$id==BOOT[i]))
-        }
-
+        id_boot_Scalar <- which(Scalar$id%in%BOOT)
 
         Scalar.perm$X[-id_boot_Scalar,p] <- sample(Scalar.perm$X[-id_boot_Scalar,p])
 
@@ -264,11 +262,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
       for (k in 1:ntree){
         BOOT <- rf$rf[,k]$boot
         nboot <- length(unique(Y$id))- length(BOOT)
-
-        id_boot_Factor <- NULL
-        for (i in 1:length(BOOT)){
-          id_boot_Factor <- c(id_boot_Factor, which(Factor$id==BOOT[i]))
-        }
+        id_boot_Factor <- which(Factor$id%in%BOOT)
 
         # Il faut maintenant faire la permutation :
 
@@ -290,6 +284,110 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   Importance <- list(Curve=as.vector(Importance.Curve), Scalar=as.vector(Importance.Scalar), Factor=as.vector(Importance.Factor))
 
   ############
+  # grouped VIMP
+
+  if (!is.null(imp.group)){
+
+    cat("Grouped VIMP...")
+
+    gVIMP <- vector("numeric", length(imp.group))
+    names(gVIMP) <- names(imp.group)
+
+    for (g in 1:length(imp.group)){
+
+      group <- imp.group[[g]]
+
+      id_boot_Curve <- id_boot_Factor <- id_boot_Scalar <- NULL
+      Factor.perm <- Scalar.perm <- Curve.perm <- NULL
+
+      for (Input in Inputs){ # id des id non bootstrap
+
+        assign(paste0(Input,".perm"), get(Input))
+
+      }
+
+      cl <- parallel::makeCluster(ncores)
+      doParallel::registerDoParallel(cl)
+
+      pck <- .packages()
+      dir0 <- find.package()
+      dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+      parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+      parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+      res <- foreach::foreach(k=1:ntree,
+                                      .combine = "c") %dopar% {
+
+      # res <- vector("numeric", ntree)
+      # for (k in 1:ntree){
+
+        BOOT <- rf$rf[,k]$boot
+        nboot <- length(unique(Y$id))- length(BOOT)
+
+        for (Input in Inputs){ # id des id non bootstrap
+
+          assign(paste0("id_boot_", Input), which(get(Input)$id%in%BOOT))
+
+        }
+
+        for (p in 1:length(group)){
+
+          var_group <- group[p]
+
+          if (any(Inputs=="Factor")){
+            if (any(var_group%in%colnames(Factor$X))){
+
+              Factor.perm$X[-id_boot_Factor, var_group] <-
+                sample(Factor.perm$X[-id_boot_Factor, var_group])
+
+            }
+          }
+
+          if (any(Inputs=="Scalar")){
+            if (any(var_group%in%colnames(Scalar$X))){
+
+              Scalar.perm$X[-id_boot_Scalar, var_group] <-
+                sample(Scalar.perm$X[-id_boot_Scalar, var_group])
+
+            }
+          }
+
+          if (any(Inputs=="Curve")){
+            if (any(var_group%in%colnames(Curve$X))){
+
+              Curve.perm$X[-id_boot_Curve, var_group] <-
+                sample(Curve.perm$X[-id_boot_Curve, var_group])
+
+            }
+          }
+
+        }
+
+        return(OOB.tree(rf$rf[,k], Curve = Curve.perm,
+                                   Scalar = Scalar.perm,
+                                   Factor = Factor.perm, Y, timeScale=timeScale,
+                                   IBS.min = IBS.min, IBS.max = IBS.max, cause = cause))
+
+        # res[k] <- OOB.tree(rf$rf[,k], Curve = Curve.perm,
+        #                    Scalar = Scalar.perm,
+        #                    Factor = Factor.perm, Y, timeScale=timeScale,
+        #                    IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
+
+      }
+
+      parallel::stopCluster(cl)
+
+      gVIMP[g] <- mean(res - xerror)
+
+    }
+
+  }else{
+
+    gVIMP <- NULL
+
+  }
+
+  ############
 
   temps <- Sys.time() - debut
 
@@ -297,7 +395,7 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
 
   if (Y$type == "surv"){
     drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
-                xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance,
+                xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, gVIMP = gVIMP,
                 Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
                 Curve.model = Curve$model, comput.time=temps)
     class(drf) <- c("DynForest")
@@ -305,8 +403,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=1
   }
   var.ini <- impurity(Y, timeScale)
   varex <- 1 - mean(oob.err$err)/var.ini
-  drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, varex=varex,
-              Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
+  drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, gVIMP = gVIMP,
+              varex=varex, Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
               Curve.model = Curve$model, comput.time=temps)
   class(drf) <- c("DynForest")
   return(drf)
