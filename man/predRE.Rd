@@ -13,9 +13,6 @@ predRE(model, formula, data)
 
 \item{data}{data to compute random effect}
 }
-\value{
-
-}
 \description{
 Function to compute individual random effects using hlme output parameters
 }

@@ -9,7 +9,7 @@
 #' @return
 #' @export
 #'
-#' @importFrom lcmm fixef
+#' @import lcmm
 #'
 #' @examples
 predRE <- function(model, formula, data){

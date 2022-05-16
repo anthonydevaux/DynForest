@@ -9,9 +9,6 @@ plot_VIMP(DynForest_obj, PCT = FALSE, ordering = TRUE)
 \arguments{
 \item{ordering}{}
 }
-\value{
-
-}
 \description{
 Title
 }

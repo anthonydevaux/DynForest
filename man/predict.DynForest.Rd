@@ -34,9 +34,6 @@
 
 \item{...}{: optional parameters to be passed to the low level function}
 }
-\value{
-
-}
 \description{
 Predict with Dynamic random forests
 }

@@ -17,9 +17,6 @@ pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL, timeScale = 0.1)
 
 \item{timeScale}{[numeric]: Time scale for the input and output curves (\code{timeScale=0.1} by default)}
 }
-\value{
-
-}
 \description{
 Predict Mixed Model Tree
 }

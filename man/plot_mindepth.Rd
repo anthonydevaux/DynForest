@@ -9,9 +9,6 @@ plot_mindepth(var_depth_obj, plot_level = c("markers", "summaries"))
 \arguments{
 \item{plot_level}{}
 }
-\value{
-
-}
 \description{
 Title
 }

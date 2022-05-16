@@ -2,7 +2,7 @@
 % Please edit documentation in R/DynForest.R
 \name{DynForest}
 \alias{DynForest}
-\title{Joint random forest for longitudinal and survival data}
+\title{Random forest with multivariate longitudinal endogenous covariates}
 \usage{
 DynForest(
   Curve = NULL,
@@ -10,10 +10,10 @@ DynForest(
   Factor = NULL,
   Y,
   mtry = NULL,
-  ntree = 100,
+  ntree = 200,
   ncores = NULL,
   timeScale = 0.1,
-  imp = TRUE,
+  imp = FALSE,
   imp.group = NULL,
   d_out = 0.1,
   nsplit_option = "quantile",
@@ -27,44 +27,86 @@ DynForest(
 )
 }
 \arguments{
-\item{Curve}{[list]: A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
+\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
-\item{Scalar}{[list]: A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
+\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Factor}{[list]: A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
+\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Y}{[list]: A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
+\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
 
-\item{mtry}{[numeric]: Number of variables randomly drown as candidates at each split. The default value \code{p/3} but has to be tuned according to the OOB prediction error.}
+\item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is `NULL`.}
 
-\item{ntree}{[numeric]: Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.}
+\item{ntree}{Number of trees to grow. Default value set to 200.}
 
-\item{ncores}{[numeric]: Number of cores used to build Frechet randomized trees in parallel, defaulting to number of cores of the computer minus 1.}
+\item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 
-\item{timeScale}{[numeric]: Allow to modify the time scale, increasing or decreasing the cost of the horizontal shift. If timeScale is very big, then the Frechet mean tends to the Euclidean distance. If timeScale is very small, then it tends to the Dynamic Time Warping. Only used when there are trajectories either in input or output.}
+\item{timeScale}{Experimental}
 
-\item{imp}{[logical]: TRUE to compute the variables importance FALSE otherwise (default \code{imp=}TRUE)}
+\item{imp}{Compute (1) the importance of variables (VIMP); (2) the importance of groups (gVIMP) if there is a \code{imp.group} argument. Default value is FALSE}
 
-\item{d_out}{[string]: "euc" or "frec".}
+\item{imp.group}{A list of groups with the name of the predictors assigned in each group}
 
-\item{nodesize}{[numeric]}
+\item{d_out}{Experimental}
 
-\item{minsplit}{[numeric]}
+\item{nsplit_option}{A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".}
 
-\item{...}{: optional parameters to be passed to the low level function}
+\item{nodesize}{Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.}
+
+\item{minsplit}{(Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.}
+
+\item{cause}{(Only with competing events) Number indicates the event of interest.}
+
+\item{IBS.min}{(Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.}
+
+\item{IBS.max}{(Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.}
+
+\item{seed}{Seed to replicate results}
+
+\item{...}{Optional parameters to be passed to the low level function}
 }
 \value{
-A Frechet random forest which is a list of the following elements: \itemize{
-\item \code{rf:} a list of the \code{ntree} randomized Frechet trees that compose the forest.
-\item \code{xerror :} a vector containing the OOB prediction error of each randomized Frechet tree composing the forest.
-\item \code{OOB.err: } a vector containing the OOB prediction error of each individual in the learning sample.
-\item \code{OOB.pred: } a list of the OOB prediction for each individual in the learning set.
-\item \code{Importance: } A vector containing the variables importance.
-\item \code{varex: } “pseudo R-squared”: Percentage of variance explained.
+DynForest function return a list with the following elements:\tabular{ll}{
+   \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
+   \tab \cr
+   \code{type} \tab Outcome type \cr
+   \tab \cr
+   \code{times} \tab A numeric vector containing the time-to-event for all subjects \cr
+   \tab \cr
+   \code{cause} \tab Indicating the cause of interest \cr
+   \tab \cr
+   \code{causes} \tab A numeric vector containing the causes indicator \cr
+   \tab \cr
+   \code{xerror} \tab A numeric vector containing the OOB error for each tree \cr
+   \tab \cr
+   \code{oob.err} \tab A numeric vector containing the OOB error for each subject \cr
+   \tab \cr
+   \code{oob.pred} \tab Outcome prediction for all subjects \cr
+   \tab \cr
+   \code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
+   \tab \cr
+   \code{gVIMP} \tab A numeric vector containing the gVIMP for each group defined in \code{imp.group} argument \cr
+   \tab \cr
+   \code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
+   \tab \cr
+   \code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
+   \tab \cr
+   \code{comput.time} \tab Computation time \cr
 }
 }
 \description{
-DynForest function builds a joint random forest for survival analysis (Devaux et al., 2021), trajectory, regression or classification. Longitudinal data, factors and scalars are allowed as predictors.
-Nodes are split on the candidate variable that maximize the splitting rule according to the outcome. To allow longitudinal data as candidate variable, mixed models are computed on those which are selected at each node.
-Then, the random-effects are used are candidate variables. Out-of-bag prediction error and variable importance (VIMP) are also provided.
+Built a random forest using multiple various predictors (Devaux et al., 2022)
+}
+\details{
+The function currently supports survival data (competing or single event).
+
+FUTUR IMPROVEMENT:\describe{
+\item{test}
+}
+}
+\seealso{
+\code{\link{predict_DynForest}}
+}
+\author{
+Anthony Devaux (\email{anthony.devaux@u-bordeaux.fr})
 }

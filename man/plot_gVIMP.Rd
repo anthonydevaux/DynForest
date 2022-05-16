@@ -9,9 +9,6 @@ plot_gVIMP(DynForest_obj, PCT = FALSE)
 \arguments{
 \item{PCT}{}
 }
-\value{
-
-}
 \description{
 Title
 }
