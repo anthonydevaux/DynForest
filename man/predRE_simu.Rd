@@ -9,3 +9,6 @@ predRE_simu(model, data)
 \description{
 Internal function for simulations
 }
+\examples{
+
+}

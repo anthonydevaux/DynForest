@@ -2,13 +2,15 @@
 % Please edit documentation in R/plot_gVIMP.R
 \name{plot_gVIMP}
 \alias{plot_gVIMP}
-\title{Title}
+\title{Compute the grouped-VIMP statistic}
 \usage{
 plot_gVIMP(DynForest_obj, PCT = FALSE)
 }
 \arguments{
-\item{PCT}{}
+\item{DynForest_obj}{\code{DynForest} object}
+
+\item{PCT}{Display VIMP statistic in pourcentage. Default value is FALSE.}
 }
 \description{
-Title
+Compute the grouped-VIMP statistic
 }

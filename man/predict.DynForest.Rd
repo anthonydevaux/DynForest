@@ -2,38 +2,33 @@
 % Please edit documentation in R/predict_DynForest.R
 \name{predict.DynForest}
 \alias{predict.DynForest}
-\title{Predict with Dynamic random forests}
+\title{Prediction using dynamic random forests}
 \usage{
-\method{predict}{DynForest}(
-  object,
-  Curve = NULL,
-  Scalar = NULL,
-  Factor = NULL,
-  timeScale = 0.1,
-  predTimes = NULL,
-  t0 = NULL,
-  ncores = NULL,
-  parallel = TRUE,
-  ...
-)
+\method{predict}{DynForest}(object, Curve = NULL, Scalar = NULL,
+  Factor = NULL, timeScale = 0.1, predTimes = NULL, t0 = NULL,
+  ncores = NULL, parallel = TRUE, ...)
 }
 \arguments{
-\item{object}{: Dynamic random forest}
+\item{object}{\code{DynForest} object containing the dynamic random forest used on train data}
 
-\item{Curve}{[list]:}
+\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
-\item{Scalar}{[list]:}
+\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Factor}{[list]:}
+\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{timeScale}{[numeric]:}
+\item{timeScale}{Experimental}
 
-\item{predTimes}{[numeric]:}
+\item{predTimes}{Horizon times from landmark time \code{t0}}
 
-\item{ncores}{[numeric]:}
+\item{t0}{Landmark time}
 
-\item{...}{: optional parameters to be passed to the low level function}
+\item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
+
+\item{parallel}{Allow paralleling. Default value is TRUE.}
+
+\item{...}{optional parameters to be passed to the low level function}
 }
 \description{
-Predict with Dynamic random forests
+Prediction using dynamic random forests
 }

@@ -2,25 +2,34 @@
 % Please edit documentation in R/OOB_tree.R
 \name{OOB.tree}
 \alias{OOB.tree}
-\title{OOB tree}
+\title{Compute Out-Of-Bag error on the tree}
 \usage{
-OOB.tree(
-  tree,
-  Curve = NULL,
-  Scalar = NULL,
-  Factor = NULL,
-  Y,
-  timeScale = 0.1,
-  d_out = 0.1,
-  IBS.min = 0,
-  IBS.max = NULL,
-  cause = 1
-)
+OOB.tree(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
+  timeScale = 0.1, d_out = 0.1, IBS.min = 0, IBS.max = NULL,
+  cause = 1)
 }
 \arguments{
-\item{cause}{}
+\item{tree}{Tree object resulting from \code{Rtmax_surv} function}
+
+\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
+
+\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
+
+\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
+
+\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
+
+\item{timeScale}{Experimental}
+
+\item{d_out}{Experimental}
+
+\item{IBS.min}{(Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.}
+
+\item{IBS.max}{(Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.}
+
+\item{cause}{(Only with competing events) Number indicates the event of interest.}
 }
 \description{
-OOB tree
+Compute Out-Of-Bag error on the tree
 }
 \keyword{internal}

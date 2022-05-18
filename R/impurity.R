@@ -1,9 +1,7 @@
-#' Impurity
-#'
 #' Compute the impurity of a given vector
 #'
-#' @param Y
-#' @param timeScale
+#' @param Y Outcome data
+#' @param timeScale Experimental
 #'
 #' @import kmlShape
 #' @import RiemBase
@@ -11,7 +9,6 @@
 #' @import Evomorph
 #' @import geomorph
 #' @import stats
-#'
 #'
 #' @keywords internal
 impurity <- function(Y, timeScale=0.1){

@@ -2,8 +2,6 @@
 
 S3method(predict,DynForest)
 export(DynForest)
-export(combine_times)
-export(getParamMM)
 export(plot_VIMP)
 export(plot_gVIMP)
 export(plot_mindepth)

@@ -1,7 +1,7 @@
-#' Title
+#' Compute the grouped-VIMP statistic
 #'
-#' @param DynForest_obj
-#' @param PCT
+#' @param DynForest_obj \code{DynForest} object
+#' @param PCT Display VIMP statistic in pourcentage. Default value is FALSE.
 #'
 #' @import ggplot2
 #'

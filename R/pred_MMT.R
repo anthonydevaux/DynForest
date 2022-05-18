@@ -1,10 +1,10 @@
-#' Predict Mixed Model Tree
+#' Predict the leaf by dropping down the subject in the tree
 #'
-#' @param tree : Mixed Model Tree
-#' @param Curve [list]: A list that contains the input curves.
-#' @param Scalar [list]: A list that contains the input scalars.
-#' @param Factor [list]: A list that contains the input factors.
-#' @param timeScale [numeric]: Time scale for the input and output curves (\code{timeScale=0.1} by default)
+#' @param tree Tree object resulting from \code{Rtmax_surv} function
+#' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
+#' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param timeScale Experimental
 #'
 #' @import stringr
 #' @import geomorph

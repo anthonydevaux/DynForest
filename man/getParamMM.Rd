@@ -7,11 +7,11 @@
 getParamMM(current_node, markers, params)
 }
 \arguments{
-\item{current_node}{[integer] Current node of the tree}
+\item{current_node}{Current node of the tree}
 
-\item{markers}{[string] Name of the markers to be updated}
+\item{markers}{Character vector indicating the name of the markers to be updated}
 
-\item{params}{[list] List to be updated for the current node}
+\item{params}{List to be updated for the current node}
 }
 \value{
 List with the updated parameters from the requested markers
@@ -19,3 +19,4 @@ List with the updated parameters from the requested markers
 \description{
 Function to update the list of parameters for each marker using those estimated from previous node
 }
+\keyword{internal}

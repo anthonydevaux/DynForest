@@ -1,13 +1,15 @@
-#' Predict with Dynamic random forests
+#' Prediction using dynamic random forests
 #'
-#' @param object : Dynamic random forest
-#' @param Curve [list]:
-#' @param Scalar [list]:
-#' @param Factor [list]:
-#' @param timeScale [numeric]:
-#' @param predTimes [numeric]:
-#' @param ncores [numeric]:
-#' @param ... : optional parameters to be passed to the low level function
+#' @param object \code{DynForest} object containing the dynamic random forest used on train data
+#' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
+#' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param timeScale Experimental
+#' @param predTimes Horizon times from landmark time \code{t0}
+#' @param t0 Landmark time
+#' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
+#' @param parallel Allow paralleling. Default value is TRUE.
+#' @param ... optional parameters to be passed to the low level function
 #'
 #' @import kmlShape
 #' @import stringr

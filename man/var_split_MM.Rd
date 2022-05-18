@@ -2,21 +2,25 @@
 % Please edit documentation in R/var_split_MM.R
 \name{var_split_MM}
 \alias{var_split_MM}
-\title{Mixed-Model Split function}
+\title{Split function to build the two daughter nodes}
 \usage{
-var_split_MM(
-  X,
-  Y,
-  nsplit_option = "quantile",
-  cause = 1,
-  nodesize = 1,
-  init = NULL
-)
+var_split_MM(X, Y, nsplit_option = "quantile", cause = 1,
+  nodesize = 1, init = NULL)
 }
 \arguments{
-\item{init}{}
+\item{X}{Input data}
+
+\item{Y}{Outcome data}
+
+\item{nsplit_option}{A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".}
+
+\item{cause}{(Only with competing events) Number indicates the event of interest.}
+
+\item{nodesize}{Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.}
+
+\item{init}{(Optional) Initial values for linear mixed models}
 }
 \description{
-Mixed-Model Split function
+Split function to build the two daughter nodes
 }
 \keyword{internal}

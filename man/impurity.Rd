@@ -2,12 +2,14 @@
 % Please edit documentation in R/impurity.R
 \name{impurity}
 \alias{impurity}
-\title{Impurity}
+\title{Compute the impurity of a given vector}
 \usage{
 impurity(Y, timeScale = 0.1)
 }
 \arguments{
-\item{timeScale}{}
+\item{Y}{Outcome data}
+
+\item{timeScale}{Experimental}
 }
 \description{
 Compute the impurity of a given vector

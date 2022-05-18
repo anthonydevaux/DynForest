@@ -2,29 +2,14 @@
 % Please edit documentation in R/DynForest.R
 \name{DynForest}
 \alias{DynForest}
-\title{Random forest with multivariate longitudinal endogenous covariates}
+\title{Random survival forest with multivariate longitudinal endogenous covariates}
 \usage{
-DynForest(
-  Curve = NULL,
-  Scalar = NULL,
-  Factor = NULL,
-  Y,
-  mtry = NULL,
-  ntree = 200,
-  ncores = NULL,
-  timeScale = 0.1,
-  imp = FALSE,
-  imp.group = NULL,
-  d_out = 0.1,
-  nsplit_option = "quantile",
-  nodesize = 1,
-  minsplit = 2,
-  cause = 1,
-  IBS.min = 0,
-  IBS.max = NULL,
-  seed = round(runif(1, 0, 10000)),
-  ...
-)
+DynForest(Curve = NULL, Scalar = NULL, Factor = NULL, Y,
+  mtry = NULL, ntree = 200, ncores = NULL, timeScale = 0.1,
+  OOB_error = TRUE, imp = FALSE, imp.group = NULL, d_out = 0.1,
+  nsplit_option = "quantile", nodesize = 1, minsplit = 2,
+  cause = 1, IBS.min = 0, IBS.max = NULL, seed = round(runif(1, 0,
+  10000)), ...)
 }
 \arguments{
 \item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
@@ -42,6 +27,8 @@ DynForest(
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 
 \item{timeScale}{Experimental}
+
+\item{OOB_error}{Compute the OOB error. Default value is TRUE.}
 
 \item{imp}{Compute (1) the importance of variables (VIMP); (2) the importance of groups (gVIMP) if there is a \code{imp.group} argument. Default value is FALSE}
 
@@ -95,14 +82,21 @@ DynForest function return a list with the following elements:\tabular{ll}{
 }
 }
 \description{
-Built a random forest using multiple various predictors (Devaux et al., 2022)
+Built a random survival forest using multivariate longitudinal endogenous covariates (Devaux et al., 2022)
 }
 \details{
 The function currently supports survival data (competing or single event).
 
-FUTUR IMPROVEMENT:\describe{
-\item{test}
+FUTUR IMPROVEMENTS:\describe{
+\item{(1) test}
+\item{(2) test}
 }
+}
+\examples{
+
+}
+\references{
+
 }
 \seealso{
 \code{\link{predict_DynForest}}

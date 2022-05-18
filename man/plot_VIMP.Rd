@@ -2,13 +2,17 @@
 % Please edit documentation in R/plot_VIMP.R
 \name{plot_VIMP}
 \alias{plot_VIMP}
-\title{Title}
+\title{Compute the VIMP statistic}
 \usage{
 plot_VIMP(DynForest_obj, PCT = FALSE, ordering = TRUE)
 }
 \arguments{
-\item{ordering}{}
+\item{DynForest_obj}{\code{DynForest} object}
+
+\item{PCT}{Display VIMP statistic in pourcentage. Default value is FALSE.}
+
+\item{ordering}{Order predictors according to VIMP value. Default value is TRUE.}
 }
 \description{
-Title
+Compute the VIMP statistic
 }

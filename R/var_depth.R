@@ -1,6 +1,6 @@
-#' Title
+#' Extract characteristics from the trees building process
 #'
-#' @param DynForest_obj
+#' @param DynForest_obj \code{DynForest} object
 #'
 #' @importFrom stringr str_order
 #' @return

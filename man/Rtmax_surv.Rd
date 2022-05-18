@@ -2,35 +2,34 @@
 % Please edit documentation in R/Rtmax_surv.R
 \name{Rtmax_surv}
 \alias{Rtmax_surv}
-\title{Randomized Dynamic tree}
+\title{Grow random survival tree using multivariate longitudinal endogenous covariates}
 \usage{
-Rtmax_surv(
-  Curve = NULL,
-  Scalar = NULL,
-  Factor = NULL,
-  Y = NULL,
-  mtry = 1,
-  nsplit_option = "quantile",
-  nodesize = 1,
-  minsplit = 2,
-  cause = 1,
-  seed = 1234
-)
+Rtmax_surv(Curve = NULL, Scalar = NULL, Factor = NULL, Y = NULL,
+  mtry = 1, nsplit_option = "quantile", nodesize = 1, minsplit = 2,
+  cause = 1, seed = 1234)
 }
 \arguments{
-\item{Curve}{[list]:}
+\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
-\item{Scalar}{[list]:}
+\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Factor}{[list]:}
+\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Y}{[list]:}
+\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
 
-\item{mtry}{[integer]:}
+\item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is `NULL`.}
 
-\item{seed}{}
+\item{nsplit_option}{A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".}
+
+\item{nodesize}{Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.}
+
+\item{minsplit}{(Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.}
+
+\item{cause}{(Only with competing events) Number indicates the event of interest.}
+
+\item{seed}{Seed to replicate results}
 }
 \description{
-Randomized Dynamic tree
+Grow random survival tree using multivariate longitudinal endogenous covariates
 }
 \keyword{internal}

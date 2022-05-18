@@ -2,13 +2,15 @@
 % Please edit documentation in R/plot_mindepth.R
 \name{plot_mindepth}
 \alias{plot_mindepth}
-\title{Title}
+\title{Compute the average minimal depth statistic}
 \usage{
 plot_mindepth(var_depth_obj, plot_level = c("markers", "summaries"))
 }
 \arguments{
-\item{plot_level}{}
+\item{var_depth_obj}{Object from \code{var_depth} function}
+
+\item{plot_level}{Compute the statistic at markers (\code{plot_level}="markers") or summaries (\code{plot_level}="summaries") level}
 }
 \description{
-Title
+Compute the average minimal depth statistic
 }

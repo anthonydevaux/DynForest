@@ -1,7 +1,7 @@
-#' Title
+#' Permute courbes among the subjects
 #'
-#' @param Courbes
-#' @param id
+#' @param Courbes Numeric vector of the marker
+#' @param id Numeric vector of id
 #'
 #' @keywords internal
 permutation_courbes <- function(Courbes,id){

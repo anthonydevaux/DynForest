@@ -7,7 +7,11 @@
 impurity_split(Y, split, cause = 1)
 }
 \arguments{
-\item{cause}{}
+\item{Y}{Outcome data}
+
+\item{split}{Vector containing the subjects groups}
+
+\item{cause}{(Only with competing events) Number indicates the event of interest.}
 }
 \description{
 Impurity Split

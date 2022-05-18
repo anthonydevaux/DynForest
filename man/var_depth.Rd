@@ -2,13 +2,13 @@
 % Please edit documentation in R/var_depth.R
 \name{var_depth}
 \alias{var_depth}
-\title{Title}
+\title{Extract characteristics from the trees building process}
 \usage{
 var_depth(DynForest_obj)
 }
 \arguments{
-\item{DynForest_obj}{}
+\item{DynForest_obj}{\code{DynForest} object}
 }
 \description{
-Title
+Extract characteristics from the trees building process
 }

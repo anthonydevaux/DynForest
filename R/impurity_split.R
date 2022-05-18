@@ -1,11 +1,12 @@
 #' Impurity Split
 #'
-#' @param Y
-#' @param split
-#' @param cause
+#' @param Y Outcome data
+#' @param split Vector containing the subjects groups
+#' @param cause (Only with competing events) Number indicates the event of interest.
 #'
 #' @import survival
 #' @importFrom cmprsk crr
+#'
 #' @keywords internal
 impurity_split <- function(Y,split,cause=1){
 

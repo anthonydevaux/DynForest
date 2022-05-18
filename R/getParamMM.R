@@ -1,13 +1,12 @@
 #' Function to update the list of parameters for each marker using those estimated from previous node
 #'
-#' @param current_node [integer] Current node of the tree
-#' @param markers [string] Name of the markers to be updated
-#' @param params [list] List to be updated for the current node
+#' @param current_node Current node of the tree
+#' @param markers Character vector indicating the name of the markers to be updated
+#' @param params List to be updated for the current node
 #'
-#' @export
 #' @return List with the updated parameters from the requested markers
 #'
-#' @examples
+#' @keywords internal
 getParamMM <- function(current_node, markers, params){
 
   starting_node <- current_node

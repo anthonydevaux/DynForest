@@ -1,7 +1,7 @@
-#' Title
+#' Compute the average minimal depth statistic
 #'
-#' @param var_depth_obj
-#' @param plot_level
+#' @param var_depth_obj Object from \code{var_depth} function
+#' @param plot_level Compute the statistic at markers (\code{plot_level}="markers") or summaries (\code{plot_level}="summaries") level
 #'
 #' @import ggplot2
 #' @importFrom stringr str_order

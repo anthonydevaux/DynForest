@@ -1,8 +1,8 @@
-#' Title
+#' Compute the VIMP statistic
 #'
-#' @param DynForest_obj
-#' @param PCT
-#' @param ordering
+#' @param DynForest_obj \code{DynForest} object
+#' @param PCT Display VIMP statistic in pourcentage. Default value is FALSE.
+#' @param ordering Order predictors according to VIMP value. Default value is TRUE.
 #'
 #' @import ggplot2
 #'

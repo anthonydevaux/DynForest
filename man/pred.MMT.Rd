@@ -2,21 +2,22 @@
 % Please edit documentation in R/pred_MMT.R
 \name{pred.MMT}
 \alias{pred.MMT}
-\title{Predict Mixed Model Tree}
+\title{Predict the leaf by dropping down the subject in the tree}
 \usage{
-pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL, timeScale = 0.1)
+pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL,
+  timeScale = 0.1)
 }
 \arguments{
-\item{tree}{: Mixed Model Tree}
+\item{tree}{Tree object resulting from \code{Rtmax_surv} function}
 
-\item{Curve}{[list]: A list that contains the input curves.}
+\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
-\item{Scalar}{[list]: A list that contains the input scalars.}
+\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Factor}{[list]: A list that contains the input factors.}
+\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{timeScale}{[numeric]: Time scale for the input and output curves (\code{timeScale=0.1} by default)}
+\item{timeScale}{Experimental}
 }
 \description{
-Predict Mixed Model Tree
+Predict the leaf by dropping down the subject in the tree
 }

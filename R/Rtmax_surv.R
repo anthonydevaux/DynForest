@@ -1,14 +1,15 @@
-#' Randomized Dynamic tree
+#' Grow random survival tree using multivariate longitudinal endogenous covariates
 #'
-#' @param Curve [list]:
-#' @param Scalar [list]:
-#' @param Factor [list]:
-#' @param Y [list]:
-#' @param mtry [integer]:
-#' @param nsplit_option
-#' @param nodesize
-#' @param cause
-#' @param seed
+#' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
+#' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.
+#' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is `NULL`.
+#' @param nsplit_option A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".
+#' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
+#' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
+#' @param cause (Only with competing events) Number indicates the event of interest.
+#' @param seed Seed to replicate results
 #'
 #' @import kmlShape
 #' @import RiemBase

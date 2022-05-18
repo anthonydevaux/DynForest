@@ -1,11 +1,3 @@
-#' Ordonne
-#'
-#' @param X
-#' @param time
-#' @param id
-#'
-#'
-#' @keywords internal
 ordonne <- function(X , time , id){
   mat  <- matrix(NA, length(unique(id)), length(unique(time)))
   for( i in 1:length(unique(id))){
