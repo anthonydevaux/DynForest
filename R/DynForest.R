@@ -31,10 +31,7 @@
 #'
 #' @details The function currently supports survival data (competing or single event).
 #'
-#' FUTUR IMPROVEMENTS:\describe{
-#' \item{(1) test}
-#' \item{(2) test}
-#' }
+#' FUTUR IMPROVEMENTS:
 #'
 #' @return DynForest function return a list with the following elements:\tabular{ll}{
 #'    \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr

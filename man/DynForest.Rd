@@ -103,10 +103,7 @@ Built a random survival forest using multivariate longitudinal endogenous covari
 \details{
 The function currently supports survival data (competing or single event).
 
-FUTUR IMPROVEMENTS:\describe{
-\item{(1) test}
-\item{(2) test}
-}
+FUTUR IMPROVEMENTS:
 }
 \examples{
 
