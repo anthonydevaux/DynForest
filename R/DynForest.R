@@ -107,6 +107,9 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=2
   inputs <- read.Xarg(c(Curve,Scalar,Factor))
   Inputs <- inputs
 
+  Importance <- gVIMP <- NULL
+  oob.err <- xerror <- NULL
+
   for (k in 1:length(Inputs)){
     str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
   }
@@ -160,30 +163,6 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=2
     oob.err <- OOB.rfshape(rf, Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y, timeScale = timeScale,
                            d_out = d_out, IBS.min = IBS.min, IBS.max = IBS.max, cause = cause, ncores = ncores)
     cat("OK!\n")
-
-    cat("DynForest DONE!\n")
-
-    # Ok pour le XERROR
-
-    if (imp == FALSE && Y$type!="surv"){
-      var.ini <- impurity(Y, timeScale)
-      varex <- 1 - mean(oob.err$err)/var.ini
-      drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels, xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, varex=varex,
-                  Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
-                  Curve.model = Curve$model, comput.time = Sys.time() - debut)
-      class(drf) <- c("DynForest")
-      return(drf)
-    }
-
-    if (imp == FALSE && Y$type=="surv"){
-      drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
-                  xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred,
-                  Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
-                  Curve.model = Curve$model, comput.time = Sys.time() - debut)
-      class(drf) <- c("DynForest")
-      return(drf)
-    }
-
 
     cat("Importance variables...\n")
     Curve.perm <- Curve
@@ -426,8 +405,8 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=2
   cat("DynForest DONE!\n")
 
   if (Y$type == "surv"){
-    drf <- list(rf=rf$rf,type=rf$type, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
-                xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, gVIMP = gVIMP,
+    drf <- list(rf = rf$rf, type = rf$type, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
+                xerror = xerror, oob.err = oob.err$err, oob.pred = oob.err$oob.pred, Importance = Importance, gVIMP = gVIMP,
                 Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
                 Curve.model = Curve$model, comput.time = Sys.time() - debut)
     class(drf) <- c("DynForest")
@@ -435,8 +414,9 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=2
   }
   var.ini <- impurity(Y, timeScale)
   varex <- 1 - mean(oob.err$err)/var.ini
-  drf <- list(rf=rf$rf,type=rf$type,levels=rf$levels,xerror=xerror,oob.err=oob.err$err,oob.pred= oob.err$oob.pred, Importance=Importance, gVIMP = gVIMP,
-              varex=varex, Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
+  drf <- list(rf = rf$rf, type = rf$type, levels = rf$levels, xerror = xerror, oob.err = oob.err$err, oob.pred = oob.err$oob.pred,
+              Importance = Importance, gVIMP = gVIMP,
+              varex = varex, Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
               Curve.model = Curve$model, comput.time = Sys.time() - debut)
   class(drf) <- c("DynForest")
   return(drf)

@@ -89,7 +89,12 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
       w_y <- which(Y$id==indiv)
 
       if (is.element("curve",inputs)==TRUE){
-        w_XCurve <- which(Curve$id==indiv&Curve$time<=IBS.min) # only measurements until IBS.min
+        if (IBS.min==0){
+          w_XCurve <- which(Curve$id==indiv) # all measurements until IBS.min
+        }else{
+          w_XCurve <- which(Curve$id==indiv&Curve$time<=IBS.min) # only measurements until IBS.min
+        }
+
         Curve_courant <- list(type="curve", X=Curve$X[w_XCurve,, drop=FALSE], id=Curve$id[w_XCurve], time=Curve$time[w_XCurve],
                               model=Curve$model)
       }

@@ -4,9 +4,18 @@
 \alias{OOB.tree}
 \title{Compute Out-Of-Bag error on the tree}
 \usage{
-OOB.tree(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
-  timeScale = 0.1, d_out = 0.1, IBS.min = 0, IBS.max = NULL,
-  cause = 1)
+OOB.tree(
+  tree,
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  Y,
+  timeScale = 0.1,
+  d_out = 0.1,
+  IBS.min = 0,
+  IBS.max = NULL,
+  cause = 1
+)
 }
 \arguments{
 \item{tree}{Tree object resulting from \code{Rtmax_surv} function}

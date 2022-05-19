@@ -4,8 +4,14 @@
 \alias{var_split_MM}
 \title{Split function to build the two daughter nodes}
 \usage{
-var_split_MM(X, Y, nsplit_option = "quantile", cause = 1,
-  nodesize = 1, init = NULL)
+var_split_MM(
+  X,
+  Y,
+  nsplit_option = "quantile",
+  cause = 1,
+  nodesize = 1,
+  init = NULL
+)
 }
 \arguments{
 \item{X}{Input data}

@@ -4,9 +4,18 @@
 \alias{predict.DynForest}
 \title{Prediction using dynamic random forests}
 \usage{
-\method{predict}{DynForest}(object, Curve = NULL, Scalar = NULL,
-  Factor = NULL, timeScale = 0.1, predTimes = NULL, t0 = NULL,
-  ncores = NULL, parallel = TRUE, ...)
+\method{predict}{DynForest}(
+  object,
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  timeScale = 0.1,
+  predTimes = NULL,
+  t0 = NULL,
+  ncores = NULL,
+  parallel = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{\code{DynForest} object containing the dynamic random forest used on train data}
@@ -28,6 +37,9 @@
 \item{parallel}{Allow paralleling. Default value is TRUE.}
 
 \item{...}{optional parameters to be passed to the low level function}
+}
+\value{
+
 }
 \description{
 Prediction using dynamic random forests

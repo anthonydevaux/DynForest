@@ -13,6 +13,9 @@ plot_VIMP(DynForest_obj, PCT = FALSE, ordering = TRUE)
 
 \item{ordering}{Order predictors according to VIMP value. Default value is TRUE.}
 }
+\value{
+
+}
 \description{
 Compute the VIMP statistic
 }

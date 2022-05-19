@@ -9,6 +9,9 @@ var_depth(DynForest_obj)
 \arguments{
 \item{DynForest_obj}{\code{DynForest} object}
 }
+\value{
+
+}
 \description{
 Extract characteristics from the trees building process
 }

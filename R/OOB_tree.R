@@ -72,7 +72,13 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
         id_wY <- which(Y$id==i)
         if (is.element("curve",inputs)==TRUE) {
-          id_wXCurve <- which(Curve$id==i&Curve$time<=IBS.min) # only measurements until IBS.min
+
+          if (IBS.min==0){
+            id_wXCurve <- which(Curve$id==i) # all measurements
+          }else{
+            id_wXCurve <- which(Curve$id==i&Curve$time<=IBS.min) # only measurements until IBS.min
+          }
+
           Curve_courant <- list(type="curve",X=Curve$X[id_wXCurve,,drop=FALSE], id=Curve$id[id_wXCurve],time=Curve$time[id_wXCurve],
                                 model=Curve$model)
         }

@@ -4,8 +4,7 @@
 \alias{pred.MMT}
 \title{Predict the leaf by dropping down the subject in the tree}
 \usage{
-pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL,
-  timeScale = 0.1)
+pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL, timeScale = 0.1)
 }
 \arguments{
 \item{tree}{Tree object resulting from \code{Rtmax_surv} function}
@@ -17,6 +16,9 @@ pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL,
 \item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
 \item{timeScale}{Experimental}
+}
+\value{
+
 }
 \description{
 Predict the leaf by dropping down the subject in the tree

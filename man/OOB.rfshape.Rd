@@ -4,9 +4,19 @@
 \alias{OOB.rfshape}
 \title{Compute the Out-Of-Bag error on the random survival forest}
 \usage{
-OOB.rfshape(rf, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
-  timeScale = 0.1, d_out = 0.1, IBS.min = 0, IBS.max = NULL,
-  cause = 1, ncores = NULL)
+OOB.rfshape(
+  rf,
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  Y,
+  timeScale = 0.1,
+  d_out = 0.1,
+  IBS.min = 0,
+  IBS.max = NULL,
+  cause = 1,
+  ncores = NULL
+)
 }
 \arguments{
 \item{rf}{Trees object resulting from \code{rf_shape_para} function}

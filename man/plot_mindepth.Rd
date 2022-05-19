@@ -11,6 +11,9 @@ plot_mindepth(var_depth_obj, plot_level = c("markers", "summaries"))
 
 \item{plot_level}{Compute the statistic at markers (\code{plot_level}="markers") or summaries (\code{plot_level}="summaries") level}
 }
+\value{
+
+}
 \description{
 Compute the average minimal depth statistic
 }

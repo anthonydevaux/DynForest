@@ -11,6 +11,9 @@ plot_gVIMP(DynForest_obj, PCT = FALSE)
 
 \item{PCT}{Display VIMP statistic in pourcentage. Default value is FALSE.}
 }
+\value{
+
+}
 \description{
 Compute the grouped-VIMP statistic
 }

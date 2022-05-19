@@ -4,9 +4,18 @@
 \alias{Rtmax_surv}
 \title{Grow random survival tree using multivariate longitudinal endogenous covariates}
 \usage{
-Rtmax_surv(Curve = NULL, Scalar = NULL, Factor = NULL, Y = NULL,
-  mtry = 1, nsplit_option = "quantile", nodesize = 1, minsplit = 2,
-  cause = 1, seed = 1234)
+Rtmax_surv(
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  Y = NULL,
+  mtry = 1,
+  nsplit_option = "quantile",
+  nodesize = 1,
+  minsplit = 2,
+  cause = 1,
+  seed = 1234
+)
 }
 \arguments{
 \item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
