@@ -53,7 +53,7 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
 
       #### NEW #####
 
-      allTimes_IBS <- allTimes[which(allTimes>=IBS.min)]
+      allTimes_IBS <- allTimes[which(allTimes>=IBS.min&allTimes<=IBS.max)]
 
       Y.surv <- Y.surv[which(Y.surv$time.event>=IBS.min),]
 
@@ -110,7 +110,7 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
           # Individual Brier Score
           Di <- ifelse(Y$Y[id_wY,1] <= allTimes_IBS, 1, 0)*ifelse(Y$Y[id_wY,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
           pec.res <- list()
-          pec.res$AppErr$matrix <- Wi*(Di-tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[which(allTimes>=IBS.min)])^2 # BS(t)
+          pec.res$AppErr$matrix <- Wi*(Di-tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)])^2 # BS(t)
           pec.res$models <- "matrix"
           pec.res$time <- allTimes_IBS
           pec.res$start <- 0

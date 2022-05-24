@@ -161,158 +161,22 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=2
                            d_out = d_out, IBS.min = IBS.min, IBS.max = IBS.max, cause = cause, ncores = ncores)
     cat("OK!\n")
 
-    cat("Importance variables...\n")
-    Curve.perm <- Curve
-    Scalar.perm <- Scalar
-    Factor.perm <- Factor
+    if (imp){
 
-    Importance.Curve <- NULL
-    Importance.Scalar <- NULL
-    Importance.Factor <- NULL
+      cat("Importance variables...\n")
+      Curve.perm <- Curve
+      Scalar.perm <- Scalar
+      Factor.perm <- Factor
 
-    #X.perm <- list(type=X$type, X=X$X, id=X$id, time=X$time)
-    if (is.element("curve",inputs)==TRUE){
+      Importance.Curve <- NULL
+      Importance.Scalar <- NULL
+      Importance.Factor <- NULL
 
-      cat("Curves...")
-      Curve.err <- matrix(NA, ntree, dim(Curve$X)[2])
+      #X.perm <- list(type=X$type, X=X$X, id=X$id, time=X$time)
+      if (is.element("curve",inputs)==TRUE){
 
-      cl <- parallel::makeCluster(ncores)
-      doParallel::registerDoParallel(cl)
-
-      pck <- .packages()
-      dir0 <- find.package()
-      dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
-      parallel::clusterExport(cl,list("pck","dir"),envir=environment())
-      parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
-
-      Importance.Curve <- foreach::foreach(p=1:dim(Curve$X)[2],
-                                           #.packages = "kmlShape" ,
-                                           .combine = "c") %dopar% {
-        for (k in 1:ntree){
-        BOOT <- rf$rf[,k]$boot
-        nboot <- length(unique(Y$id))- length(BOOT)
-        id_boot_Curve <- which(Curve$id%in%BOOT)
-
-        # Il faut maintenant faire la permutation :
-
-        Curve.perm$X[-id_boot_Curve,p] <- sample(Curve.perm$X[-id_boot_Curve,p])
-
-
-        Curve.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve.perm, Scalar = Scalar, Factor=Factor, Y, timeScale=timeScale,
-                                  IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
-
-        }
-        Curve.perm$X[,p] <- Curve$X[,p]
-        res <- mean(Curve.err[,p]- xerror)
-        }
-
-      parallel::stopCluster(cl)
-
-      cat("OK!\n")
-    }
-
-
-    if (is.element("scalar",inputs)==TRUE){
-
-      cat("Scalars...")
-      Scalar.err <- matrix(NA, ntree, dim(Scalar$X)[2])
-
-      cl <- parallel::makeCluster(ncores)
-      doParallel::registerDoParallel(cl)
-
-      pck <- .packages()
-      dir0 <- find.package()
-      dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
-      parallel::clusterExport(cl,list("pck","dir"),envir=environment())
-      parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
-
-      Importance.Scalar <- foreach::foreach(p=1:dim(Scalar$X)[2],
-                                            #.packages = "kmlShape" ,
-                                            .combine = "c") %dopar% {
-
-        for (k in 1:ntree){
-          BOOT <- rf$rf[,k]$boot
-          nboot <- length(unique(Y$id))- length(BOOT)
-          id_boot_Scalar <- which(Scalar$id%in%BOOT)
-
-          Scalar.perm$X[-id_boot_Scalar,p] <- sample(Scalar.perm$X[-id_boot_Scalar,p])
-
-          Scalar.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar.perm, Factor=Factor, Y, timeScale=timeScale,
-                                      IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
-
-        }
-        Scalar.perm$X[,p] <- Scalar$X[,p]
-        res <- mean(Scalar.err[,p]- xerror)
-      }
-
-      parallel::stopCluster(cl)
-      cat("OK!\n")
-    }
-
-    if (is.element("factor",inputs)==TRUE){
-
-      cat("Factors...")
-      Factor.err <- matrix(NA, ntree, dim(Factor$X)[2])
-
-      cl <- parallel::makeCluster(ncores)
-      doParallel::registerDoParallel(cl)
-
-      pck <- .packages()
-      dir0 <- find.package()
-      dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
-      parallel::clusterExport(cl,list("pck","dir"),envir=environment())
-      parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
-
-      Importance.Factor <- foreach::foreach(p=1:dim(Factor$X)[2],
-                                            #.packages = "kmlShape" ,
-                                            .combine = "c") %dopar% {
-
-        for (k in 1:ntree){
-          BOOT <- rf$rf[,k]$boot
-          nboot <- length(unique(Y$id))- length(BOOT)
-          id_boot_Factor <- which(Factor$id%in%BOOT)
-
-          # Il faut maintenant faire la permutation :
-
-          Factor.perm$X[-id_boot_Factor,p] <- sample(Factor.perm$X[-id_boot_Factor,p])
-
-          Factor.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar, Factor=Factor.perm , Y, timeScale=timeScale,
-                                      IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
-
-        }
-        ##on remet la variable en place :::
-        Factor.perm$X[,p] <- Factor$X[,p]
-        res <- mean(Factor.err[,p]- xerror)
-      }
-
-      parallel::stopCluster(cl)
-      cat("OK!\n")
-    }
-
-    Importance <- list(Curve=as.vector(Importance.Curve), Scalar=as.vector(Importance.Scalar), Factor=as.vector(Importance.Factor))
-
-    ############
-    # grouped VIMP
-
-    if (!is.null(imp.group)){
-
-      cat("Grouped VIMP...")
-
-      gVIMP <- vector("numeric", length(imp.group))
-      names(gVIMP) <- names(imp.group)
-
-      for (g in 1:length(imp.group)){
-
-        group <- imp.group[[g]]
-
-        id_boot_Curve <- id_boot_Factor <- id_boot_Scalar <- NULL
-        Factor.perm <- Scalar.perm <- Curve.perm <- NULL
-
-        for (Input in Inputs){ # id des id non bootstrap
-
-          assign(paste0(Input,".perm"), get(Input))
-
-        }
+        cat("Curves...")
+        Curve.err <- matrix(NA, ntree, dim(Curve$X)[2])
 
         cl <- parallel::makeCluster(ncores)
         doParallel::registerDoParallel(cl)
@@ -323,79 +187,217 @@ DynForest <- function(Curve=NULL,Scalar=NULL, Factor=NULL, Y, mtry=NULL, ntree=2
         parallel::clusterExport(cl,list("pck","dir"),envir=environment())
         parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
-        res <- foreach::foreach(k=1:ntree,
-                                        .combine = "c") %dopar% {
+        Importance.Curve <- foreach::foreach(p=1:dim(Curve$X)[2],
+                                             #.packages = "kmlShape" ,
+                                             .combine = "c") %dopar% {
+                                               for (k in 1:ntree){
+                                                 BOOT <- rf$rf[,k]$boot
+                                                 nboot <- length(unique(Y$id))- length(BOOT)
+                                                 id_boot_Curve <- which(Curve$id%in%BOOT)
 
-        # res <- vector("numeric", ntree)
-        # for (k in 1:ntree){
+                                                 # Il faut maintenant faire la permutation :
 
-          BOOT <- rf$rf[,k]$boot
-          nboot <- length(unique(Y$id))- length(BOOT)
+                                                 Curve.perm$X[-id_boot_Curve,p] <- sample(Curve.perm$X[-id_boot_Curve,p])
 
-          for (Input in Inputs){ # id des id non bootstrap
 
-            assign(paste0("id_boot_", Input), which(get(Input)$id%in%BOOT))
+                                                 Curve.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve.perm, Scalar = Scalar, Factor=Factor, Y, timeScale=timeScale,
+                                                                            IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
 
-          }
-
-          for (p in 1:length(group)){
-
-            var_group <- group[p]
-
-            if (any(Inputs=="Factor")){
-              if (any(var_group%in%colnames(Factor$X))){
-
-                Factor.perm$X[-id_boot_Factor, var_group] <-
-                  sample(Factor.perm$X[-id_boot_Factor, var_group])
-
-              }
-            }
-
-            if (any(Inputs=="Scalar")){
-              if (any(var_group%in%colnames(Scalar$X))){
-
-                Scalar.perm$X[-id_boot_Scalar, var_group] <-
-                  sample(Scalar.perm$X[-id_boot_Scalar, var_group])
-
-              }
-            }
-
-            if (any(Inputs=="Curve")){
-              if (any(var_group%in%colnames(Curve$X))){
-
-                Curve.perm$X[-id_boot_Curve, var_group] <-
-                  sample(Curve.perm$X[-id_boot_Curve, var_group])
-
-              }
-            }
-
-          }
-
-          return(OOB.tree(rf$rf[,k], Curve = Curve.perm,
-                                     Scalar = Scalar.perm,
-                                     Factor = Factor.perm, Y, timeScale=timeScale,
-                                     IBS.min = IBS.min, IBS.max = IBS.max, cause = cause))
-
-          # res[k] <- OOB.tree(rf$rf[,k], Curve = Curve.perm,
-          #                    Scalar = Scalar.perm,
-          #                    Factor = Factor.perm, Y, timeScale=timeScale,
-          #                    IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
-
-        }
+                                               }
+                                               Curve.perm$X[,p] <- Curve$X[,p]
+                                               res <- mean(Curve.err[,p]- xerror)
+                                             }
 
         parallel::stopCluster(cl)
 
-        gVIMP[g] <- mean(res - xerror)
+        cat("OK!\n")
+      }
+
+
+      if (is.element("scalar",inputs)==TRUE){
+
+        cat("Scalars...")
+        Scalar.err <- matrix(NA, ntree, dim(Scalar$X)[2])
+
+        cl <- parallel::makeCluster(ncores)
+        doParallel::registerDoParallel(cl)
+
+        pck <- .packages()
+        dir0 <- find.package()
+        dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+        parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+        parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+        Importance.Scalar <- foreach::foreach(p=1:dim(Scalar$X)[2],
+                                              #.packages = "kmlShape" ,
+                                              .combine = "c") %dopar% {
+
+                                                for (k in 1:ntree){
+                                                  BOOT <- rf$rf[,k]$boot
+                                                  nboot <- length(unique(Y$id))- length(BOOT)
+                                                  id_boot_Scalar <- which(Scalar$id%in%BOOT)
+
+                                                  Scalar.perm$X[-id_boot_Scalar,p] <- sample(Scalar.perm$X[-id_boot_Scalar,p])
+
+                                                  Scalar.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar.perm, Factor=Factor, Y, timeScale=timeScale,
+                                                                              IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
+
+                                                }
+                                                Scalar.perm$X[,p] <- Scalar$X[,p]
+                                                res <- mean(Scalar.err[,p]- xerror)
+                                              }
+
+        parallel::stopCluster(cl)
+        cat("OK!\n")
+      }
+
+      if (is.element("factor",inputs)==TRUE){
+
+        cat("Factors...")
+        Factor.err <- matrix(NA, ntree, dim(Factor$X)[2])
+
+        cl <- parallel::makeCluster(ncores)
+        doParallel::registerDoParallel(cl)
+
+        pck <- .packages()
+        dir0 <- find.package()
+        dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+        parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+        parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+        Importance.Factor <- foreach::foreach(p=1:dim(Factor$X)[2],
+                                              #.packages = "kmlShape" ,
+                                              .combine = "c") %dopar% {
+
+                                                for (k in 1:ntree){
+                                                  BOOT <- rf$rf[,k]$boot
+                                                  nboot <- length(unique(Y$id))- length(BOOT)
+                                                  id_boot_Factor <- which(Factor$id%in%BOOT)
+
+                                                  # Il faut maintenant faire la permutation :
+
+                                                  Factor.perm$X[-id_boot_Factor,p] <- sample(Factor.perm$X[-id_boot_Factor,p])
+
+                                                  Factor.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar, Factor=Factor.perm , Y, timeScale=timeScale,
+                                                                              IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
+
+                                                }
+                                                ##on remet la variable en place :::
+                                                Factor.perm$X[,p] <- Factor$X[,p]
+                                                res <- mean(Factor.err[,p]- xerror)
+                                              }
+
+        parallel::stopCluster(cl)
+        cat("OK!\n")
+      }
+
+      Importance <- list(Curve=as.vector(Importance.Curve), Scalar=as.vector(Importance.Scalar), Factor=as.vector(Importance.Factor))
+
+      ############
+      # grouped VIMP
+
+      if (!is.null(imp.group)){
+
+        cat("Grouped VIMP...")
+
+        gVIMP <- vector("numeric", length(imp.group))
+        names(gVIMP) <- names(imp.group)
+
+        for (g in 1:length(imp.group)){
+
+          group <- imp.group[[g]]
+
+          id_boot_Curve <- id_boot_Factor <- id_boot_Scalar <- NULL
+          Factor.perm <- Scalar.perm <- Curve.perm <- NULL
+
+          for (Input in Inputs){ # id des id non bootstrap
+
+            assign(paste0(Input,".perm"), get(Input))
+
+          }
+
+          cl <- parallel::makeCluster(ncores)
+          doParallel::registerDoParallel(cl)
+
+          pck <- .packages()
+          dir0 <- find.package()
+          dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+          parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+          parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+          res <- foreach::foreach(k=1:ntree,
+                                  .combine = "c") %dopar% {
+
+            # res <- vector("numeric", ntree)
+            # for (k in 1:ntree){
+
+            BOOT <- rf$rf[,k]$boot
+            nboot <- length(unique(Y$id))- length(BOOT)
+
+            for (Input in Inputs){ # id des id non bootstrap
+
+              assign(paste0("id_boot_", Input), which(get(Input)$id%in%BOOT))
+
+            }
+
+            for (p in 1:length(group)){
+
+              var_group <- group[p]
+
+              if (any(Inputs=="Factor")){
+                if (any(var_group%in%colnames(Factor$X))){
+
+                  Factor.perm$X[-id_boot_Factor, var_group] <-
+                    sample(Factor.perm$X[-id_boot_Factor, var_group])
+
+                }
+              }
+
+              if (any(Inputs=="Scalar")){
+                if (any(var_group%in%colnames(Scalar$X))){
+
+                  Scalar.perm$X[-id_boot_Scalar, var_group] <-
+                    sample(Scalar.perm$X[-id_boot_Scalar, var_group])
+
+                }
+              }
+
+              if (any(Inputs=="Curve")){
+                if (any(var_group%in%colnames(Curve$X))){
+
+                  Curve.perm$X[-id_boot_Curve, var_group] <-
+                    sample(Curve.perm$X[-id_boot_Curve, var_group])
+
+                }
+              }
+
+            }
+
+            return(OOB.tree(rf$rf[,k], Curve = Curve.perm,
+                            Scalar = Scalar.perm,
+                            Factor = Factor.perm, Y, timeScale=timeScale,
+                            IBS.min = IBS.min, IBS.max = IBS.max, cause = cause))
+
+            # res[k] <- OOB.tree(rf$rf[,k], Curve = Curve.perm,
+            #                    Scalar = Scalar.perm,
+            #                    Factor = Factor.perm, Y, timeScale=timeScale,
+            #                    IBS.min = IBS.min, IBS.max = IBS.max, cause = cause)
+
+          }
+
+          parallel::stopCluster(cl)
+
+          gVIMP[g] <- mean(res - xerror)
+
+        }
+
+      }else{
+
+        gVIMP <- NULL
 
       }
 
-    }else{
-
-      gVIMP <- NULL
-
     }
-
-    ############
 
   }
 

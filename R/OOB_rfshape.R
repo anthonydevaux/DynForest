@@ -51,7 +51,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
 
     Y.surv <- Y.surv[order(Y.surv$time.event, -Y.surv$event),]
 
-    allTimes_IBS <- allTimes[which(allTimes>=IBS.min)]
+    allTimes_IBS <- allTimes[which(allTimes>=IBS.min&allTimes<=IBS.max)]
 
     Y.surv <- Y.surv[which(Y.surv$time.event>=IBS.min),]
 
@@ -123,7 +123,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
           if (is.na(pred.node)){
             pred.mat[t,] <- NA
           }else{
-            pred.mat[t,] <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes>=IBS.min)]
+            pred.mat[t,] <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
           }
 
         }
@@ -147,7 +147,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
       class(pec.res) <- "pec"
 
       #err <- pec::ibs(pec.res, start = IBS.min, times = IBS.max)[1] # IBS
-      err <- pec::ibs(pec.res, start = IBS.min, times = max(allTimes))[1] # IBS
+      err <- pec::ibs(pec.res, start = IBS.min, times = max(allTimes_IBS))[1] # IBS
 
       return(list(err=err,oob.pred=oob.pred))
     }
