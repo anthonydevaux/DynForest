@@ -123,7 +123,17 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
           if (is.na(pred.node)){
             pred.mat[t,] <- NA
           }else{
-            pred.mat[t,] <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
+            if (IBS.min == 0){
+              pred.mat[t,] <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
+            }else{
+              pi_t <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
+              pi_s <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
+              s_s <- 1 - sum(unlist(lapply(rf$rf[,t]$Y_pred[[pred.node]], FUN = function(x){
+                return(x$traj[sum(allTimes<IBS.min)])
+              }))) # S(s)
+              pred.mat[t,] <- (pi_t - pi_s)/s_s # P(S<T<S+t|T>S)
+            }
+
           }
 
         }
@@ -142,8 +152,6 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0
       pec.res$AppErr$matrix <- Wi*(Di-oob.pred)^2 # BS(t)
       pec.res$models <- "matrix"
       pec.res$time <- allTimes_IBS
-      pec.res$start <- 0
-      pec.res$maxtime <- max(allTimes_IBS)
       class(pec.res) <- "pec"
 
       #err <- pec::ibs(pec.res, start = IBS.min, times = IBS.max)[1] # IBS

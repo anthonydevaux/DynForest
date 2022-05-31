@@ -107,14 +107,24 @@ OOB.tree <- function(tree, Curve=NULL, Scalar=NULL, Factor=NULL, Y, timeScale=0.
           Wi_censored <- ifelse(Y$Y[id_wY,1] > allTimes_IBS, 1, 0)/(G$IPCW.times)
           Wi <- Wi_event + Wi_censored
 
+          # CIF
+          if (IBS.min==0){
+            pi_t <- tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
+          }else{
+            pi_t <- tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
+            pi_s <- tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
+            s_s <- 1 - sum(unlist(lapply(tree$Y_pred[[pred_courant]], FUN = function(x){
+              return(x$traj[sum(allTimes<IBS.min)])
+            }))) # S(s)
+            pi_t <- (pi_t - pi_s)/s_s # P(S<T<S+t|T>S)
+          }
+
           # Individual Brier Score
           Di <- ifelse(Y$Y[id_wY,1] <= allTimes_IBS, 1, 0)*ifelse(Y$Y[id_wY,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
           pec.res <- list()
-          pec.res$AppErr$matrix <- Wi*(Di-tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)])^2 # BS(t)
+          pec.res$AppErr$matrix <- Wi*(Di-pi_t)^2 # BS(t)
           pec.res$models <- "matrix"
           pec.res$time <- allTimes_IBS
-          pec.res$start <- 0
-          pec.res$maxtime <- max(allTimes_IBS)
           class(pec.res) <- "pec"
 
           #xerror[which(OOB==i)] <- pec::ibs(pec.res, start = IBS.min, times = IBS.max)[1] # IBS
