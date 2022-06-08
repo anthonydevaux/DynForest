@@ -7,11 +7,10 @@
 #' @importFrom splines ns
 #'
 #' @return
-#' @export
 #'
-#' @importFrom lcmm fixef
+#' @import lcmm
 #'
-#' @examples
+#' @keywords internal
 predRE <- function(model, formula, data){
 
   subject <- "id"

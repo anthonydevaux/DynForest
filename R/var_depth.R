@@ -1,12 +1,62 @@
-#' Title
+#' Extract characteristics from the trees building process
 #'
-#' @param DynForest_obj
+#' @param DynForest_obj \code{DynForest} object
 #'
 #' @importFrom stringr str_order
-#' @return
-#' @export
+#'
+#' @return var_depth function return a list with the following elements:\tabular{ll}{
+#'    \code{min_depth} \tab A table providing for each feature in row: the average depth and the rank \cr
+#'    \tab \cr
+#'    \code{var_node_depth} \tab A table providing for each tree in column the minimal depth for each feature in row. NA indicates that the feature was not used for the corresponding tree \cr
+#'    \tab \cr
+#'    \code{var_count} \tab A table providing for each tree in column the number of times where the feature is used (in row). 0 value indicates that the feature was not used for the corresponding tree \cr
+#' }
+#'
+#' @seealso \code{\link{DynForest}}
 #'
 #' @examples
+#' \dontrun{
+#' data(pbc2)
+#'
+#' # Define time-independent continuous covariate
+#' cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
+#'                   id = pbc2_surv$id)
+#'
+#' # Define time-independent non continuous covariates
+#' fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
+#'                    id = pbc2_surv$id)
+#'
+#' # Define time-dependent continuous markers
+#' cont_traj <- list(X = pbc2_long[,c("serBilir","serChol","albumin","alkaline")],
+#'                   id = pbc2_long$id,
+#'                   time = pbc2_long$time,
+#'                   model = list(serBilir = list(fixed = serBilir ~ time,
+#'                                                random = ~ time),
+#'                                serChol = list(fixed = serChol ~ time + I(time^2),
+#'                                               random = ~ time + I(time^2)),
+#'                                albumin = list(fixed = albumin ~ time,
+#'                                               random = ~ time),
+#'                                alkaline = list(fixed = alkaline ~ time,
+#'                                                random = ~ time))
+#' )
+#'
+#' # Define outcome (survival here)
+#' Y <- list(type = "surv",
+#'           Y = Surv(pbc2_surv$years, factor(pbc2_surv$event)),
+#'           id = pbc2_surv$id)
+#'
+#' # Run DynForest function
+#' res_dyn <- DynForest(Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
+#'                      Y = Y, ntree = 200, imp = TRUE,
+#'                      mtry = 4, nodesize = 2, minsplit = 3,
+#'                      cause = 2)
+#'
+#' # Run var_depth function
+#' res_varDepth <- var_depth(res_dyn)
+#'
+#' }
+#'
+#' @export
 var_depth <- function(DynForest_obj){
 
   Inputs <- names(DynForest_obj$Inputs)[unlist(lapply(DynForest_obj$Inputs, FUN = function(x) return(!is.null(x))))]
@@ -22,7 +72,7 @@ var_depth <- function(DynForest_obj){
       }
 
       df <- aggregate(depth ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], min)
-      df <- data.frame(var = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
+      df <- data.frame(var = paste0(DynForest_obj$Inputs$Curve[df$var_split], ".bi", df$var_summary-1),
                        depth = df$depth)
       return(df)
 
@@ -48,7 +98,7 @@ var_depth <- function(DynForest_obj){
       }
 
       df <- aggregate(depth ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], length)
-      df <- data.frame(var = paste(DynForest_obj$Inputs$Curve[df$var_split], df$var_summary, sep = "."),
+      df <- data.frame(var = paste0(DynForest_obj$Inputs$Curve[df$var_split], ".bi", df$var_summary-1),
                        depth = df$depth)
       return(df)
 
@@ -79,7 +129,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
 
         df_scalar <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], min)
-        df_scalar <- data.frame(var = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+        df_scalar <- data.frame(var = DynForest_obj$Inputs$Scalar[df_scalar$var_split],
                                 depth = df_scalar$depth)
 
       }else{
@@ -91,7 +141,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
         df_factor <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], min)
-        df_factor <- data.frame(var = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+        df_factor <- data.frame(var = DynForest_obj$Inputs$Factor[df_factor$var_split],
                                 depth = df_factor$depth)
 
       }else{
@@ -124,7 +174,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
 
         df_scalar <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], length)
-        df_scalar <- data.frame(var = paste(DynForest_obj$Inputs$Scalar[df_scalar$var_split], sep = "."),
+        df_scalar <- data.frame(var = DynForest_obj$Inputs$Scalar[df_scalar$var_split],
                                 depth = df_scalar$depth)
 
       }else{
@@ -136,7 +186,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
         df_factor <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], length)
-        df_factor <- data.frame(var = paste(DynForest_obj$Inputs$Factor[df_factor$var_split], sep = "."),
+        df_factor <- data.frame(var = DynForest_obj$Inputs$Factor[df_factor$var_split],
                                 depth = df_factor$depth)
 
       }else{

@@ -1,11 +1,12 @@
 #' Impurity Split
 #'
-#' @param Y
-#' @param split
-#' @param cause
+#' @param Y Outcome data
+#' @param split Vector containing the subjects groups
+#' @param cause (Only with competing events) Number indicates the event of interest.
 #'
 #' @import survival
 #' @importFrom cmprsk crr
+#'
 #' @keywords internal
 impurity_split <- function(Y,split,cause=1){
 
@@ -14,14 +15,6 @@ impurity_split <- function(Y,split,cause=1){
   for (i in 1:2){
     fils <- unique(Y$id)[which(split==i)]
     prop <- length(fils)/length(unique(Y$id))
-    if (Y$type=="curve"){
-      w <- NULL
-      for (j in 1:length(fils)){
-        w <- c(w, which(Y$id==fils[j]))
-      }
-      imp[[i]] <- impurity(list(type="curve",Y=Y$Y[w],id=Y$id[w],time=Y$time[w]))
-      impur <- impur + imp[[i]]*prop
-    }
 
     if (Y$type=="scalar" || Y$type=="factor") {
       w <- NULL
@@ -33,6 +26,7 @@ impurity_split <- function(Y,split,cause=1){
     }
 
     if (Y$type == "surv"){
+
       if (Y$comp){
 
         # Fine & Gray splitting rule
@@ -44,10 +38,21 @@ impurity_split <- function(Y,split,cause=1){
           impur <- Inf
         }
 
+        if (is.nan(impur)){
+          impur <- Inf
+        }
+
       }else{
 
         # logrank splitting rule
-        impur <- 1/(1+survival::survdiff(Y$Y~split)$chisq)
+        surv.res <- tryCatch(survival::survdiff(Y$Y~split),
+                             error = function(e) return(list(chisq = NULL)))
+
+        if (!is.null(surv.res$chisq)){
+          impur <- 1/(1+surv.res$chisq)
+        }else{
+          impur <- Inf
+        }
 
       }
       break

@@ -2,8 +2,8 @@
 #'
 #' This function is used to find all the unique partitions of k factors into 2 groups
 #'
-#' @param Factor
-#' @param id
+#' @param Factor Character vector
+#' @param id List of id
 #'
 #' @keywords internal
 Fact.partitions <- function(Factor, id){

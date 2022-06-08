@@ -1,15 +1,12 @@
-#' Title
+#' Extend predictions for new times
 #'
-#' @param pred
-#' @param newtimes
-#' @param type
+#' @param pred Prediction matrix
+#' @param newtimes Numeric vector of new times
+#' @param type Character indicating survival function (\code{type}="surv") or risk function (\code{type}="risk")
 #'
 #' @importFrom zoo na.locf
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @keywords internal
 combine_times <- function(pred, newtimes, type = "surv"){
 
   newtimes <- unique(sort(c(0,newtimes, pred$times)))

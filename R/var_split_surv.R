@@ -1,23 +1,20 @@
-#' Mixed-Model Split function
+#' Split function to build the two daughter nodes
 #'
-#' @param X
-#' @param Y
-#' @param timeScale
-#' @param nsplit_option
-#' @param nodesize
-#' @param cause
-#' @param init
+#' @param X Input data
+#' @param Y Outcome data
+#' @param nsplit_option A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".
+#' @param cause (Only with competing events) Number indicates the event of interest.
+#' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
+#' @param init (Optional) Initial values for linear mixed models
 #'
 #' @import kmlShape
-#' @import Evomorph
-#' @import RiemBase
 #' @import lcmm
 #' @importFrom splines ns
 #'
 #' @keywords internal
-var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
-                         nodesize = 1, cause = 1, init = NULL){
-  # Pour le moment on se concentre sur le cas des variables courbes ::
+var_split_surv <- function(X ,Y, nsplit_option = "quantile",
+                         cause = 1, nodesize = 1, init = NULL){
+
   impur <- rep(0,ncol(X$X))
   toutes_imp <- list()
   split <- list()
@@ -29,7 +26,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
   for (i in 1:ncol(X$X)){
 
-    if (X$type=="factor"){
+    if (X$type=="Factor"){
       if (length(unique(X$X[,i]))>1){
         L <- Fact.partitions(X$X[,i],X$id)
         split_courant <- list()
@@ -37,12 +34,11 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
         toutes_imp_courant <- list()
         # Il faut maintenant regarder quelles sont les meilleures combinaisons ::
         for (k in 1:length(L)){
-          split_courant[[k]] <- rep(2,length(X$id))
-          for (l in L[[k]]){
-            split_courant[[k]][which(X$id==l)] <- 1
-          }
 
-          if (length(unique(split_courant[[k]]))==1){
+          split_courant[[k]] <- rep(2,length(X$id))
+          split_courant[[k]][which(X$id%in%L[[k]])] <- 1
+
+          if ((length(unique(split_courant[[k]]))==1)|(any(table(split_courant[[k]])<nodesize))){
             impur_courant[k] <- Inf
             next()
           }
@@ -53,7 +49,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
           toutes_imp_courant[[k]] <- impurete$imp_list
         }
 
-        if (!is.null(impurete)){
+        if (!is.null(impurete) & !all(impur_courant==Inf)){
           select <- which.min(impur_courant)
           split[[i]] <- split_courant[[select]]
           impur[i] <- impur_courant[select]
@@ -70,7 +66,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
       }
     }
 
-    if (X$type=="curve"){
+    if (X$type=="Curve"){
 
       fixed_var <- all.vars(X$model[[i]]$fixed)
       random_var <- all.vars(X$model[[i]]$random)
@@ -81,12 +77,13 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
       data_model <- data_model[,c("id", model_var)]
 
       # Mixed model with initial values for parameters ?
-      if (!is.na(init[[colnames(X$X)[i]]][[1]])){
+      if (length(init[[colnames(X$X)[i]]][[1]])>0){
 
         model_output <- hlme(fixed = X$model[[i]]$fixed,
                              random = X$model[[i]]$random,
                              subject = "id", data = data_model,
                              B = init[[colnames(X$X)[i]]],
+                             maxiter = 100,
                              verbose = FALSE)
 
       }else{
@@ -94,7 +91,16 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
         model_output <- hlme(fixed = X$model[[i]]$fixed,
                              random = X$model[[i]]$random,
                              subject = "id", data = data_model,
+                             maxiter = 100,
                              verbose = FALSE)
+
+      }
+
+      if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04){ # convergence issue
+
+        impur[i] <- Inf
+        split[[i]] <- Inf
+        next()
 
       }
 
@@ -148,6 +154,21 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
             split_threholds <- unique(sample(data_summaries[,i_sum], nsplit))
           }
 
+          # remove partition according to nodesize criteria
+          group_length <- lapply(split_threholds, FUN = function(x){
+            table(data_summaries[,i_sum]<x)
+          })
+
+          split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))
+          split_threholds <- split_threholds[split_nodesize_ok]
+
+          if (length(split_threholds)==0){ # could happened with tie values
+            impurete_sum[i_sum] <- NA
+            split_sum[[i_sum]] <- NA
+            split_threholds_sum[i_sum] <- NA
+            next()
+          }
+
           impurete_nsplit <- rep(NA, length(split_threholds))
           split_nsplit <- list()
 
@@ -165,7 +186,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
           }
 
-          if (!is.null(impurete)){
+          if (!is.null(impurete) & !all(impurete_nsplit==Inf)){
             impurete_sum[i_sum] <- impurete_nsplit[which.min(impurete_nsplit)]
             split_sum[[i_sum]] <- split_nsplit[[which.min(impurete_nsplit)]]
             split_threholds_sum[i_sum] <- split_threholds[which.min(impurete_nsplit)]
@@ -199,7 +220,7 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
 
     }
 
-    if(X$type=="scalar"){
+    if (X$type=="Scalar"){
       if (length(unique(X$X[,i]))>2){
 
         nsplit <- ifelse(length(unique(X$X[,i]))>10, 10, length(unique(X$X[,i])))
@@ -213,24 +234,37 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
           split_threholds <- unique(sample(X$X[,i], nsplit))
         }
 
-        impurete_nsplit <- rep(NA, length(split_threholds))
-        split_nsplit <- list()
+        # remove partition according to nodesize criteria
+        group_length <- lapply(split_threholds, FUN = function(x){
+          table(X$X[,i]<x)
+        })
 
-        for (j in 1:length(split_threholds)){ # boucle sur les nsplit
+        split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))
+        split_threholds <- split_threholds[split_nodesize_ok]
 
-          split_nsplit[[j]] <- factor(ifelse(X$X[,i]<=split_threholds[j],1,2))
+        if (length(split_threholds)>0){ # could happened with tie values
 
-          if (length(unique(split_nsplit[[j]]))==1){
-            impurete_nsplit[j] <- Inf
-            next()
+          impurete_nsplit <- rep(NA, length(split_threholds))
+          split_nsplit <- list()
+
+          for (j in 1:length(split_threholds)){ # boucle sur les nsplit
+
+            split_nsplit[[j]] <- factor(ifelse(X$X[,i]<=split_threholds[j],1,2))
+
+            if (length(unique(split_nsplit[[j]]))==1){
+              impurete_nsplit[j] <- Inf
+              next()
+            }
+
+            impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
+            impurete_nsplit[j] <- impurete$impur
+
           }
-
-          impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
-          impurete_nsplit[j] <- impurete$impur
-
+        }else{
+          impurete_nsplit <- Inf
         }
 
-        if (!is.null(impurete)){
+        if (!is.null(impurete) & !all(impurete_nsplit==Inf)){
           split[[i]] <- split_nsplit[[which.min(impurete_nsplit)]]
           impur[i] <- impurete_nsplit[which.min(impurete_nsplit)]
           threshold[i] <- split_threholds[which.min(impurete_nsplit)]
@@ -265,9 +299,9 @@ var_split_MM <- function(X ,Y,timeScale=0.1, nsplit_option = "quantile",
   split <- split[[true_split]]
 
   return(list(split=split, impurete=min(impur),impur_list = toutes_imp[[true_split]], variable=which.min(impur),
-              variable_summary=ifelse(X$type=="curve", variable_summary[true_split], NA),
-              threshold=ifelse(X$type=="curve"|X$type=="scalar", threshold[true_split], NA),
-              model_param=ifelse(X$type=="curve", list(model_param[[true_split]]), NA),
+              variable_summary=ifelse(X$type=="Curve", variable_summary[true_split], NA),
+              threshold=ifelse(X$type=="Curve"|X$type=="Scalar", threshold[true_split], NA),
+              model_param=ifelse(X$type=="Curve", list(model_param[[true_split]]), NA),
               init = init,
               Pure=Pure))
 }

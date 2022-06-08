@@ -1,28 +1,18 @@
-#' Predict Mixed Model Tree
+#' Predict the leaf by dropping down the subject in the tree
 #'
-#' @param tree : Mixed Model Tree
-#' @param Curve [list]: A list that contains the input curves.
-#' @param Scalar [list]: A list that contains the input scalars.
-#' @param Factor [list]: A list that contains the input factors.
-#' @param timeScale [numeric]: Time scale for the input and output curves (\code{timeScale=0.1} by default)
+#' @param tree Tree object resulting from \code{Rtmax_surv} function
+#' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
+#' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
 #'
 #' @import stringr
-#' @import geomorph
-#' @import kmlShape
-#' @import Evomorph
-#' @import RiemBase
 #'
 #' @return
 #' @export
 #'
-pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL,timeScale=0.1){
+pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL){
 
-  inputs <- read.Xarg(c(Curve,Scalar,Factor))
-  Inputs <- inputs
-
-  for (k in 1:length(Inputs)){
-    str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
-  }
+  Inputs <- read.Xarg(c(Curve,Scalar,Factor))
 
   id.pred <- unique(get(Inputs[1])$id)
 
@@ -32,9 +22,9 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL,timeScale=0.1){
 
   for (i in 1:length(id.pred)){
 
-    if (is.element("curve",inputs)==TRUE) wCurve <- which(Curve$id==id.pred[i])
-    if (is.element("scalar",inputs)==TRUE) wScalar <- which(Scalar$id==id.pred[i])
-    if (is.element("factor",inputs)==TRUE) wFactor <- which(Factor$id==id.pred[i])
+    if (is.element("Curve",Inputs)==TRUE) wCurve <- which(Curve$id==id.pred[i])
+    if (is.element("Scalar",Inputs)==TRUE) wScalar <- which(Scalar$id==id.pred[i])
+    if (is.element("Factor",Inputs)==TRUE) wFactor <- which(Factor$id==id.pred[i])
 
     noeud_courant <- 1
 
@@ -45,8 +35,6 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL,timeScale=0.1){
       var.split <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==noeud_courant),3]))
       var.split.sum <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==noeud_courant),4]))
       threshold <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==noeud_courant),5]))
-
-      # Maintenant il nous faut regarder la différence entre la moyenne à gauche et a droite et conclure :
 
       meanG <- tree$hist_nodes[[2*noeud_courant]]
       meanD <- tree$hist_nodes[[2*noeud_courant+1]]

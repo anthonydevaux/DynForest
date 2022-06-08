@@ -2,13 +2,18 @@
 % Please edit documentation in R/combine_times.R
 \name{combine_times}
 \alias{combine_times}
-\title{Title}
+\title{Extend predictions for new times}
 \usage{
 combine_times(pred, newtimes, type = "surv")
 }
 \arguments{
-\item{type}{}
+\item{pred}{Prediction matrix}
+
+\item{newtimes}{Numeric vector of new times}
+
+\item{type}{Character indicating survival function (\code{type}="surv") or risk function (\code{type}="risk")}
 }
 \description{
-Title
+Extend predictions for new times
 }
+\keyword{internal}

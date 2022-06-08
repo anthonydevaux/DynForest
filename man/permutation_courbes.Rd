@@ -2,14 +2,16 @@
 % Please edit documentation in R/permutation_courbes.R
 \name{permutation_courbes}
 \alias{permutation_courbes}
-\title{Title}
+\title{Permute courbes among the subjects}
 \usage{
 permutation_courbes(Courbes, id)
 }
 \arguments{
-\item{id}{}
+\item{Courbes}{Numeric vector of the marker}
+
+\item{id}{Numeric vector of id}
 }
 \description{
-Title
+Permute courbes among the subjects
 }
 \keyword{internal}

@@ -16,3 +16,4 @@ predRE(model, formula, data)
 \description{
 Function to compute individual random effects using hlme output parameters
 }
+\keyword{internal}

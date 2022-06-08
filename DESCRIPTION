@@ -1,12 +1,14 @@
 Package: DynForest
-Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person("Anthony", "Devaux", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+Imports: DescTools, cmprsk, doParallel, foreach, ggplot2, kmlShape, lcmm, 
+    pbapply, pec, prodlim, stringr, survival, zoo
+Depends: R (>= 3.5.0)
+Licence: use_mit_license(copyright_holder = NULL)
 Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.0.2
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.0

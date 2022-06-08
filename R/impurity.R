@@ -1,34 +1,11 @@
-#' Impurity
-#'
 #' Compute the impurity of a given vector
 #'
-#' @param Y
-#' @param timeScale
+#' @param Y Outcome data
 #'
-#' @import kmlShape
-#' @import RiemBase
-#' @import DescTools
-#' @import Evomorph
-#' @import geomorph
-#' @import stats
-#'
+#' @importFrom DescTools Entropy
 #'
 #' @keywords internal
-impurity <- function(Y, timeScale=0.1){
-
-  if (Y$type=="curve"){
-    traj <- Y$Y
-    id <- Y$id
-    time <- Y$time
-    imp <- 0
-    trajLong <- data.frame(id=id,time=time,traj=traj)
-    meanF <- meanFrechet(trajLong = trajLong, timeScale = timeScale)
-    for (i in unique(id)){
-      imp <- imp + distFrechet(meanF$times, meanF$traj, time[which(id==i)], traj[which(id==i)], timeScale = timeScale)^2
-    }
-    imp <- imp/length(unique(id))
-    return(imp)
-  }
+impurity <- function(Y){
 
   if (Y$type=="scalar"){
     if (length(Y$Y)==1){

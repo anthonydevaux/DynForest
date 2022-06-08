@@ -7,7 +7,9 @@
 Fact.partitions(Factor, id)
 }
 \arguments{
-\item{id}{}
+\item{Factor}{Character vector}
+
+\item{id}{List of id}
 }
 \description{
 This function is used to find all the unique partitions of k factors into 2 groups

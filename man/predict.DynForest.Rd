@@ -2,26 +2,69 @@
 % Please edit documentation in R/predict_DynForest.R
 \name{predict.DynForest}
 \alias{predict.DynForest}
-\title{Predict with Dynamic random forests}
+\title{Prediction using dynamic random forests}
 \usage{
-\method{predict}{DynForest}(object, Curve = NULL, Scalar = NULL,
-  Factor = NULL, timeScale = 0.1, ncores = NULL, ...)
+\method{predict}{DynForest}(
+  object,
+  Curve = NULL,
+  Scalar = NULL,
+  Factor = NULL,
+  predTimes = NULL,
+  t0 = NULL,
+  ncores = NULL,
+  parallel = TRUE,
+  ...
+)
 }
 \arguments{
-\item{object}{: Dynamic random forest}
+\item{object}{\code{DynForest} object containing the dynamic random forest used on train data}
 
-\item{Curve}{[list]:}
+\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
-\item{Scalar}{[list]:}
+\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Factor}{[list]:}
+\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{timeScale}{[numeric]:}
+\item{predTimes}{(Only with survival outcome) Horizon times from landmark time \code{t0}}
 
-\item{ncores}{[numeric]:}
+\item{t0}{Landmark time}
 
-\item{...}{: optional parameters to be passed to the low level function}
+\item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
+
+\item{parallel}{Allow paralleling. Default value is TRUE.}
+
+\item{...}{optional parameters to be passed to the low level function}
+}
+\value{
+Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
 }
 \description{
-Predict with Dynamic random forests
+Prediction using dynamic random forests
+}
+\examples{
+\dontrun{
+data(pbc2)
+
+# Define time-independent continuous covariate for the new subjects
+cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
+                  id = pbc2_surv$id)
+
+# Define time-independent non continuous covariates for the new subjects
+fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
+                   id = pbc2_surv$id)
+
+# Define time-dependent continuous markers for the new subjects
+cont_traj <- list(X = pbc2_long[,c("serBilir","serChol","albumin","alkaline")],
+                  id = pbc2_long$id,
+                  time = pbc2_long$time
+)
+
+
+# Predict on new subjects using DynForest estimation (res_dyn object) from DynForest() function
+pred_dyn <- predict(object = res_dyn,
+                    Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
+                    predTimes = c(7,8), t0 = 4)
+
+}
+
 }

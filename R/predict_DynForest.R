@@ -1,28 +1,51 @@
-#' Predict with Dynamic random forests
+#' Prediction using dynamic random forests
 #'
-#' @param object : Dynamic random forest
-#' @param Curve [list]:
-#' @param Scalar [list]:
-#' @param Factor [list]:
-#' @param timeScale [numeric]:
-#' @param predTimes [numeric]:
-#' @param ncores [numeric]:
-#' @param ... : optional parameters to be passed to the low level function
+#' @param object \code{DynForest} object containing the dynamic random forest used on train data
+#' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
+#' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param predTimes (Only with survival outcome) Horizon times from landmark time \code{t0}
+#' @param t0 Landmark time
+#' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
+#' @param parallel Allow paralleling. Default value is TRUE.
+#' @param ... optional parameters to be passed to the low level function
 #'
-#' @import kmlShape
 #' @import stringr
-#' @import RiemBase
-#' @import Evomorph
-#' @import geomorph
 #' @import parallel
 #' @import doParallel
 #'
-#' @return
-#' @export
+#' @return Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
 #'
-predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeScale=0.1,
+#' @examples
+#' \dontrun{
+#' data(pbc2)
+#'
+#' # Define time-independent continuous covariate for the new subjects
+#' cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
+#'                   id = pbc2_surv$id)
+#'
+#' # Define time-independent non continuous covariates for the new subjects
+#' fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
+#'                    id = pbc2_surv$id)
+#'
+#' # Define time-dependent continuous markers for the new subjects
+#' cont_traj <- list(X = pbc2_long[,c("serBilir","serChol","albumin","alkaline")],
+#'                   id = pbc2_long$id,
+#'                   time = pbc2_long$time
+#' )
+#'
+#'
+#' # Predict on new subjects using DynForest estimation (res_dyn object) from DynForest() function
+#' pred_dyn <- predict(object = res_dyn,
+#'                     Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
+#'                     predTimes = c(7,8), t0 = 4)
+#'
+#' }
+#'
+#' @export
+predict.DynForest <- function(object, Curve = NULL, Scalar = NULL, Factor = NULL,
                               predTimes = NULL, t0 = NULL,
-                              ncores = NULL, ...){
+                              ncores = NULL, parallel = TRUE, ...){
 
   ##########
   # Checking
@@ -50,7 +73,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   # t0 landmark
 
   if (is.null(Curve)==FALSE){
-    Curve <- list(type="curve",X=Curve$X,id=Curve$id,time=Curve$time,
+    Curve <- list(type="Curve",X=Curve$X,id=Curve$id,time=Curve$time,
                   model=object$Curve.model)
     if (!is.null(t0)){
       Curve$X <- Curve$X[which(Curve$time<=t0),]
@@ -60,10 +83,10 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   }
 
   if (is.null(Scalar)==FALSE){
-    Scalar <- list(type="scalar",X=Scalar$X,id=Scalar$id)
+    Scalar <- list(type="Scalar",X=Scalar$X,id=Scalar$id)
   }
   if (is.null(Factor)==FALSE){
-    Factor <- list(type="factor",X=Factor$X,id=Factor$id)
+    Factor <- list(type="Factor",X=Factor$X,id=Factor$id)
   }
 
   if (is.null(ncores)==TRUE){
@@ -72,24 +95,32 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
 
   #
 
-  inputs <- read.Xarg(c(Curve,Scalar,Factor))
-  Inputs <- inputs
-
-  for (k in 1:length(Inputs)){
-    str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
-  }
+  Inputs <- read.Xarg(c(Curve,Scalar,Factor))
 
   #####################
   # Handle missing data
 
   if (!is.null(Curve)){ # Curve
 
-    curve_na_row <- which(rowSums(is.na(Curve$X))>0)
+    Curve_df <- cbind(ID = Curve$id, time = Curve$time, Curve$X)
 
-    if (length(curve_na_row)>0){
-      Curve$X <- Curve$X[-curve_na_row,, drop = FALSE]
-      Curve$id <- Curve$id[-curve_na_row]
-      Curve$time <- Curve$time[-curve_na_row]
+    curve_id_noNA_list <- lapply(colnames(Curve_df)[3:ncol(Curve_df)], FUN = function(x){
+      df <- Curve_df[,c("ID",x)]
+      colnames(df) <- c("ID","var")
+      aggregate(var ~ ID, data = df, FUN = length)[,1]
+    })
+
+    curve_id_noNA <- Reduce(intersect, curve_id_noNA_list)
+
+    if (length(curve_id_noNA)>0){
+
+      wCurve <- which(Curve$id%in%curve_id_noNA)
+
+      Curve$X <- Curve$X[wCurve,, drop = FALSE]
+      Curve$id <- Curve$id[wCurve]
+      Curve$time <- Curve$time[wCurve]
+    }else{
+      stop("No subject has at least one measurement by marker !")
     }
   }
 
@@ -143,28 +174,42 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
   }
 
   # leaf predictions of new subjects
-  cl <- parallel::makeCluster(ncores)
-  doParallel::registerDoParallel(cl)
 
-  pred.feuille <- foreach(t=1:ncol(object$rf),
-                          .combine='rbind', .multicombine = TRUE
-                          #, .packages = c()
-  ) %dopar%
-    {
+  if (parallel){
 
-      return(pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale))
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
 
+    pck <- .packages()
+    dir0 <- find.package()
+    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+    pred.feuille <- foreach(t=1:ncol(object$rf),
+                            .combine='rbind', .multicombine = TRUE
+                            #, .packages = c()
+    ) %dopar%
+      {
+
+        return(pred.MMT(object$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor))
+
+      }
+
+    parallel::stopCluster(cl)
+
+  }else{
+
+    for (t in 1:ncol(object$rf)){
+      #cat(t,"\n")
+      pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve, Scalar = Scalar,
+                                   Factor = Factor)
     }
 
-  parallel::stopCluster(cl)
-
-  # for (t in 1:ncol(object$rf)){
-  #   cat(t,"\n")
-  #   pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve,Scalar = Scalar,Factor=Factor, timeScale)
-  # }
+  }
 
   if (object$type=="scalar"){
-    pred <- apply(pred.feuille, 2, "mean")
+    pred <- apply(pred.feuille, 2, "mean", na.rm = TRUE)
     return(pred)
   }
 
@@ -174,24 +219,10 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     proba <- rep(NA, length(pred.all))
     for (k in 1:length(pred.all)){
       val[k] <- factor(attributes(which.max(pred.all[[k]])))
-      proba[k] <- max(pred.all[[k]])/ncol(object$rf)
+      proba[k] <- max(pred.all[[k]])/sum(pred.all[[k]])
     }
     prediction <- data.frame(pred=val, prob=proba)
     return(prediction)
-  }
-
-  if (object$type=="curve"){
-    pred <- NULL
-    for (l in 1:dim(pred.feuille)[2]){
-      pred_courant <- NULL
-      for(k in 1:dim(pred.feuille)[1]){
-        pred_courant <- rbind(pred_courant, cbind(rep(k,dim(object$rf[,k]$Y_pred[[pred.feuille[k,l]]])[1]),object$rf[,k]$Y_pred[[pred.feuille[k,l]]]))
-      }
-      predouille <- kmlShape::meanFrechet(pred_courant, timeScale = timeScale)
-      predouille <- cbind(predouille, rep(Id.pred[l],dim(predouille)[1]))
-      pred <- rbind(pred, predouille)
-    }
-    names(pred) <- c("times", "traj", "ID")
   }
 
   if (object$type=="surv"){
@@ -209,12 +240,12 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     })
     names(pred) <- as.character(object$causes)
 
-    for (l in 1:dim(pred.feuille)[2]){
+    for (l in 1:ncol(pred.feuille)){ # subject
 
       pred_courant <- lapply(object$causes, matrix, data = NA, nrow = ncol(object$rf), ncol = length(predTimes))
       names(pred_courant) <- as.character(object$causes)
 
-      for(k in 1:dim(pred.feuille)[1]){
+      for(k in 1:nrow(pred.feuille)){ # tree
 
         if (!is.na(pred.feuille[k,l])){
 
@@ -222,7 +253,8 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
             if (!is.null(object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes])){
               pred_courant[[cause]][k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
             }else{
-              pred_courant[[cause]][k,] <- rep(NA, length(id.predTimes))
+              #pred_courant[[cause]][k,] <- rep(NA, length(id.predTimes))
+              pred_courant[[cause]][k,] <- rep(0, length(id.predTimes))
             }
           }
 
@@ -242,7 +274,8 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
     #                = ( F(S+t) - F(S) ) / S(S)
     # A faire CR => S(S) n'est pas egale a 1-F(S) mais a la somme des Fj(S) avec j event
-    pred.cause <- apply(pred[[object$cause]][,-1], MARGIN = 2,
+    pred.cause <- apply(pred[[as.character(object$cause)]][,-1, drop = FALSE],
+                        MARGIN = 2,
                         FUN = function(x) {
                           if (length(pred)>1){
                             surv <- 1 - Reduce("+", lapply(pred, FUN = function(x) x[,1]))
@@ -250,7 +283,7 @@ predict.DynForest <- function(object, Curve=NULL,Scalar=NULL,Factor=NULL, timeSc
                             surv <- 1 - pred[[1]][,1]
                           }
 
-                          return((x-pred[[object$cause]][,1])/surv)
+                          return((x-pred[[as.character(object$cause)]][,1])/surv)
                         })
 
   }
