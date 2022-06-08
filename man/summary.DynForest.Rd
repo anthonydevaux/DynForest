@@ -4,10 +4,12 @@
 \alias{summary.DynForest}
 \title{Display the summary of DynForest}
 \usage{
-\method{summary}{DynForest}(object)
+\method{summary}{DynForest}(object, ...)
 }
 \arguments{
 \item{object}{\code{DynForest} object resulting from \code{DynForest} function}
+
+\item{...}{Optional parameters to be passed to the low level function}
 }
 \description{
 Display the summary of DynForest

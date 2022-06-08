@@ -1,7 +1,7 @@
 #' Display the summary of DynForest
 #'
 #' @param object \code{DynForest} object resulting from \code{DynForest} function
-#'
+#' @param ... Optional parameters to be passed to the low level function
 #' @return
 #'
 #' @examples
@@ -48,7 +48,7 @@
 #' }
 #'
 #' @export
-summary.DynForest <- function(object){
+summary.DynForest <- function(object, ...){
 
   if (object$type=="surv"){
     if (length(object$causes)>1){
