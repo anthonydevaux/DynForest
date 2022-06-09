@@ -16,7 +16,7 @@
 #' @import prodlim
 #' @importFrom splines ns
 #'
-#' @keywords internal
+#' @export
 DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
                          nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
                          seed = 1234){
@@ -231,8 +231,6 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
             na_id <- NULL
           }
 
-
-
           LN <- length(gauche_id)
           RN <- length(droit_id)
 
@@ -265,21 +263,11 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
 
           model_param[[feuilles_courantes[i]]] <- feuille_split$model_param
 
-          wY_gauche <- NULL
-          wY_droit <- NULL
-          w_gauche <- NULL
-          w_droit <- NULL
+          w_gauche <- which(X_boot$id%in%gauche_id)
+          wY_gauche <- which(Y_boot$id%in%gauche_id)
 
-
-          for (k in 1:length(gauche_id)){
-            w_gauche <- c(w_gauche, which(X_boot$id==gauche_id[k]))
-            wY_gauche <- c(wY_gauche, which(Y_boot$id==gauche_id[k]))
-          }
-
-          for (k in 1:length(droit_id)){
-            w_droit <- c(w_droit, which(X_boot$id==droit_id[k]))
-            wY_droit <- c(wY_droit, which(Y_boot$id==droit_id[k]))
-          }
+          w_droit <- which(X_boot$id%in%droit_id)
+          wY_droit <- which(Y_boot$id%in%droit_id)
 
           if (!is.null(na_id)){
             wY_na <- which(Y_boot$id%in%na_id)

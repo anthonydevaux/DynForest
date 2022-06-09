@@ -76,8 +76,12 @@ var_split_surv <- function(X ,Y, nsplit_option = "quantile",
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,, drop = FALSE])
       data_model <- data_model[,c("id", model_var)]
 
+      if (is.null(init[[colnames(X$X)[i]]][[1]])){
+        init[[colnames(X$X)[i]]][[1]] <- NA
+      }
+
       # Mixed model with initial values for parameters ?
-      if (length(init[[colnames(X$X)[i]]][[1]])>0){
+      if (!is.na(init[[colnames(X$X)[i]]][[1]])){
 
         model_output <- hlme(fixed = X$model[[i]]$fixed,
                              random = X$model[[i]]$random,

@@ -20,22 +20,25 @@ Compute the VIMP statistic
 \dontrun{
 data(pbc2)
 
+# Build survival data
+pbc2_surv <- unique(pbc2[,c("id","age","drug","sex","years","event")])
+
 # Define time-independent continuous covariate
 cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
-                  id = pbc2_surv$id)
+                   id = pbc2_surv$id)
 
 # Define time-independent non continuous covariates
 fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
                    id = pbc2_surv$id)
 
 # Define time-dependent continuous markers
-cont_traj <- list(X = pbc2_long[,c("serBilir","serChol","albumin","alkaline")],
-                  id = pbc2_long$id,
-                  time = pbc2_long$time,
+cont_traj <- list(X = pbc2[,c("serBilir","SGOT","albumin","alkaline")],
+                  id = pbc2$id,
+                  time = pbc2$time,
                   model = list(serBilir = list(fixed = serBilir ~ time,
                                                random = ~ time),
-                               serChol = list(fixed = serChol ~ time + I(time^2),
-                                              random = ~ time + I(time^2)),
+                               SGOT = list(fixed = SGOT ~ time + I(time^2),
+                                           random = ~ time + I(time^2)),
                                albumin = list(fixed = albumin ~ time,
                                               random = ~ time),
                                alkaline = list(fixed = alkaline ~ time,
@@ -50,8 +53,10 @@ Y <- list(type = "surv",
 # Run DynForest function
 res_dyn <- DynForest(Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
                      Y = Y, ntree = 200, imp = TRUE,
-                     mtry = 4, nodesize = 2, minsplit = 3,
-                     cause = 2)
+                     imp.group = list(group1 = c("serBilir","SGOT"),
+                                      group2 = c("albumin","alkaline")),
+                     mtry = 3, nodesize = 2, minsplit = 3,
+                     cause = 2, seed = 1234)
 
 # Plot VIMP
 plot_VIMP(res_dyn)

@@ -3,6 +3,7 @@
 S3method(predict,DynForest)
 S3method(summary,DynForest)
 export(DynForest)
+export(DynTree_surv)
 export(plot_VIMP)
 export(plot_gVIMP)
 export(plot_mindepth)
