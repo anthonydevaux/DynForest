@@ -1,10 +1,9 @@
 #' Prediction using dynamic random forests
 #'
-#' @param object \code{DynForest} object containing the dynamic random forest used on train data
+#' @param DynForest_obj \code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data
 #' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
 #' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
-#' @param predTimes (Only with survival outcome) Horizon times from landmark time \code{t0}
 #' @param t0 Landmark time
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #' @param parallel Allow paralleling. Default value is TRUE.
@@ -61,139 +60,144 @@
 #' # Predict on new subjects using DynForest estimation (res_dyn object) from DynForest() function
 #' pred_dyn <- predict(object = res_dyn,
 #'                     Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
-#'                     predTimes = c(7,8), t0 = 4)
+#'                     t0 = 4)
 #'
 #' }
 #'
 #' @export
-predict.DynForest <- function(object, Curve = NULL, Scalar = NULL, Factor = NULL,
-                              predTimes = NULL, t0 = NULL,
+predict.DynForest <- function(DynForest_obj,
+                              timeData = NULL, fixedData = NULL,
+                              idVar, timeVar,
+                              t0 = NULL,
                               ncores = NULL, parallel = TRUE, ...){
 
-  ##########
-  # Checking
+  if (class(DynForest_obj)!="DynForest" | class(DynForest_obj)!="DynForest_OOB"){
+    stop("'DynForest_obj' should be a 'DynForest' or 'DynForest_OOB' class!")
+  }
 
-  if (object$type=="surv"){
+  # checking function
+  checking(DynForest_obj = DynForest_obj,
+           timeData = timeData, fixedData = fixedData,
+           idVar = idVar, timeVar = timeVar)
+
+  # checking landmark/horizon times
+  if (DynForest_obj$type=="surv"){
 
     if (is.null(t0)){
       stop("t0 value is needed for dynamic prediction !")
     }
-    if (!is.null(predTimes)){
-      if (all(predTimes<=t0)){
-        stop("predTimes values should be greater than t0 time !")
-      }
-      if (any(predTimes<=t0)){
-        warning("Only predTimes values greater than t0 time will be computed !")
-        predTimes <- predTimes[!(predTimes <= t0)]
-      }
-    }else{
-      predTimes <- object$times[!(object$times <= t0)]
-    }
 
   }
 
-  #############
-  # t0 landmark
-
-  if (is.null(Curve)==FALSE){
-    Curve <- list(type="Curve",X=Curve$X,id=Curve$id,time=Curve$time,
-                  model=object$Curve.model)
+  # Select data before landmark time
+  if (is.null(timeData)==FALSE){
     if (!is.null(t0)){
-      Curve$X <- Curve$X[which(Curve$time<=t0),]
-      Curve$id <- Curve$id[which(Curve$time<=t0)]
-      Curve$time <- Curve$time[which(Curve$time<=t0)]
+      timeData <- timeData[which(timeData[,timeVar]<=t0),]
     }
   }
 
-  if (is.null(Scalar)==FALSE){
-    Scalar <- list(type="Scalar",X=Scalar$X,id=Scalar$id)
-  }
-  if (is.null(Factor)==FALSE){
-    Factor <- list(type="Factor",X=Factor$X,id=Factor$id)
-  }
-
+  # ncores
   if (is.null(ncores)==TRUE){
     ncores <- parallel::detectCores()-1
   }
 
-  #
-
-  Inputs <- read.Xarg(c(Curve,Scalar,Factor))
-
   #####################
   # Handle missing data
 
-  if (!is.null(Curve)){ # Curve
+  Inputs <- NULL
 
-    Curve_df <- cbind(ID = Curve$id, time = Curve$time, Curve$X)
+  if (!is.null(timeData)){
 
-    curve_id_noNA_list <- lapply(colnames(Curve_df)[3:ncol(Curve_df)], FUN = function(x){
-      df <- Curve_df[,c("ID",x)]
+    timeData_id_noNA_list <- lapply(colnames(subset(timeData,
+                                                    select = -c(get(idVar),get(timeVar)))),
+                                 FUN = function(x){
+      df <- timeData[,c(idVar,x)]
       colnames(df) <- c("ID","var")
       aggregate(var ~ ID, data = df, FUN = length)[,1]
     })
 
-    curve_id_noNA <- Reduce(intersect, curve_id_noNA_list)
+    timeData_id_noNA <- Reduce(intersect, timeData_id_noNA_list)
 
-    if (length(curve_id_noNA)>0){
+    if (length(timeData_id_noNA)>0){
 
-      wCurve <- which(Curve$id%in%curve_id_noNA)
+      timeData <- timeData[which(timeData[,idVar]%in%timeData_id_noNA),]
 
-      Curve$X <- Curve$X[wCurve,, drop = FALSE]
-      Curve$id <- Curve$id[wCurve]
-      Curve$time <- Curve$time[wCurve]
     }else{
       stop("No subject has at least one measurement by marker !")
     }
+
+    Inputs <- c(Inputs, "timeData")
   }
 
-  if (!is.null(Scalar)){ # Scalar
+  if (!is.null(fixedData)){
 
-    scalar_na_row <- which(rowSums(is.na(Scalar$X))>0)
+    fixedData_na_row <- which(rowSums(is.na(fixedData))>0)
 
-    if (length(scalar_na_row)>0){
-      Scalar$X <- Scalar$X[-scalar_na_row,, drop = FALSE]
-      Scalar$id <- Scalar$id[-scalar_na_row]
+    if (length(fixedData_na_row)>0){
+      fixedData <- fixedData[-fixedData_na_row,]
     }
-  }
 
-  if (!is.null(Factor)){ # Factor
-
-    factor_na_row <- which(rowSums(is.na(Factor$X))>0)
-
-    if (length(factor_na_row)>0){
-      Factor$X <- Factor$X[-factor_na_row,, drop = FALSE]
-      Factor$id <- Factor$id[-factor_na_row]
-    }
+    Inputs <- c(Inputs, "fixedData")
   }
 
   # all idnoNA
-  idnoNA <- Reduce(intersect, lapply(Inputs, FUN = function(x) return(unique(get(x)$id))))
+  idnoNA <- Reduce(intersect, lapply(Inputs, FUN = function(x) return(unique(get(x)[,idVar]))))
 
   # Keep id with noNA
-  if (!is.null(Curve)){
-    Curve$X <- Curve$X[which(Curve$id%in%idnoNA),, drop = FALSE]
-    Curve$id <- Curve$id[which(Curve$id%in%idnoNA)]
-    Curve$time <- Curve$time[which(Curve$id%in%idnoNA)]
+  if (!is.null(timeData)){
+    timeData <- timeData[which(timeData[,idVar]%in%idnoNA),]
   }
 
-  if (!is.null(Scalar)){
-    Scalar$X <- Scalar$X[which(Scalar$id%in%idnoNA),, drop = FALSE]
-    Scalar$id <- Scalar$id[which(Scalar$id%in%idnoNA)]
-  }
-
-  if (!is.null(Factor)){
-    Factor$X <- Factor$X[which(Factor$id%in%idnoNA),, drop = FALSE]
-    Factor$id <- Factor$id[which(Factor$id%in%idnoNA)]
+  if (!is.null(fixedData)){
+    fixedData <- fixedData[which(fixedData[,idVar]%in%idnoNA),]
   }
 
   #####################
 
-  Id.pred <- unique(get(Inputs[1])$id)
-  pred.feuille <- matrix(0, ncol(object$rf), length(Id.pred))
+  # Inputs
+  if (!is.null(timeData)){
+    Curve <- list(type = "Curve",
+                  X = subset(timeData, select = -c(get(idVar), get(timeVar))),
+                  id = timeData[,idVar],
+                  time = timeData[,timeVar],
+                  model = timeVarModel)
+  }else{
+    Curve <- NULL
+  }
 
-  if (object$type=="factor"){
-    pred.feuille <- as.data.frame(matrix(0, ncol(object$rf), length(Id.pred)))
+  if (!is.null(fixedData)){
+
+    var_fact <- sapply(subset(fixedData, select = -get(idVar)),
+                       FUN = function(x) inherits(x, c("character","factor")))
+
+    var_num <- sapply(subset(fixedData, select = -get(idVar)),
+                      FUN = function(x) inherits(x, c("numeric","integer")))
+
+    if (length(var_fact[which(var_fact==T)])>0){
+      Factor <- list(type = "Factor",
+                     X = subset(fixedData, select = names(var_fact[which(var_fact==T)])),
+                     id = fixedData[,idVar])
+    }else{
+      Factor <- NULL
+    }
+
+    if (length(var_num[which(var_num==T)])>0){
+      Scalar <- list(type = "Scalar",
+                     X = subset(fixedData, select = names(var_num[which(var_num==T)])),
+                     id = fixedData[,idVar])
+    }else{
+      Scalar <- NULL
+    }
+
+  }
+
+  #####################
+
+  Id.pred <- as.integer(idnoNA)
+  pred.feuille <- matrix(0, ncol(DynForest_obj$rf), length(Id.pred))
+
+  if (DynForest_obj$type=="factor"){
+    pred.feuille <- as.data.frame(matrix(0, ncol(DynForest_obj$rf), length(Id.pred)))
   }
 
   # leaf predictions of new subjects
@@ -209,13 +213,13 @@ predict.DynForest <- function(object, Curve = NULL, Scalar = NULL, Factor = NULL
     parallel::clusterExport(cl,list("pck","dir"),envir=environment())
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
-    pred.feuille <- foreach(t=1:ncol(object$rf),
+    pred.feuille <- foreach(t=1:ncol(DynForest_obj$rf),
                             .combine='rbind', .multicombine = TRUE
                             #, .packages = c()
     ) %dopar%
       {
 
-        return(pred.MMT(object$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor))
+        return(pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor))
 
       }
 
@@ -223,58 +227,60 @@ predict.DynForest <- function(object, Curve = NULL, Scalar = NULL, Factor = NULL
 
   }else{
 
-    for (t in 1:ncol(object$rf)){
+    for (t in 1:ncol(DynForest_obj$rf)){
       #cat(t,"\n")
-      pred.feuille[t,] <- pred.MMT(object$rf[,t], Curve = Curve, Scalar = Scalar,
+      pred.feuille[t,] <- pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar,
                                    Factor = Factor)
     }
 
   }
 
-  if (object$type=="scalar"){
-    pred <- apply(pred.feuille, 2, "mean", na.rm = TRUE)
-    return(pred)
+  if (DynForest_obj$type=="scalar"){
+    pred_outcome <- apply(pred.feuille, 2, "mean", na.rm = TRUE)
+    return(pred_outcome)
   }
 
-  if (object$type=="factor"){
+  if (DynForest_obj$type=="factor"){
     pred.all <- apply(pred.feuille, 2, "table")
-    val <- factor(rep(NA, length(pred.all)), levels=object$levels)
+    val <- factor(rep(NA, length(pred.all)), levels=DynForest_obj$levels)
     proba <- rep(NA, length(pred.all))
     for (k in 1:length(pred.all)){
       val[k] <- factor(attributes(which.max(pred.all[[k]])))
       proba[k] <- max(pred.all[[k]])/sum(pred.all[[k]])
     }
-    prediction <- data.frame(pred=val, prob=proba)
-    return(prediction)
+    pred_outcome <- data.frame(pred=val, prob=proba)
+    return(pred_outcome)
   }
 
-  if (object$type=="surv"){
+  if (DynForest_obj$type=="surv"){
 
-    allTimes <- object$times
-    predTimes <- c(t0, predTimes)
+    browser()
+
+    allTimes <- DynForest_obj$times
+    predTimes <- c(t0, allTimes[which(allTimes>=t0)])
 
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
 
-    pred <- lapply(object$causes, FUN = function(x){
+    pred <- lapply(DynForest_obj$causes, FUN = function(x){
 
       pred.cause <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
       rownames(pred.cause) <- Id.pred
       return(pred.cause)
     })
-    names(pred) <- as.character(object$causes)
+    names(pred) <- as.character(DynForest_obj$causes)
 
     for (l in 1:ncol(pred.feuille)){ # subject
 
-      pred_courant <- lapply(object$causes, matrix, data = NA, nrow = ncol(object$rf), ncol = length(predTimes))
-      names(pred_courant) <- as.character(object$causes)
+      pred_courant <- lapply(DynForest_obj$causes, matrix, data = NA, nrow = ncol(DynForest_obj$rf), ncol = length(predTimes))
+      names(pred_courant) <- as.character(DynForest_obj$causes)
 
-      for(k in 1:nrow(pred.feuille)){ # tree
+      for (k in 1:nrow(pred.feuille)){ # tree
 
         if (!is.na(pred.feuille[k,l])){
 
-          for (cause in as.character(object$causes)){
-            if (!is.null(object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes])){
-              pred_courant[[cause]][k,] <- object$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
+          for (cause in as.character(DynForest_obj$causes)){
+            if (!is.null(DynForest_obj$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes])){
+              pred_courant[[cause]][k,] <- DynForest_obj$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
             }else{
               #pred_courant[[cause]][k,] <- rep(NA, length(id.predTimes))
               pred_courant[[cause]][k,] <- rep(0, length(id.predTimes))
@@ -282,13 +288,13 @@ predict.DynForest <- function(object, Curve = NULL, Scalar = NULL, Factor = NULL
           }
 
         }else{
-          for (cause in as.character(object$causes)){
+          for (cause in as.character(DynForest_obj$causes)){
             pred_courant[[cause]][k,] <- NA
           }
         }
       }
 
-      for (cause in as.character(object$causes)){
+      for (cause in as.character(DynForest_obj$causes)){
         pred[[cause]][l,] <- apply(pred_courant[[cause]], 2, mean, na.rm = TRUE)
       }
     }
@@ -297,7 +303,7 @@ predict.DynForest <- function(object, Curve = NULL, Scalar = NULL, Factor = NULL
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
     #                = ( F(S+t) - F(S) ) / S(S)
     # A faire CR => S(S) n'est pas egale a 1-F(S) mais a la somme des Fj(S) avec j event
-    pred.cause <- apply(pred[[as.character(object$cause)]][,-1, drop = FALSE],
+    pred_outcome <- apply(pred[[as.character(DynForest_obj$cause)]],
                         MARGIN = 2,
                         FUN = function(x) {
                           if (length(pred)>1){
@@ -306,9 +312,17 @@ predict.DynForest <- function(object, Curve = NULL, Scalar = NULL, Factor = NULL
                             surv <- 1 - pred[[1]][,1]
                           }
 
-                          return((x-pred[[as.character(object$cause)]][,1])/surv)
+                          return((x-pred[[as.character(DynForest_obj$cause)]][,1])/surv)
                         })
 
+    output <- list(pred_outcome = pred_outcome,
+                   pred_leaf = pred.feuille,
+                   times = predTimes,
+                   t0 = t0)
+
   }
-  return(pred.cause)
+
+  class(output) <- c("DynForestPred")
+  return(output)
+
 }

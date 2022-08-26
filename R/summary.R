@@ -1,55 +1,15 @@
 #' Display the summary of DynForest
 #'
-#' @param object \code{DynForest} object resulting from \code{DynForest} function
+#' @param object \code{DynForest} or \code{DynForest_OOB} object
 #' @param ... Optional parameters to be passed to the low level function
-#' @return
+#' @return Return some information about the random forest
+#'
+#' @author Anthony Devaux (\email{anthony.devaux@@u-bordeaux.fr})
 #'
 #' @examples
 #' \dontrun{
-#' data(pbc2)
-#'
-#' # Build survival data
-#' pbc2_surv <- unique(pbc2[,c("id","age","drug","sex","years","event")])
-#'
-#' # Define time-independent continuous covariate
-#' cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
-#'                    id = pbc2_surv$id)
-#'
-#' # Define time-independent non continuous covariates
-#' fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
-#'                    id = pbc2_surv$id)
-#'
-#' # Define time-dependent continuous markers
-#' cont_traj <- list(X = pbc2[,c("serBilir","SGOT","albumin","alkaline")],
-#'                   id = pbc2$id,
-#'                   time = pbc2$time,
-#'                   model = list(serBilir = list(fixed = serBilir ~ time,
-#'                                                random = ~ time),
-#'                                SGOT = list(fixed = SGOT ~ time + I(time^2),
-#'                                            random = ~ time + I(time^2)),
-#'                                albumin = list(fixed = albumin ~ time,
-#'                                               random = ~ time),
-#'                                alkaline = list(fixed = alkaline ~ time,
-#'                                                random = ~ time))
-#' )
-#'
-#' # Define outcome (survival here)
-#' Y <- list(type = "surv",
-#'           Y = Surv(pbc2_surv$years, factor(pbc2_surv$event)),
-#'           id = pbc2_surv$id)
-#'
-#' # Run DynForest function
-#' res_dyn <- DynForest(Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
-#'                      Y = Y, ntree = 200, imp = TRUE,
-#'                      imp.group = list(group1 = c("serBilir","SGOT"),
-#'                                       group2 = c("albumin","alkaline")),
-#'                      mtry = 3, nodesize = 2, minsplit = 3,
-#'                      cause = 2, seed = 1234)
-#'
 #' # DynForest summary
-#'
-#' summary(res_dyn)
-#'
+#' summary(object = res_dyn_OOB)
 #' }
 #'
 #' @export

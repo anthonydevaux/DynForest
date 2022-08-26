@@ -5,48 +5,44 @@
 \title{Random forest with multivariate longitudinal endogenous covariates}
 \usage{
 DynForest(
-  Curve = NULL,
-  Scalar = NULL,
-  Factor = NULL,
-  Y,
-  mtry = NULL,
+  timeData = NULL,
+  fixedData = NULL,
+  idVar = NULL,
+  timeVar = NULL,
+  timeVarModel = NULL,
+  Y = NULL,
   ntree = 200,
-  ncores = NULL,
+  mtry = 1,
+  nodesize = 1,
+  minsplit = 2,
+  cause = 1,
   OOB_error = TRUE,
   imp = FALSE,
   imp.group = NULL,
   nsplit_option = "quantile",
-  nodesize = 1,
-  minsplit = 2,
-  cause = 1,
   IBS.min = 0,
   IBS.max = NULL,
+  ncores = NULL,
   seed = round(runif(1, 0, 10000)),
   ...
 )
 }
 \arguments{
-\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
+\item{timeData}{A data.frame containing the id and time measurements variables and the time-dependent predictors.}
 
-\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
+\item{fixedData}{A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.}
 
-\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
+\item{idVar}{A character indicating the name of variable to identify the subjects}
 
-\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
+\item{timeVar}{A character indicating the name of time variable}
 
-\item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is \code{NULL}.}
+\item{timeVarModel}{A list for each time-dependent predictors containing a list of formula for fixed and random part from the mixed model}
+
+\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; .}
 
 \item{ntree}{Number of trees to grow. Default value set to 200.}
 
-\item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
-
-\item{OOB_error}{Compute the OOB error. Default value is TRUE.}
-
-\item{imp}{Compute (1) the importance of variables (VIMP); (2) the importance of groups (gVIMP) if there is a \code{imp.group} argument. Default value is FALSE}
-
-\item{imp.group}{A list of groups with the name of the predictors assigned in each group}
-
-\item{nsplit_option}{A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".}
+\item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is \code{NULL}.}
 
 \item{nodesize}{Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.}
 
@@ -54,9 +50,9 @@ DynForest(
 
 \item{cause}{(Only with competing events) Number indicates the event of interest.}
 
-\item{IBS.min}{(Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.}
+\item{nsplit_option}{A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".}
 
-\item{IBS.max}{(Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.}
+\item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 
 \item{seed}{Seed to replicate results}
 
@@ -64,6 +60,8 @@ DynForest(
 }
 \value{
 DynForest function return a list with the following elements:\tabular{ll}{
+\code{data} \tab A list containing the data used to grow the trees \cr
+\tab \cr
 \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
 \tab \cr
 \code{type} \tab Outcome type \cr
@@ -74,19 +72,11 @@ DynForest function return a list with the following elements:\tabular{ll}{
 \tab \cr
 \code{causes} \tab A numeric vector containing the causes indicator \cr
 \tab \cr
-\code{xerror} \tab A numeric vector containing the OOB error for each tree \cr
-\tab \cr
-\code{oob.err} \tab A numeric vector containing the OOB error for each subject \cr
-\tab \cr
-\code{oob.pred} \tab Outcome prediction for all subjects \cr
-\tab \cr
-\code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
-\tab \cr
-\code{gVIMP} \tab A numeric vector containing the gVIMP for each group defined in \code{imp.group} argument \cr
-\tab \cr
 \code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
 \tab \cr
 \code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
+\tab \cr
+\code{param} \tab A list containing the hyperparameters \cr
 \tab \cr
 \code{comput.time} \tab Computation time \cr
 }

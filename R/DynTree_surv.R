@@ -144,7 +144,7 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
           if (is.element("Factor",split.spaces)==TRUE){
 
             feuille_split_Factor <- var_split_surv(X = Factor_courant, Y = Y_courant,
-                                                 cause = cause, nodesize = nodesize)
+                                                   cause = cause, nodesize = nodesize)
 
             if (feuille_split_Factor$Pure==FALSE){
               F_SPLIT <- merge(F_SPLIT,
@@ -159,9 +159,9 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
           if (is.element("Curve",split.spaces)==TRUE){
 
             feuille_split_Curve <- var_split_surv(X = Curve_courant, Y = Y_courant,
-                                                nsplit_option = nsplit_option,
-                                                cause = cause, nodesize = nodesize,
-                                                init = model_init[[feuilles_courantes[i]]])
+                                                  nsplit_option = nsplit_option,
+                                                  cause = cause, nodesize = nodesize,
+                                                  init = model_init[[feuilles_courantes[i]]])
 
             if (feuille_split_Curve$Pure==FALSE){
               model_init[[feuilles_courantes[i]]] <- feuille_split_Curve$init # update initial values at current node
@@ -177,8 +177,8 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
           if (is.element("Scalar",split.spaces)==TRUE){
 
             feuille_split_Scalar <- var_split_surv(X = Scalar_courant, Y = Y_courant,
-                                                 nsplit_option = nsplit_option,
-                                                 cause = cause, nodesize = nodesize)
+                                                   nsplit_option = nsplit_option,
+                                                   cause = cause, nodesize = nodesize)
 
             if (feuille_split_Scalar$Pure==FALSE){
               F_SPLIT <- merge(F_SPLIT,
