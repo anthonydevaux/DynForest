@@ -1,7 +1,7 @@
 #' Compute the average minimal depth statistic
 #'
 #' @param var_depth_obj Object from \code{var_depth} function
-#' @param plot_level Compute the statistic at markers (\code{plot_level}="markers") or summaries (\code{plot_level}="summaries") level
+#' @param plot_level Compute the statistic at predictor (\code{plot_level}="predictor") or feature (\code{plot_level}="feature") level
 #'
 #' @import ggplot2
 #' @importFrom stringr str_order
@@ -59,11 +59,11 @@
 #' }
 #'
 #' @export
-plot_mindepth <- function(var_depth_obj, plot_level = c("markers","summaries")){
+plot_mindepth <- function(var_depth_obj, plot_level = c("predictor","feature")){
 
   # checking
-  if (!all(plot_level%in%c("markers","summaries"))){
-    stop("Only 'markers' and 'summaries' options are allowed for plot_level argument!")
+  if (!all(plot_level%in%c("predictor","feature"))){
+    stop("Only 'predictor' and 'feature' options are allowed for plot_level argument!")
   }
 
   if (length(plot_level)>1){
@@ -77,7 +77,7 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("markers","summaries")){
   depth.df$group <- sub("\\..*", "", depth.df$var)
   depth.df <- depth.df[order(depth.df$var),]
 
-  if (plot_level=="summaries"){
+  if (plot_level=="feature"){
 
     depth.nbtree <- aggregate(num_noeud ~ var, data = depth.df, FUN = function(x){
       return(sum(!is.na(x)))
@@ -88,9 +88,9 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("markers","summaries")){
       geom_text(data = depth.nbtree, aes(x = var, label = num_noeud),
                 y = max(depth.df$num_noeud, na.rm = T) - 1) +
       scale_x_discrete(limits=rev(unique(depth.df$var)[str_order(unique(depth.df$var))])) +
-      xlab("Predictors") +
+      xlab("Features") +
       ylab("Minimal depth") +
-      guides(fill = FALSE) +
+      guides(fill = "none") +
       theme_bw() +
       theme(axis.title.y = element_text(size = 14, face = "bold"),
             axis.title.x = element_text(size = 14, face = "bold")) +
@@ -100,7 +100,7 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("markers","summaries")){
 
   }
 
-  if (plot_level=="markers"){
+  if (plot_level=="predictor"){
 
     depthVar.df <- aggregate(num_noeud ~ group + tree, data = depth.df, min, na.rm = T)
 
@@ -113,7 +113,7 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("markers","summaries")){
       scale_x_discrete(limits=rev(unique(depthVar.df$group)[str_order(unique(depthVar.df$group))])) +
       xlab("Predictors") +
       ylab("Minimal depth") +
-      guides(fill = FALSE) +
+      guides(fill = "none") +
       theme_bw() +
       theme(axis.title.y = element_text(size = 14, face = "bold"),
             axis.title.x = element_text(size = 14, face = "bold")) +

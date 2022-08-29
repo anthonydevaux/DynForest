@@ -7,7 +7,7 @@
 compute_gVIMP(DynForest_obj, group = NULL, ncores = NULL)
 }
 \arguments{
-\item{DynForest_obj}{\code{DynForest_OOB} object containing the dynamic random forest used on train data}
+\item{DynForest_obj}{\code{DynForest} object containing the dynamic random forest used on train data}
 
 \item{group}{A list of groups with the name of the predictors assigned in each group}
 

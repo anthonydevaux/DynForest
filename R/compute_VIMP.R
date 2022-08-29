@@ -1,6 +1,6 @@
 #' Compute the importance of variables (VIMP) statistic
 #'
-#' @param DynForest_obj \code{DynForest_OOB} object containing the dynamic random forest used on train data
+#' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
 #' @return compute_OOBerror() function return a list with the following elements:\tabular{ll}{
@@ -43,8 +43,8 @@
 #' }
 compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
-  if (class(DynForest_obj)!="DynForest_OOB"){
-    stop("'DynForest_obj' should be a 'DynForest_OOB' class!")
+  if (class(DynForest_obj)!="DynForest"){
+    stop("'DynForest_obj' should be a 'DynForest' class!")
   }
 
   if (is.null(DynForest_obj$xerror)){
@@ -204,6 +204,7 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
   out <- list(rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,
               Inputs = rf$Inputs, Curve.model = rf$Curve.model, param = rf$param,
+              comput.time = rf$comput.time,
               xerror = rf$xerror, oob.err = rf$oob.err, oob.pred = rf$oob.err,
               IBS.range = rf$IBS.range, Importance = Importance)
 

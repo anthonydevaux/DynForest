@@ -12,7 +12,7 @@ DynForest(
   timeVarModel = NULL,
   Y = NULL,
   ntree = 200,
-  mtry = 1,
+  mtry = NULL,
   nodesize = 1,
   minsplit = 2,
   cause = 1,
@@ -42,7 +42,7 @@ DynForest(
 
 \item{ntree}{Number of trees to grow. Default value set to 200.}
 
-\item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is \code{NULL}.}
+\item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is defined as the square root of the number of predictors.}
 
 \item{nodesize}{Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.}
 

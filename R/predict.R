@@ -71,8 +71,8 @@ predict.DynForest <- function(DynForest_obj,
                               t0 = NULL,
                               ncores = NULL, parallel = TRUE, ...){
 
-  if (class(DynForest_obj)!="DynForest" | class(DynForest_obj)!="DynForest_OOB"){
-    stop("'DynForest_obj' should be a 'DynForest' or 'DynForest_OOB' class!")
+  if (class(DynForest_obj)!="DynForest"){
+    stop("'DynForest_obj' should be an object of 'DynForest' class!")
   }
 
   # checking function
@@ -253,8 +253,6 @@ predict.DynForest <- function(DynForest_obj,
   }
 
   if (DynForest_obj$type=="surv"){
-
-    browser()
 
     allTimes <- DynForest_obj$times
     predTimes <- c(t0, allTimes[which(allTimes>=t0)])

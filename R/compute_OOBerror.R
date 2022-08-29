@@ -100,10 +100,11 @@ compute_OOBerror <- function(DynForest_obj,
   out <- list(data = rf$data,
               rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,
               Inputs = rf$Inputs, Curve.model = rf$Curve.model, param = rf$param,
+              comput.time = rf$comput.time,
               xerror = xerror, oob.err = oob.err$err, oob.pred = oob.err$oob.pred,
               IBS.range = c(IBS.min, IBS.max))
 
-  class(out) <- c("DynForest_OOB")
+  class(out) <- c("DynForest")
 
   return(out)
 

@@ -1,6 +1,6 @@
 #' Compute the grouped importance of variables (gVIMP) statistic
 #'
-#' @param DynForest_obj \code{DynForest_OOB} object containing the dynamic random forest used on train data
+#' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
 #' @param group A list of groups with the name of the predictors assigned in each group
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
@@ -46,8 +46,8 @@
 #' }
 compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
 
-  if (class(DynForest_obj)!="DynForest_OOB"){
-    stop("'DynForest_obj' should be a 'DynForest_OOB' class!")
+  if (class(DynForest_obj)!="DynForest"){
+    stop("'DynForest_obj' should be a 'DynForest' class!")
   }
 
   if (is.null(DynForest_obj$xerror)){
@@ -173,6 +173,7 @@ compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
 
   out <- list(rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,
               Inputs = rf$Inputs, Curve.model = rf$Curve.model, param = rf$param,
+              comput.time = rf$comput.time,
               xerror = rf$xerror, oob.err = rf$oob.err, oob.pred = rf$oob.err,
               IBS.range = rf$IBS.range, gVIMP = gVIMP)
 

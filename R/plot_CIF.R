@@ -42,7 +42,7 @@ plot_CIF <- function(DynForestPred_obj, id = NULL){
     geom_step(aes(group = id, color = id)) +
     ylim(0,1) +
     geom_vline(xintercept = DynForestPred_obj$t0, linetype = "dashed") +
-    theme_minimal()
+    theme_bw()
 
   print(g)
 

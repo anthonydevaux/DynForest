@@ -119,6 +119,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
           }else{
             if (IBS.min == 0){
               pi_t <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
+              pred.mat[t,] <- pi_t
             }else{
               pi_t <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
               pi_s <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
@@ -152,7 +153,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
       return(list(err=err,oob.pred=oob.pred))
     }
 
-    parallel::stopCluster(cl)
+    #parallel::stopCluster(cl)
 
   }
 

@@ -4,12 +4,12 @@
 \alias{plot_mindepth}
 \title{Compute the average minimal depth statistic}
 \usage{
-plot_mindepth(var_depth_obj, plot_level = c("markers", "summaries"))
+plot_mindepth(var_depth_obj, plot_level = c("predictor", "feature"))
 }
 \arguments{
 \item{var_depth_obj}{Object from \code{var_depth} function}
 
-\item{plot_level}{Compute the statistic at markers (\code{plot_level}="markers") or summaries (\code{plot_level}="summaries") level}
+\item{plot_level}{Compute the statistic at predictor (\code{plot_level}="predictor") or feature (\code{plot_level}="feature") level}
 }
 \description{
 Compute the average minimal depth statistic

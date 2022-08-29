@@ -7,7 +7,7 @@
 compute_VIMP(DynForest_obj, ncores = NULL)
 }
 \arguments{
-\item{DynForest_obj}{\code{DynForest_OOB} object containing the dynamic random forest used on train data}
+\item{DynForest_obj}{\code{DynForest} object containing the dynamic random forest used on train data}
 
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 }

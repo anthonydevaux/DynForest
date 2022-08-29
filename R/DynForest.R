@@ -9,7 +9,7 @@
 #' @param timeVarModel A list for each time-dependent predictors containing a list of formula for fixed and random part from the mixed model
 #' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; .
 #' @param ntree Number of trees to grow. Default value set to 200.
-#' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is `NULL`.
+#' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is defined as the square root of the number of predictors.
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
 #' @param nsplit_option A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".
@@ -105,7 +105,8 @@
 #'
 DynForest <- function(timeData = NULL, fixedData = NULL,
                       idVar = NULL, timeVar = NULL, timeVarModel = NULL,
-                      Y = NULL, ntree = 200, mtry = 1, nodesize = 1, minsplit = 2, cause = 1,
+                      Y = NULL, ntree = 200, mtry = NULL,
+                      nodesize = 1, minsplit = 2, cause = 1,
                       OOB_error = TRUE, imp = FALSE, imp.group = NULL,
                       nsplit_option = "quantile",
                       IBS.min = 0, IBS.max = NULL, ncores = NULL,
@@ -113,6 +114,11 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                       ...){
 
   debut <- Sys.time()
+
+  if (is.null(mtry)){
+    mtry <- round(sqrt(ifelse(!is.null(timeData), ncol(timeData)-2, 0) +
+      ifelse(!is.null(fixedData), ncol(fixedData)-1, 0)))
+  }
 
   # checking function
   checking(timeData = timeData, fixedData = fixedData,
@@ -186,11 +192,6 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
 
   # number of predictors
   nvar <- sum(sapply(Inputs, FUN = function(x) ncol(get(x)$X)))
-
-  # default mtry
-  if (is.null(mtry)==TRUE || mtry> nvar){
-    mtry <- floor(nvar/3)*(floor(nvar/3)>=1) + 1*(floor(nvar/3)<1)
-  }
 
   # ncores
   if (is.null(ncores)==TRUE){

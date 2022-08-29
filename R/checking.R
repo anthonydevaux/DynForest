@@ -8,7 +8,7 @@
 #' @param timeVarModel A list for each time-dependent predictors containing a list of formula for fixed and random part from the mixed model
 #' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.
 #' @param ntree Number of trees to grow. Default value set to 200.
-#' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is `NULL`.
+#' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is defined as the square root of the number of predictors.
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
 #'
