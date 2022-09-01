@@ -107,9 +107,8 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                       idVar = NULL, timeVar = NULL, timeVarModel = NULL,
                       Y = NULL, ntree = 200, mtry = NULL,
                       nodesize = 1, minsplit = 2, cause = 1,
-                      OOB_error = TRUE, imp = FALSE, imp.group = NULL,
                       nsplit_option = "quantile",
-                      IBS.min = 0, IBS.max = NULL, ncores = NULL,
+                      ncores = NULL,
                       seed = round(runif(1,0,10000)),
                       ...){
 
@@ -180,15 +179,11 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
     Y$Y <- subset(Y$Y, select = -get(idVar), drop = TRUE)
   }
 
-  # gVIMP groups checking
-  if (!is.null(imp.group)){
-    if (!all(unlist(imp.group)%in%c(colnames(Curve$X),colnames(Factor$X),colnames(Scalar$X)))){
-      stop("Unknown predictor(s) from 'imp.group' argument!")
-    }
+  if (Y$type=="factor"){
+    Ylevels <- unique(Y$Y)
+  }else{
+    Ylevels <- NULL
   }
-
-  Importance <- gVIMP <- NULL
-  oob.err <- xerror <- NULL
 
   # number of predictors
   nvar <- sum(sapply(Inputs, FUN = function(x) ncol(get(x)$X)))
@@ -201,10 +196,13 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
   ######### DynTree #########
   print("Growing Dynamic trees...")
 
-  rf <-  rf_shape_para(Curve=Curve,Scalar=Scalar, Factor=Factor, Y=Y, mtry=mtry, ntree=ntree, ncores=ncores,
-                       nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause, seed = seed)
+  rf <-  rf_shape_para(Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
+                       mtry = mtry, ntree = ntree, ncores = ncores,
+                       nsplit_option = nsplit_option,
+                       nodesize = nodesize, minsplit = minsplit,
+                       cause = cause, seed = seed)
 
-  rf <- list(type=Y$type, rf=rf, levels=levels(Y$Y))
+  rf <- list(type=Y$type, rf=rf)
 
   ###########################
 
@@ -220,11 +218,11 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
     class(drf) <- c("DynForest")
     return(drf)
   }
-  var.ini <- impurity(Y)
-  varex <- 1 - mean(oob.err$err)/var.ini
+  #var.ini <- impurity(Y)
+  #varex <- 1 - mean(oob.err$err)/var.ini
   drf <- list(data = list(Curve = Curve, Factor = Factor, Scalar = Scalar, Y = Y),
-              rf = rf$rf, type = rf$type, levels = rf$levels,
-              varex = varex, Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
+              rf = rf$rf, type = rf$type, levels = Ylevels,
+              Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
               Curve.model = Curve$model, param = list(mtry = mtry, nodesize = nodesize,
                                                       minsplit = NULL, ntree = ntree),
               comput.time = Sys.time() - debut)

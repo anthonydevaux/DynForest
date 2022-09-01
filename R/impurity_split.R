@@ -17,10 +17,7 @@ impurity_split <- function(Y,split,cause=1){
     prop <- length(fils)/length(unique(Y$id))
 
     if (Y$type=="scalar" || Y$type=="factor") {
-      w <- NULL
-      for (j in 1:length(fils)){
-        w <- c(w, which(Y$id==fils[j]))
-      }
+      w <- which(Y$id%in%fils)
       imp[[i]] <- impurity(list(type=Y$type,Y=Y$Y[w],id=Y$id[w]))
       impur <- impur + imp[[i]]*prop
     }

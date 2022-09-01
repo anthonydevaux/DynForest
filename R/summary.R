@@ -21,7 +21,7 @@ summary.DynForest <- function(object, ...){
       split.rule <- "Fine & Gray statistic test"
     }else{
       type <- "survival"
-      split.rule <- "Log-rank statistic test"
+      split.rule <- "Maximize log-rank statistic test"
     }
     oob.type <- "Integrated Brier Score"
     leaf.stat <- "Cumulative incidence function"
@@ -29,14 +29,16 @@ summary.DynForest <- function(object, ...){
 
   if (object$type=="factor"){
     type <- "classification"
-    oob.type <- "XXXXXX"
-    split.rule <- "XXXXXX"
+    oob.type <- "Missclassification"
+    split.rule <- "Minimize variance"
+    leaf.stat <- "Majority vote"
   }
 
   if (object$type=="scalar"){
     type <- "regression"
-    oob.type <- "XXXXXX"
-    split.rule <- "XXXXX"
+    oob.type <- "Mean square error"
+    split.rule <- "Minimize Gini index"
+    leaf.stat <- "Mean"
   }
 
   ##############################

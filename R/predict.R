@@ -213,15 +213,30 @@ predict.DynForest <- function(DynForest_obj,
     parallel::clusterExport(cl,list("pck","dir"),envir=environment())
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
-    pred.feuille <- foreach(t=1:ncol(DynForest_obj$rf),
-                            .combine='rbind', .multicombine = TRUE
-                            #, .packages = c()
-    ) %dopar%
-      {
+    if (DynForest_obj$type=="surv"){
 
-        return(pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor))
+      pred.feuille <- foreach(t=1:ncol(DynForest_obj$rf),
+                              .combine='rbind', .multicombine = TRUE
+                              #, .packages = c()
+      ) %dopar%
+        {
 
-      }
+          return(pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor))
+
+        }
+    }else{
+
+      pred.feuille <- foreach(t=1:ncol(DynForest_obj$rf),
+                              .combine='rbind', .multicombine = TRUE
+                              #, .packages = c()
+      ) %dopar%
+        {
+
+          leaf <- pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor)
+          return(sapply(leaf, FUN = function(x) DynForest_obj$rf[,t]$Y_pred[[x]]))
+
+        }
+    }
 
     parallel::stopCluster(cl)
 
@@ -242,10 +257,10 @@ predict.DynForest <- function(DynForest_obj,
 
   if (DynForest_obj$type=="factor"){
     pred.all <- apply(pred.feuille, 2, "table")
-    val <- factor(rep(NA, length(pred.all)), levels=DynForest_obj$levels)
+    val <- rep(NA, length(pred.all))
     proba <- rep(NA, length(pred.all))
     for (k in 1:length(pred.all)){
-      val[k] <- factor(attributes(which.max(pred.all[[k]])))
+      val[k] <- names(which.max(pred.all[[k]]))
       proba[k] <- max(pred.all[[k]])/sum(pred.all[[k]])
     }
     pred_outcome <- data.frame(pred=val, prob=proba)

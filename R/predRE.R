@@ -4,11 +4,10 @@
 #' @param formula list of formula for fixed and random part
 #' @param data data to compute random effect
 #'
+#' @import lcmm
 #' @importFrom splines ns
 #'
-#' @return
-#'
-#' @import lcmm
+#' @return A table of random-effects in column by subjects in row
 #'
 #' @keywords internal
 predRE <- function(model, formula, data){

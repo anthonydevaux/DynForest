@@ -16,12 +16,7 @@ DynForest(
   nodesize = 1,
   minsplit = 2,
   cause = 1,
-  OOB_error = TRUE,
-  imp = FALSE,
-  imp.group = NULL,
   nsplit_option = "quantile",
-  IBS.min = 0,
-  IBS.max = NULL,
   ncores = NULL,
   seed = round(runif(1, 0, 10000)),
   ...

@@ -332,9 +332,8 @@ DynTree <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
         }
 
         if (Y$type=="factor"){
-          print(table(Y$Y[w]))
-          Table <- which.max(table(Y$Y[w]))
-          Y_pred[[q]] <-  as.factor(attributes(Table)$names)
+          # cannot handle ties with which.max
+          Y_pred[[q]] <- sample(names(which(table(Y$Y[w])==max(table(Y$Y[w])))), 1)
         }
 
       }
@@ -358,8 +357,8 @@ DynTree <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
     }
 
     if (Y$type=="factor"){
-      Table <- which.max(table(Y$Y[w]))
-      Y_pred[[q]] <-  as.factor(attributes(Table)$names)
+      # cannot handle ties with which.max
+      Y_pred[[q]] <- sample(names(which(table(Y$Y[w])==max(table(Y$Y[w])))), 1)
     }
 
   }

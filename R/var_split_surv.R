@@ -118,7 +118,7 @@ var_split_surv <- function(X ,Y, nsplit_option = "quantile",
 
       #RE <- predRE(model_param[[i]], X$model[[i]], data_model)$bi
       RE <- model_output$predRE[order(match(model_output$predRE$id, Y$id)), -1]
-      rownames(RE) <- Y$id
+      rownames(RE) <- unique(Y$id)
 
       ###########################
 
@@ -160,7 +160,7 @@ var_split_surv <- function(X ,Y, nsplit_option = "quantile",
 
           # remove partition according to nodesize criteria
           group_length <- lapply(split_threholds, FUN = function(x){
-            table(data_summaries[,i_sum]<x)
+            table(data_summaries[,i_sum]<=x)
           })
 
           split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))
@@ -240,7 +240,7 @@ var_split_surv <- function(X ,Y, nsplit_option = "quantile",
 
         # remove partition according to nodesize criteria
         group_length <- lapply(split_threholds, FUN = function(x){
-          table(X$X[,i]<x)
+          table(X$X[,i]<=x)
         })
 
         split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))

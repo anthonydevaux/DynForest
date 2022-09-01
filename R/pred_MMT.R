@@ -7,7 +7,7 @@
 #'
 #' @import stringr
 #'
-#' @return
+#' @return Return leaf number for the given subjects
 #' @export
 #'
 pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL){
@@ -16,9 +16,7 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL){
 
   id.pred <- unique(get(Inputs[1])$id)
 
-  if (tree$Y$type=="factor"){
-    pred <- factor(rep(NA, length(id.pred)),levels=tree$Ylevels)
-  }else{pred <- rep(NA,length(id.pred))}
+  pred <- rep(NA,length(id.pred))
 
   for (i in 1:length(id.pred)){
 
@@ -98,17 +96,8 @@ pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL){
 
     }
 
-    if(tree$Y$type=="curve" || tree$Y$type=="surv"){
-      pred[i] <- noeud_courant
-    }
+    pred[i] <- noeud_courant
 
-    else{
-      if(!is.na(noeud_courant)){
-        pred[i] <- tree$Y_pred[[noeud_courant]]
-      }else{
-        pred[i] <- NA
-      }
-    }
   }
   return(pred)
 }

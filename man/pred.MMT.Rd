@@ -15,6 +15,9 @@ pred.MMT(tree, Curve = NULL, Scalar = NULL, Factor = NULL)
 
 \item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 }
+\value{
+Return leaf number for the given subjects
+}
 \description{
 Predict the leaf by dropping down the subject in the tree
 }

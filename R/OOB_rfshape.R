@@ -153,8 +153,9 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
       return(list(err=err,oob.pred=oob.pred))
     }
 
-    #parallel::stopCluster(cl)
+    parallel::stopCluster(cl)
 
+    return(list(err = as.vector(res.oob$err), oob.pred = res.oob$oob.pred))
   }
 
   if (Y$type=="scalar"){
@@ -177,7 +178,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
     #for (i in 1:length(Y$id)){
       indiv <- Y$id[i]
       w_y <- which(Y$id==indiv)
-      pred_courant <- NULL
+      pred_courant <- rep(NA, ncol(rf$rf))
       for (t in 1:ncol(rf$rf)){
         BOOT <- rf$rf[,t]$boot
         oob <- setdiff(unique(Y$id),BOOT)
@@ -199,21 +200,22 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
             Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
           }
 
-          pred <- pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant)
-          pred_courant <- c(pred_courant, pred)
+          pred.node <- tryCatch(pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant),
+                                error = function(e) return(NA))
+          pred_courant[t] <- rf$rf[,t]$Y_pred[[pred.node]]
         }
       }
-      oob.pred <- mean(pred_courant)
+      oob.pred <- mean(pred_courant, na.rm = T)
       err <- (oob.pred-Y$Y[w_y])^2
       return(list(err = err, oob.pred = oob.pred))
       }
 
     parallel::stopCluster(cl)
 
+    return(list(err = as.vector(res.oob$err), oob.pred = res.oob$oob.pred[,1]))
   }
 
   if (Y$type=="factor"){
-    oob.pred <- factor(rep(NA, length(unique(Y$id))), levels=rf$levels)
 
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
@@ -229,10 +231,12 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
                        #,.packages = c("pec", "prodlim")
     ) %dopar%
       {
+    # browser()
+    # res.oob <- list()
     # for (i in 1:length(Y$id)){
       indiv <- Y$id[i]
       w_y <- which(Y$id==indiv)
-      pred_courant <- factor(rep(NA, ncol(rf$rf)), levels=rf$levels)
+      pred_courant <- rep(NA, ncol(rf$rf))
       for (t in 1:ncol(rf$rf)){
         BOOT <- rf$rf[,t]$boot
         oob <- setdiff(unique(Y$id),BOOT)
@@ -254,20 +258,21 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
             Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
           }
 
-          pred_courant[t] <- pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant)
+          pred.node <- tryCatch(pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant),
+                                error = function(e) return(NA))
+          pred_courant[t] <- rf$rf[,t]$Y_pred[[pred.node]]
 
         }
       }
       pred_courant <- na.omit(pred_courant)
-      oob.pred <- as.factor(attributes(which.max(table(pred_courant))))
-      return(list(oob.pred = oob.pred))
+      oob.pred <- names(which.max(table(pred_courant)))
+      err <- 1*(oob.pred!=Y$Y[w_y])
+      return(list(err = err, oob.pred = oob.pred))
+      #res.oob[[i]] <- c(err, oob.pred)
       }
     parallel::stopCluster(cl)
 
-    err <- 1*(res.oob$oob.pred!=Y$Y)
-
-    return(list(err = as.vector(err), oob.pred = res.oob$oob.pred))
+    return(list(err = as.vector(res.oob$err), oob.pred = res.oob$oob.pred[,1]))
   }
 
-  return(list(err = as.vector(res.oob$err), oob.pred = res.oob$oob.pred))
 }

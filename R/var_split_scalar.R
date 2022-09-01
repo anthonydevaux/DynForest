@@ -41,7 +41,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
           }
 
           # Il faut maintenant regarder la qualité du découpage ::
-          impurete <- impurity_split(Y,split_courant[[k]], cause = cause)
+          impurete <- impurity_split(Y, split_courant[[k]])
           impur_courant[k] <- impurete$impur
           toutes_imp_courant[[k]] <- impurete$imp_list
         }
@@ -72,6 +72,10 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
       # compute summaries from mixed model
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,, drop = FALSE])
       data_model <- data_model[,c("id", model_var)]
+
+      if (is.null(init[[colnames(X$X)[i]]][[1]])){
+        init[[colnames(X$X)[i]]][[1]] <- NA
+      }
 
       # Mixed model with initial values for parameters ?
       if (!is.na(init[[colnames(X$X)[i]]][[1]])){
@@ -111,7 +115,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
 
       #RE <- predRE(model_param[[i]], X$model[[i]], data_model)$bi
       RE <- model_output$predRE[order(match(model_output$predRE$id, Y$id)), -1]
-      rownames(RE) <- Y$id
+      rownames(RE) <- unique(Y$id)
 
       ###########################
 
@@ -126,7 +130,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
       var_mtry2 <- seq(ncol(data_summaries))
 
       impurete_sum <- rep(NA, length(var_mtry2))
-      split_sum <- list()
+      split_sum <- impurete_imp_list_sum <- vector("list", length = length(var_mtry2))
       split_threholds_sum <- rep(NA, length(var_mtry2))
 
       for (i_sum in var_mtry2){ # boucle sur les resumes tires
@@ -138,6 +142,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
           if (nsplit==1) {
             impurete_sum[i_sum] <- NA
             split_sum[[i_sum]] <- NA
+            impurete_imp_list_sum[[i_sum]] <- NA
             split_threholds_sum[i_sum] <- NA
             next()
           }
@@ -153,7 +158,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
 
           # remove partition according to nodesize criteria
           group_length <- lapply(split_threholds, FUN = function(x){
-            table(data_summaries[,i_sum]<x)
+            table(data_summaries[,i_sum]<=x)
           })
 
           split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))
@@ -162,12 +167,13 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
           if (length(split_threholds)==0){ # could happened with tie values
             impurete_sum[i_sum] <- NA
             split_sum[[i_sum]] <- NA
+            impurete_imp_list_sum[[i_sum]] <- NA
             split_threholds_sum[i_sum] <- NA
             next()
           }
 
           impurete_nsplit <- rep(NA, length(split_threholds))
-          split_nsplit <- list()
+          split_nsplit <- impurete_imp_list_nsplit <- vector("list", length = length(split_threholds))
 
           for (j in 1:length(split_threholds)){ # boucle sur les nsplit
 
@@ -178,18 +184,21 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
               next()
             }
 
-            impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
+            impurete <- impurity_split(Y, split_nsplit[[j]])
             impurete_nsplit[j] <- impurete$impur
+            impurete_imp_list_nsplit[[j]] <- impurete$imp_list
 
           }
 
           if (!is.null(impurete) & !all(impurete_nsplit==Inf)){
             impurete_sum[i_sum] <- impurete_nsplit[which.min(impurete_nsplit)]
             split_sum[[i_sum]] <- split_nsplit[[which.min(impurete_nsplit)]]
+            impurete_imp_list_sum[[i_sum]] <- impurete_imp_list_nsplit[[which.min(impurete_nsplit)]]
             split_threholds_sum[i_sum] <- split_threholds[which.min(impurete_nsplit)]
           }else{
             impurete_sum[i_sum] <- NA
             split_sum[[i_sum]] <- NA
+            impurete_imp_list_sum[[i_sum]] <- NA
             split_threholds_sum[i_sum] <- NA
           }
 
@@ -198,6 +207,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
           # if random effects cant be computed
           impurete_sum[i_sum] <- NA
           split_sum[[i_sum]] <- NA
+          impurete_imp_list_sum[[i_sum]] <- NA
           split_threholds_sum[i_sum] <- NA
 
         }
@@ -209,7 +219,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
         split[[i]] <- split_sum[[which.min(impurete_sum)]]
         impur[i] <- impurete_sum[which.min(impurete_sum)]
         threshold[i] <- split_threholds_sum[which.min(impurete_sum)]
-        toutes_imp[[i]] <- impurete$imp_list # NULL pour surv
+        toutes_imp[[i]] <- impurete_imp_list_sum[[which.min(impurete_sum)]]
       }else{
         impur[i] <- Inf
         split[[i]] <- Inf
@@ -233,7 +243,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
 
         # remove partition according to nodesize criteria
         group_length <- lapply(split_threholds, FUN = function(x){
-          table(X$X[,i]<x)
+          table(X$X[,i]<=x)
         })
 
         split_nodesize_ok <- unlist(lapply(group_length, FUN = function(x) !any(x<nodesize)))
@@ -242,7 +252,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
         if (length(split_threholds)>0){ # could happened with tie values
 
           impurete_nsplit <- rep(NA, length(split_threholds))
-          split_nsplit <- list()
+          split_nsplit <- impurete_imp_list_nsplit <- vector("list", length = length(split_threholds))
 
           for (j in 1:length(split_threholds)){ # boucle sur les nsplit
 
@@ -253,8 +263,9 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
               next()
             }
 
-            impurete <- impurity_split(Y,split_nsplit[[j]], cause = cause)
+            impurete <- impurity_split(Y, split_nsplit[[j]])
             impurete_nsplit[j] <- impurete$impur
+            impurete_imp_list_nsplit[[j]] <- impurete$imp_list
 
           }
         }else{
@@ -265,7 +276,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
           split[[i]] <- split_nsplit[[which.min(impurete_nsplit)]]
           impur[i] <- impurete_nsplit[which.min(impurete_nsplit)]
           threshold[i] <- split_threholds[which.min(impurete_nsplit)]
-          toutes_imp[[i]] <- impurete$imp_list # NULL pour surv
+          toutes_imp[[i]] <- impurete_imp_list_nsplit[[which.min(impurete_nsplit)]]
         }else{
           impur[i] <- Inf
           split[[i]] <- Inf
@@ -276,7 +287,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
       if (length(unique(X$X[,i]))==2){
         split[[i]] <- rep(2,length(X$X[,i]))
         split[[i]][which(X$X[,i]==unique(X$X[,i])[1])] <- 1
-        impurete <- impurity_split(Y,split[[i]], cause = cause)
+        impurete <- impurity_split(Y, split[[i]])
         impur[i] <- impurete$impur
         threshold[i] <- mean(unique(X$X[,i]))
         toutes_imp[[i]] <- impurete$imp_list

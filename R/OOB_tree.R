@@ -143,8 +143,10 @@ OOB.tree <- function(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
     if (is.element("Scalar",Inputs)==TRUE) Scalar_courant  <- list(type="Scalar", X=Scalar$X[w_XScalar,, drop=FALSE], id=Scalar$id[w_XScalar])
     if (is.element("Factor",Inputs)==TRUE) Factor_courant  <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
 
-    pred <- pred.MMT(tree, Curve = Curve_courant, Scalar = Scalar_courant,
+    pred_courant <- pred.MMT(tree, Curve = Curve_courant, Scalar = Scalar_courant,
                      Factor = Factor_courant)
+
+    pred <- sapply(pred_courant, FUN = function(x) tree$Y_pred[[x]])
 
     if (Y$type=="scalar"){xerror <- (Y$Y[w_y]-pred)^2}
     if (Y$type=="factor"){xerror <- 1*(pred!=Y$Y[w_y])}
