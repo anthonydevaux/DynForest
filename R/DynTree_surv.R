@@ -71,8 +71,6 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
   feuilles_courantes <- unique(id_feuille)
   feuilles_terminales <- NULL
 
-  browser()
-
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
     #cat(p, "\n")
     #browser(expr = {p == 6})

@@ -202,7 +202,8 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
 
           pred.node <- tryCatch(pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant),
                                 error = function(e) return(NA))
-          pred_courant[t] <- rf$rf[,t]$Y_pred[[pred.node]]
+          pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred.node]]),
+                                    rf$rf[,t]$Y_pred[[pred.node]], NA)
         }
       }
       oob.pred <- mean(pred_courant, na.rm = T)
@@ -260,11 +261,12 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
 
           pred.node <- tryCatch(pred.MMT(rf$rf[,t],Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant),
                                 error = function(e) return(NA))
-          pred_courant[t] <- rf$rf[,t]$Y_pred[[pred.node]]
+          pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred.node]]),
+                                    rf$rf[,t]$Y_pred[[pred.node]], NA)
 
         }
       }
-      pred_courant <- na.omit(pred_courant)
+
       oob.pred <- names(which.max(table(pred_courant)))
       err <- 1*(oob.pred!=Y$Y[w_y])
       return(list(err = err, oob.pred = oob.pred))

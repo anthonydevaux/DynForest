@@ -80,7 +80,6 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
   Importance.Scalar <- NULL
   Importance.Factor <- NULL
 
-  #X.perm <- list(type=X$type, X=X$X, id=X$id, time=X$time)
   if (is.element("Curve",Inputs)==TRUE){
 
     cat("Curves...")
@@ -107,7 +106,7 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
         id_boot_Curve <- which(Curve$id%in%BOOT)
 
         # Il faut maintenant faire la permutation :
-        set.seed(123)
+
         Curve.perm$X[-id_boot_Curve,p] <- sample(x = na.omit(Curve.perm$X[-id_boot_Curve,p]),
                                                  size = length(Curve.perm$X[-id_boot_Curve,p]),
                                                  replace = TRUE) # avoid NA issue with permut
@@ -178,8 +177,10 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
     Importance.Factor <- foreach::foreach(p=1:ncol(Factor$X),
                                           #.packages = "kmlShape" ,
                                           .combine = "c") %dopar% {
+    #for (p in 1:ncol(Factor$X)){
 
       for (k in 1:ntree){
+
         BOOT <- rf$rf[,k]$boot
         nboot <- length(unique(Y$id))- length(BOOT)
         id_boot_Factor <- which(Factor$id%in%BOOT)

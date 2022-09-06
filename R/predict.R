@@ -257,11 +257,11 @@ predict.DynForest <- function(DynForest_obj,
 
   if (DynForest_obj$type=="factor"){
     pred.all <- apply(pred.feuille, 2, "table")
-    val <- rep(NA, length(pred.all))
-    proba <- rep(NA, length(pred.all))
-    for (k in 1:length(pred.all)){
-      val[k] <- names(which.max(pred.all[[k]]))
-      proba[k] <- max(pred.all[[k]])/sum(pred.all[[k]])
+    val <- proba <- rep(NA, ncol(pred.all))
+
+    for (k in 1:ncol(pred.all)){
+      val[k] <- names(which.max(pred.all[,k]))
+      proba[k] <- max(pred.all[,k])/sum(pred.all[,k])
     }
     pred_outcome <- data.frame(pred=val, prob=proba)
     return(pred_outcome)

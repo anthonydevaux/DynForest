@@ -146,7 +146,9 @@ OOB.tree <- function(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
     pred_courant <- pred.MMT(tree, Curve = Curve_courant, Scalar = Scalar_courant,
                      Factor = Factor_courant)
 
-    pred <- sapply(pred_courant, FUN = function(x) tree$Y_pred[[x]])
+    pred <- unlist(sapply(pred_courant, FUN = function(x) {
+      ifelse(!is.null(tree$Y_pred[[x]]), tree$Y_pred[[x]], NA)
+    }))
 
     if (Y$type=="scalar"){xerror <- (Y$Y[w_y]-pred)^2}
     if (Y$type=="factor"){xerror <- 1*(pred!=Y$Y[w_y])}
