@@ -12,7 +12,7 @@ compute_VIMP(DynForest_obj, ncores = NULL)
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 }
 \value{
-compute_OOBerror() function return a list with the following elements:\tabular{ll}{
+\code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
 \code{data} \tab A list containing the data used to grow the trees \cr
 \tab \cr
 \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr

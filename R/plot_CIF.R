@@ -24,11 +24,11 @@ plot_CIF <- function(DynForestPred_obj, id = NULL){
     stop("'id' cannot be NULL!")
   }
 
-  if (!all(id%in%rownames(DynForestPred_obj$pred_outcome))){
+  if (!all(id%in%rownames(DynForestPred_obj$pred_indiv))){
     stop("Predictions are not available for some subjects. Please verify the subjects identifiers!")
   }
 
-  data.CIF <- DynForestPred_obj$pred_outcome
+  data.CIF <- DynForestPred_obj$pred_indiv
   data.CIF <- data.CIF[which(rownames(data.CIF)%in%id),, drop = FALSE]
 
   times <- DynForestPred_obj$times

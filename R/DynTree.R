@@ -14,7 +14,7 @@
 #' @import prodlim
 #' @importFrom splines ns
 #'
-#' @keywords internal
+#' @export
 DynTree <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
                     nsplit_option = "quantile", nodesize = 1,
                     seed = 1234){
@@ -328,12 +328,12 @@ DynTree <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
         w <- which(id_feuille == q)
 
         if (Y$type=="scalar"){
-          Y_pred[[q]]<- mean(Y$Y[w])
+          Y_pred[[q]]<- mean(Y_boot$Y[w])
         }
 
         if (Y$type=="factor"){
           # cannot handle ties with which.max
-          Y_pred[[q]] <- sample(names(which(table(Y$Y[w])==max(table(Y$Y[w])))), 1)
+          Y_pred[[q]] <- sample(names(which(table(Y_boot$Y[w])==max(table(Y_boot$Y[w])))), 1)
         }
 
       }
@@ -353,12 +353,12 @@ DynTree <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
     w <- which(id_feuille == q)
 
     if (Y$type=="scalar"){
-      Y_pred[[q]]<- mean(Y$Y[w])
+      Y_pred[[q]]<- mean(Y_boot$Y[w])
     }
 
     if (Y$type=="factor"){
       # cannot handle ties with which.max
-      Y_pred[[q]] <- sample(names(which(table(Y$Y[w])==max(table(Y$Y[w])))), 1)
+      Y_pred[[q]] <- sample(names(which(table(Y_boot$Y[w])==max(table(Y_boot$Y[w])))), 1)
     }
 
   }

@@ -16,40 +16,6 @@
 #'
 #' @examples
 #' \dontrun{
-#' data(pbc2)
-#'
-#' # Define time-independent continuous covariate
-#' cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
-#'                   id = pbc2_surv$id)
-#'
-#' # Define time-independent non continuous covariates
-#' fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
-#'                    id = pbc2_surv$id)
-#'
-#' # Define time-dependent continuous markers
-#' cont_traj <- list(X = pbc2_long[,c("serBilir","serChol","albumin","alkaline")],
-#'                   id = pbc2_long$id,
-#'                   time = pbc2_long$time,
-#'                   model = list(serBilir = list(fixed = serBilir ~ time,
-#'                                                random = ~ time),
-#'                                serChol = list(fixed = serChol ~ time + I(time^2),
-#'                                               random = ~ time + I(time^2)),
-#'                                albumin = list(fixed = albumin ~ time,
-#'                                               random = ~ time),
-#'                                alkaline = list(fixed = alkaline ~ time,
-#'                                                random = ~ time))
-#' )
-#'
-#' # Define outcome (survival here)
-#' Y <- list(type = "surv",
-#'           Y = Surv(pbc2_surv$years, factor(pbc2_surv$event)),
-#'           id = pbc2_surv$id)
-#'
-#' # Run DynForest function
-#' res_dyn <- DynForest(Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
-#'                      Y = Y, ntree = 200, imp = TRUE,
-#'                      mtry = 4, nodesize = 2, minsplit = 3,
-#'                      cause = 2)
 #'
 #' # Run var_depth function
 #' res_varDepth <- var_depth(res_dyn)

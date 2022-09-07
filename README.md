@@ -16,7 +16,7 @@ outcome in the paper:
 
 > Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022).
 > Random survival forests for competing risks with multivariate
-> longitudinal endogenous covariates. *arxiv*. [\<doi:
+> longitudinal endogenous covariates. *arXiv*. [\<doi:
 > 10.48550/arXiv.2208.05801\>](https://doi.org/10.48550/arXiv.2208.05801)
 
 ## Installation

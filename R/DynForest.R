@@ -7,7 +7,7 @@
 #' @param idVar A character indicating the name of variable to identify the subjects
 #' @param timeVar A character indicating the name of time variable
 #' @param timeVarModel A list for each time-dependent predictors containing a list of formula for fixed and random part from the mixed model
-#' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; .
+#' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{scalar}" or "\code{factor}"; .
 #' @param ntree Number of trees to grow. Default value set to 200.
 #' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is defined as the square root of the number of predictors.
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
@@ -55,54 +55,53 @@
 #'
 #' @author Anthony Devaux (\email{anthony.devaux@@u-bordeaux.fr})
 #'
-#' @references Devaux et al., Random survival forests for competing risks with multivariate longitudinal endogenous covariates (2022), arXiv
+#' @references Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022). Random survival forests for competing risks with multivariate longitudinal endogenous covariates. arXiv <doi: 10.48550/arXiv.2208.05801>
 #'
-#' @seealso \code{\link{predict.DynForest} \link{plot_VIMP} \link{plot_gVIMP} \link{plot_mindepth}}
+#' @seealso \code{\link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot_VIMP} \link{plot_gVIMP} \link{plot_mindepth}}
 #'
 #' @examples
 #' \dontrun{
 #' data(pbc2)
 #'
-#' # Build survival data
-#' pbc2_surv <- unique(pbc2[,c("id","age","drug","sex","years","event")])
+#' # Split the data for training and prediction steps
+#' set.seed(1234)
+#' id <- unique(pbc2$id)
+#' id_sample <- sample(id, length(id)*2/3)
+#' id_row <- which(pbc2$id%in%id_sample)
 #'
-#' # Define time-independent continuous covariate
-#' cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
-#'                    id = pbc2_surv$id)
+#' pbc2_train <- pbc2[id_row,]
+#' pbc2_pred <- pbc2[-id_row,]
 #'
-#' # Define time-independent non continuous covariates
-#' fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
-#'                    id = pbc2_surv$id)
+#  Build longitudinal data
+#' timeData_train <- pbc2_train[,c("id","time",
+#'                                 "serBilir","SGOT",
+#'                                 "albumin","alkaline")]
 #'
-#' # Define time-dependent continuous markers
-#' cont_traj <- list(X = pbc2[,c("serBilir","SGOT","albumin","alkaline")],
-#'                   id = pbc2$id,
-#'                   time = pbc2$time,
-#'                   model = list(serBilir = list(fixed = serBilir ~ time,
-#'                                                random = ~ time),
-#'                                SGOT = list(fixed = SGOT ~ time + I(time^2),
-#'                                            random = ~ time + I(time^2)),
-#'                                albumin = list(fixed = albumin ~ time,
-#'                                               random = ~ time),
-#'                                alkaline = list(fixed = alkaline ~ time,
-#'                                                random = ~ time))
-#' )
+#' # Create object with longitudinal association for each predictor
+#' timeVarModel <- list(serBilir = list(fixed = serBilir ~ time,
+#'                                      random = ~ time),
+#'                      SGOT = list(fixed = SGOT ~ time + I(time^2),
+#'                                  random = ~ time + I(time^2)),
+#'                      albumin = list(fixed = albumin ~ time,
+#'                                     random = ~ time),
+#'                      alkaline = list(fixed = alkaline ~ time,
+#'                                      random = ~ time))
 #'
-#' # Define outcome (survival here)
+#' # Build fixed data
+#' fixedData_train <- unique(pbc2_train[,c("id","age","drug","sex")])
+#'
+#' # Build outcome data
 #' Y <- list(type = "surv",
-#'           Y = Surv(pbc2_surv$years, factor(pbc2_surv$event)),
-#'           id = pbc2_surv$id)
+#'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
 #' # Run DynForest function
-#' res_dyn <- DynForest(Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
-#'                      Y = Y, ntree = 200, imp = TRUE,
-#'                      imp.group = list(group1 = c("serBilir","SGOT"),
-#'                                       group2 = c("albumin","alkaline")),
-#'                      mtry = 3, nodesize = 2, minsplit = 3,
+#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#'                      timeVar = "time", idVar = "id",
+#'                      timeVarModel = timeVarModel, Y = Y,
+#'                      ntree = 200, nodesize = 2, minsplit = 3,
 #'                      cause = 2, seed = 1234)
 #' }
 #' @export
-#'
 DynForest <- function(timeData = NULL, fixedData = NULL,
                       idVar = NULL, timeVar = NULL, timeVarModel = NULL,
                       Y = NULL, ntree = 200, mtry = NULL,
@@ -116,7 +115,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
 
   if (is.null(mtry)){
     mtry <- round(sqrt(ifelse(!is.null(timeData), ncol(timeData)-2, 0) +
-      ifelse(!is.null(fixedData), ncol(fixedData)-1, 0)))
+                         ifelse(!is.null(fixedData), ncol(fixedData)-1, 0)))
   }
 
   # checking function

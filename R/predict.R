@@ -5,71 +5,30 @@
 #' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param t0 Landmark time
-#' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
-#' @param parallel Allow paralleling. Default value is TRUE.
-#' @param ... optional parameters to be passed to the low level function
 #'
 #' @import stringr
-#' @import parallel
-#' @import doParallel
 #'
 #' @return Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
 #'
 #' @examples
 #' \dontrun{
-#' data(pbc2)
+#' # Predict on subjects still at risk at landmark time at 4 years
+#' id_pred <- unique(pbc2_pred$id[which(pbc2_pred$years>4)])
+#' pbc2_pred <- pbc2_pred[which(pbc2_pred$id%in%id_pred),]
+#' timeData_pred <- pbc2_pred[,c("id", "time", "serBilir", "SGOT", "albumin", "alkaline")]
+#' fixedData_pred <- unique(pbc2_pred[,c("id","age","drug","sex")])
 #'
-#' # Build survival data
-#' pbc2_surv <- unique(pbc2[,c("id","age","drug","sex","years","event")])
-#'
-#' # Define time-independent continuous covariate
-#' cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
-#'                    id = pbc2_surv$id)
-#'
-#' # Define time-independent non continuous covariates
-#' fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
-#'                    id = pbc2_surv$id)
-#'
-#' # Define time-dependent continuous markers
-#' cont_traj <- list(X = pbc2[,c("serBilir","SGOT","albumin","alkaline")],
-#'                   id = pbc2$id,
-#'                   time = pbc2$time,
-#'                   model = list(serBilir = list(fixed = serBilir ~ time,
-#'                                                random = ~ time),
-#'                                SGOT = list(fixed = SGOT ~ time + I(time^2),
-#'                                            random = ~ time + I(time^2)),
-#'                                albumin = list(fixed = albumin ~ time,
-#'                                               random = ~ time),
-#'                                alkaline = list(fixed = alkaline ~ time,
-#'                                                random = ~ time))
-#' )
-#'
-#' # Define outcome (survival here)
-#' Y <- list(type = "surv",
-#'           Y = Surv(pbc2_surv$years, factor(pbc2_surv$event)),
-#'           id = pbc2_surv$id)
-#'
-#' # Run DynForest function
-#' res_dyn <- DynForest(Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
-#'                      Y = Y, ntree = 200, imp = TRUE,
-#'                      imp.group = list(group1 = c("serBilir","SGOT"),
-#'                                       group2 = c("albumin","alkaline")),
-#'                      mtry = 3, nodesize = 2, minsplit = 3,
-#'                      cause = 2, seed = 1234)
-#'
-#' # Predict on new subjects using DynForest estimation (res_dyn object) from DynForest() function
-#' pred_dyn <- predict(object = res_dyn,
-#'                     Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
+#' pred_dyn <- predict(DynForest_obj = res_dyn,
+#'                     timeData = timeData_pred, fixedData = fixedData_pred,
+#'                     idVar = "id", timeVar = "time",
 #'                     t0 = 4)
-#'
 #' }
 #'
 #' @export
 predict.DynForest <- function(DynForest_obj,
                               timeData = NULL, fixedData = NULL,
                               idVar, timeVar,
-                              t0 = NULL,
-                              ncores = NULL, parallel = TRUE, ...){
+                              t0 = NULL){
 
   if (class(DynForest_obj)!="DynForest"){
     stop("'DynForest_obj' should be an object of 'DynForest' class!")
@@ -96,11 +55,6 @@ predict.DynForest <- function(DynForest_obj,
     }
   }
 
-  # ncores
-  if (is.null(ncores)==TRUE){
-    ncores <- parallel::detectCores()-1
-  }
-
   #####################
   # Handle missing data
 
@@ -110,11 +64,11 @@ predict.DynForest <- function(DynForest_obj,
 
     timeData_id_noNA_list <- lapply(colnames(subset(timeData,
                                                     select = -c(get(idVar),get(timeVar)))),
-                                 FUN = function(x){
-      df <- timeData[,c(idVar,x)]
-      colnames(df) <- c("ID","var")
-      aggregate(var ~ ID, data = df, FUN = length)[,1]
-    })
+                                    FUN = function(x){
+                                      df <- timeData[,c(idVar,x)]
+                                      colnames(df) <- c("ID","var")
+                                      aggregate(var ~ ID, data = df, FUN = length)[,1]
+                                    })
 
     timeData_id_noNA <- Reduce(intersect, timeData_id_noNA_list)
 
@@ -194,78 +148,6 @@ predict.DynForest <- function(DynForest_obj,
   #####################
 
   Id.pred <- as.integer(idnoNA)
-  pred.feuille <- matrix(0, ncol(DynForest_obj$rf), length(Id.pred))
-
-  if (DynForest_obj$type=="factor"){
-    pred.feuille <- as.data.frame(matrix(0, ncol(DynForest_obj$rf), length(Id.pred)))
-  }
-
-  # leaf predictions of new subjects
-
-  if (parallel){
-
-    cl <- parallel::makeCluster(ncores)
-    doParallel::registerDoParallel(cl)
-
-    pck <- .packages()
-    dir0 <- find.package()
-    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
-    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
-    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
-
-    if (DynForest_obj$type=="surv"){
-
-      pred.feuille <- foreach(t=1:ncol(DynForest_obj$rf),
-                              .combine='rbind', .multicombine = TRUE
-                              #, .packages = c()
-      ) %dopar%
-        {
-
-          return(pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor))
-
-        }
-    }else{
-
-      pred.feuille <- foreach(t=1:ncol(DynForest_obj$rf),
-                              .combine='rbind', .multicombine = TRUE
-                              #, .packages = c()
-      ) %dopar%
-        {
-
-          leaf <- pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar, Factor = Factor)
-          return(sapply(leaf, FUN = function(x) DynForest_obj$rf[,t]$Y_pred[[x]]))
-
-        }
-    }
-
-    parallel::stopCluster(cl)
-
-  }else{
-
-    for (t in 1:ncol(DynForest_obj$rf)){
-      #cat(t,"\n")
-      pred.feuille[t,] <- pred.MMT(DynForest_obj$rf[,t], Curve = Curve, Scalar = Scalar,
-                                   Factor = Factor)
-    }
-
-  }
-
-  if (DynForest_obj$type=="scalar"){
-    pred_outcome <- apply(pred.feuille, 2, "mean", na.rm = TRUE)
-    return(pred_outcome)
-  }
-
-  if (DynForest_obj$type=="factor"){
-    pred.all <- apply(pred.feuille, 2, "table")
-    val <- proba <- rep(NA, ncol(pred.all))
-
-    for (k in 1:ncol(pred.all)){
-      val[k] <- names(which.max(pred.all[,k]))
-      proba[k] <- max(pred.all[,k])/sum(pred.all[,k])
-    }
-    pred_outcome <- data.frame(pred=val, prob=proba)
-    return(pred_outcome)
-  }
 
   if (DynForest_obj$type=="surv"){
 
@@ -276,63 +158,137 @@ predict.DynForest <- function(DynForest_obj,
 
     pred <- lapply(DynForest_obj$causes, FUN = function(x){
 
-      pred.cause <- matrix(NA, nrow = length(Id.pred), ncol = length(predTimes))
-      rownames(pred.cause) <- Id.pred
-      return(pred.cause)
+      lapply(Id.pred, FUN = function(x){
+        pred_tree <- matrix(NA, nrow = ncol(DynForest_obj$rf), ncol = length(predTimes))
+      })
+
     })
+
     names(pred) <- as.character(DynForest_obj$causes)
 
-    for (l in 1:ncol(pred.feuille)){ # subject
+  }else{
 
-      pred_courant <- lapply(DynForest_obj$causes, matrix, data = NA, nrow = ncol(DynForest_obj$rf), ncol = length(predTimes))
-      names(pred_courant) <- as.character(DynForest_obj$causes)
+    pred <- matrix(0, ncol(DynForest_obj$rf), length(Id.pred))
 
-      for (k in 1:nrow(pred.feuille)){ # tree
+  }
 
-        if (!is.na(pred.feuille[k,l])){
+  pred_leaf <- matrix(0, ncol(DynForest_obj$rf), length(Id.pred))
 
-          for (cause in as.character(DynForest_obj$causes)){
-            if (!is.null(DynForest_obj$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes])){
-              pred_courant[[cause]][k,] <- DynForest_obj$rf[,k]$Y_pred[[pred.feuille[k,l]]][[cause]]$traj[id.predTimes]
-            }else{
-              #pred_courant[[cause]][k,] <- rep(NA, length(id.predTimes))
-              pred_courant[[cause]][k,] <- rep(0, length(id.predTimes))
-            }
-          }
+  ####################################
+  # Leaf predictions of new subjects
 
-        }else{
-          for (cause in as.character(DynForest_obj$causes)){
-            pred_courant[[cause]][k,] <- NA
-          }
-        }
-      }
+  for (t in 1:ncol(DynForest_obj$rf)){
+
+    pred_leaf[t,] <- pred.MMT(DynForest_obj$rf[,t],
+                              Curve = Curve, Scalar = Scalar, Factor = Factor)
+
+    if (DynForest_obj$type=="surv"){
 
       for (cause in as.character(DynForest_obj$causes)){
-        pred[[cause]][l,] <- apply(pred_courant[[cause]], 2, mean, na.rm = TRUE)
+
+        for (indiv in seq(length(pred_leaf[t,]))){
+
+          i.leaf <- pred_leaf[t,][indiv]
+
+          pred_leaf_indiv <- DynForest_obj$rf[,t]$Y_pred[[i.leaf]][[cause]]$traj[id.predTimes]
+
+          if (!is.null(pred_leaf_indiv)){
+            pred[[cause]][[indiv]][t,] <- pred_leaf_indiv
+          }else{
+            pred[[cause]][[indiv]][t,] <- rep(0, length(id.predTimes))
+          }
+
+        }
+
       }
+
+    }else{
+
+      for (indiv in seq(length(pred_leaf[t,]))){
+
+        i.leaf <- pred_leaf[t,indiv]
+
+        pred_leaf_indiv <- DynForest_obj$rf[,t]$Y_pred[[i.leaf]]
+
+        if (!is.null(pred_leaf_indiv)){
+          pred[t,indiv] <- pred_leaf_indiv
+        }else{
+          pred[t,indiv] <- NA
+        }
+
+      }
+
     }
+
+  }
+
+  pred_out <- list(pred_leaf = pred_leaf,
+                   pred = pred)
+
+  if (DynForest_obj$type=="surv"){
+
+    # Average CIF by subjects for each cause
+    pred_cif_mean <- lapply(pred_out$pred, FUN = function(x){
+      pred_cause_indiv <- t(sapply(x, FUN = function(y){
+        apply(y, 2, mean, na.rm = TRUE)
+      }))
+      rownames(pred_cause_indiv) <- Id.pred
+      return(pred_cause_indiv)
+    })
 
     # S landmark time / t horizon time
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
     #                = ( F(S+t) - F(S) ) / S(S)
-    # A faire CR => S(S) n'est pas egale a 1-F(S) mais a la somme des Fj(S) avec j event
-    pred_outcome <- apply(pred[[as.character(DynForest_obj$cause)]],
+    # With competing risk S(S) = sum of Fj(S) avec j event
+    pred_indiv <- apply(pred_cif_mean[[as.character(DynForest_obj$cause)]],
                         MARGIN = 2,
                         FUN = function(x) {
-                          if (length(pred)>1){
-                            surv <- 1 - Reduce("+", lapply(pred, FUN = function(x) x[,1]))
+                          if (length(pred_cif_mean)>1){
+                            surv <- 1 - Reduce("+", lapply(pred_cif_mean, FUN = function(x) x[,1]))
                           }else{
-                            surv <- 1 - pred[[1]][,1]
+                            surv <- 1 - pred_cif_mean[[1]][,1]
                           }
 
-                          return((x-pred[[as.character(DynForest_obj$cause)]][,1])/surv)
+                          return((x-pred_cif_mean[[as.character(DynForest_obj$cause)]][,1])/surv)
                         })
 
-    output <- list(pred_outcome = pred_outcome,
-                   pred_leaf = pred.feuille,
+    output <- list(pred_indiv = pred_indiv,
+                   pred_leaf = pred_out$pred_leaf,
                    times = predTimes,
                    t0 = t0)
 
+  }
+
+  if (DynForest_obj$type=="factor"){
+    pred_indiv <- apply(pred_out$pred, 2, FUN = function(x) {
+      tab_indiv <- table(x)
+      return(names(which.max(tab_indiv)))
+    })
+
+    pred_indiv_proba <- apply(pred_out$pred, 2, FUN = function(x) {
+      tab_indiv <- table(x)
+      return(max(tab_indiv)/sum(tab_indiv))
+    })
+
+    names(pred_indiv) <- names(pred_indiv_proba) <- Id.pred
+
+    output <- list(pred_indiv = pred_indiv,
+                   pred_indiv_proba = pred_indiv_proba,
+                   pred_indiv_tree = pred_out$pred,
+                   pred_leaf = pred_out$pred_leaf,
+                   t0 = t0)
+
+  }
+
+  if (DynForest_obj$type=="scalar"){
+    pred_indiv <- apply(pred_out$pred, 2, "mean", na.rm = TRUE)
+
+    names(pred_indiv) <- Id.pred
+
+    output <- list(pred_indiv = pred_indiv,
+                   pred_indiv_tree = pred_out$pred,
+                   pred_leaf = pred_out$pred_leaf,
+                   t0 = t0)
   }
 
   class(output) <- c("DynForestPred")

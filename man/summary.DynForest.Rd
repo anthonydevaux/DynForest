@@ -4,12 +4,10 @@
 \alias{summary.DynForest}
 \title{Display the summary of DynForest}
 \usage{
-\method{summary}{DynForest}(object, ...)
+\method{summary}{DynForest}(object)
 }
 \arguments{
 \item{object}{\code{DynForest} or \code{DynForest_OOB} object}
-
-\item{...}{Optional parameters to be passed to the low level function}
 }
 \value{
 Return some information about the random forest

@@ -17,7 +17,6 @@
 #' @param ... Optional parameters to be passed to the low level function
 #'
 #' @import foreach
-#' @import kmlShape
 #' @import doParallel
 #' @import pbapply
 #' @importFrom splines ns

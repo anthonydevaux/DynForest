@@ -58,10 +58,6 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
 
     OOB_IBS <- sort(Y.surv$id[which(Y.surv$time.event>=IBS.min)])
 
-    comb <- function(x, ...) {
-      mapply(rbind,x,...,SIMPLIFY=FALSE)
-    }
-
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 

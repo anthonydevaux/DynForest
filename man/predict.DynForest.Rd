@@ -10,22 +10,13 @@
   fixedData = NULL,
   idVar,
   timeVar,
-  t0 = NULL,
-  ncores = NULL,
-  parallel = TRUE,
-  ...
+  t0 = NULL
 )
 }
 \arguments{
 \item{DynForest_obj}{\code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data}
 
 \item{t0}{Landmark time}
-
-\item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
-
-\item{parallel}{Allow paralleling. Default value is TRUE.}
-
-\item{...}{optional parameters to be passed to the low level function}
 
 \item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
@@ -41,51 +32,16 @@ Prediction using dynamic random forests
 }
 \examples{
 \dontrun{
-data(pbc2)
+# Predict on subjects still at risk at landmark time at 4 years
+id_pred <- unique(pbc2_pred$id[which(pbc2_pred$years>4)])
+pbc2_pred <- pbc2_pred[which(pbc2_pred$id\%in\%id_pred),]
+timeData_pred <- pbc2_pred[,c("id", "time", "serBilir", "SGOT", "albumin", "alkaline")]
+fixedData_pred <- unique(pbc2_pred[,c("id","age","drug","sex")])
 
-# Build survival data
-pbc2_surv <- unique(pbc2[,c("id","age","drug","sex","years","event")])
-
-# Define time-independent continuous covariate
-cont_covar <- list(X = pbc2_surv[,"age", drop = FALSE],
-                   id = pbc2_surv$id)
-
-# Define time-independent non continuous covariates
-fact_covar <- list(X = pbc2_surv[,c("drug","sex")],
-                   id = pbc2_surv$id)
-
-# Define time-dependent continuous markers
-cont_traj <- list(X = pbc2[,c("serBilir","SGOT","albumin","alkaline")],
-                  id = pbc2$id,
-                  time = pbc2$time,
-                  model = list(serBilir = list(fixed = serBilir ~ time,
-                                               random = ~ time),
-                               SGOT = list(fixed = SGOT ~ time + I(time^2),
-                                           random = ~ time + I(time^2)),
-                               albumin = list(fixed = albumin ~ time,
-                                              random = ~ time),
-                               alkaline = list(fixed = alkaline ~ time,
-                                               random = ~ time))
-)
-
-# Define outcome (survival here)
-Y <- list(type = "surv",
-          Y = Surv(pbc2_surv$years, factor(pbc2_surv$event)),
-          id = pbc2_surv$id)
-
-# Run DynForest function
-res_dyn <- DynForest(Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
-                     Y = Y, ntree = 200, imp = TRUE,
-                     imp.group = list(group1 = c("serBilir","SGOT"),
-                                      group2 = c("albumin","alkaline")),
-                     mtry = 3, nodesize = 2, minsplit = 3,
-                     cause = 2, seed = 1234)
-
-# Predict on new subjects using DynForest estimation (res_dyn object) from DynForest() function
-pred_dyn <- predict(object = res_dyn,
-                    Curve = cont_traj, Factor = fact_covar, Scalar = cont_covar,
+pred_dyn <- predict(DynForest_obj = res_dyn,
+                    timeData = timeData_pred, fixedData = fixedData_pred,
+                    idVar = "id", timeVar = "time",
                     t0 = 4)
-
 }
 
 }

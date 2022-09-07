@@ -7,7 +7,6 @@
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
 #' @param init (Optional) Initial values for linear mixed models
 #'
-#' @import kmlShape
 #' @import lcmm
 #' @importFrom splines ns
 #'

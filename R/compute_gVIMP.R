@@ -4,7 +4,7 @@
 #' @param group A list of groups with the name of the predictors assigned in each group
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
-#' @return compute_OOBerror() function return a list with the following elements:\tabular{ll}{
+#' @return \code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
 #'    \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
