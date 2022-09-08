@@ -50,9 +50,9 @@ Compute the grouped importance of variables (gVIMP) statistic
 \examples{
 \dontrun{
 # Compute gVIMP statistic
-res_dyn_VIMP <- compute_gVIMP(DynForest_obj = res_dyn_OOB,
-                              group = list(group1 = c("serBilir","SGOT"),
-                                           group2 = c("albumin","alkaline")))
+res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn_OOB,
+                               group = list(group1 = c("serBilir","SGOT"),
+                                            group2 = c("albumin","alkaline")))
 }
 }
 \author{

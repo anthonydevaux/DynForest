@@ -1,12 +1,15 @@
 #' Prediction using dynamic random forests
 #'
-#' @param DynForest_obj \code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data
-#' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
-#' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
-#' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param object \code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data
+#' @param timeData A data.frame containing the id and time measurements variables and the time-dependent predictors.
+#' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.
+#' @param idVar A character indicating the name of variable to identify the subjects
+#' @param timeVar A character indicating the name of time variable
 #' @param t0 Landmark time
+#' @param ... Optional parameters to be passed to the low level function
 #'
 #' @import stringr
+#' @importFrom methods is
 #'
 #' @return Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
 #'
@@ -18,29 +21,29 @@
 #' timeData_pred <- pbc2_pred[,c("id", "time", "serBilir", "SGOT", "albumin", "alkaline")]
 #' fixedData_pred <- unique(pbc2_pred[,c("id","age","drug","sex")])
 #'
-#' pred_dyn <- predict(DynForest_obj = res_dyn,
+#' pred_dyn <- predict(object = res_dyn,
 #'                     timeData = timeData_pred, fixedData = fixedData_pred,
 #'                     idVar = "id", timeVar = "time",
 #'                     t0 = 4)
 #' }
-#'
+#' @rdname predict.DynForest
 #' @export
-predict.DynForest <- function(DynForest_obj,
+predict.DynForest <- function(object,
                               timeData = NULL, fixedData = NULL,
                               idVar, timeVar,
-                              t0 = NULL){
+                              t0 = NULL, ...){
 
-  if (class(DynForest_obj)!="DynForest"){
-    stop("'DynForest_obj' should be an object of 'DynForest' class!")
+  if (!methods::is(object,"DynForest")){
+    stop("'object' should be an object of 'DynForest' class!")
   }
 
   # checking function
-  checking(DynForest_obj = DynForest_obj,
+  checking(DynForest_obj = object,
            timeData = timeData, fixedData = fixedData,
            idVar = idVar, timeVar = timeVar)
 
   # checking landmark/horizon times
-  if (DynForest_obj$type=="surv"){
+  if (object$type=="surv"){
 
     if (is.null(t0)){
       stop("t0 value is needed for dynamic prediction !")
@@ -114,7 +117,7 @@ predict.DynForest <- function(DynForest_obj,
                   X = subset(timeData, select = -c(get(idVar), get(timeVar))),
                   id = timeData[,idVar],
                   time = timeData[,timeVar],
-                  model = timeVarModel)
+                  model = object$Curve.model)
   }else{
     Curve <- NULL
   }
@@ -149,48 +152,48 @@ predict.DynForest <- function(DynForest_obj,
 
   Id.pred <- as.integer(idnoNA)
 
-  if (DynForest_obj$type=="surv"){
+  if (object$type=="surv"){
 
-    allTimes <- DynForest_obj$times
+    allTimes <- object$times
     predTimes <- c(t0, allTimes[which(allTimes>=t0)])
 
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
 
-    pred <- lapply(DynForest_obj$causes, FUN = function(x){
+    pred <- lapply(object$causes, FUN = function(x){
 
       lapply(Id.pred, FUN = function(x){
-        pred_tree <- matrix(NA, nrow = ncol(DynForest_obj$rf), ncol = length(predTimes))
+        pred_tree <- matrix(NA, nrow = ncol(object$rf), ncol = length(predTimes))
       })
 
     })
 
-    names(pred) <- as.character(DynForest_obj$causes)
+    names(pred) <- as.character(object$causes)
 
   }else{
 
-    pred <- matrix(0, ncol(DynForest_obj$rf), length(Id.pred))
+    pred <- matrix(0, ncol(object$rf), length(Id.pred))
 
   }
 
-  pred_leaf <- matrix(0, ncol(DynForest_obj$rf), length(Id.pred))
+  pred_leaf <- matrix(0, ncol(object$rf), length(Id.pred))
 
   ####################################
   # Leaf predictions of new subjects
 
-  for (t in 1:ncol(DynForest_obj$rf)){
+  for (t in 1:ncol(object$rf)){
 
-    pred_leaf[t,] <- pred.MMT(DynForest_obj$rf[,t],
+    pred_leaf[t,] <- pred.MMT(object$rf[,t],
                               Curve = Curve, Scalar = Scalar, Factor = Factor)
 
-    if (DynForest_obj$type=="surv"){
+    if (object$type=="surv"){
 
-      for (cause in as.character(DynForest_obj$causes)){
+      for (cause in as.character(object$causes)){
 
         for (indiv in seq(length(pred_leaf[t,]))){
 
           i.leaf <- pred_leaf[t,][indiv]
 
-          pred_leaf_indiv <- DynForest_obj$rf[,t]$Y_pred[[i.leaf]][[cause]]$traj[id.predTimes]
+          pred_leaf_indiv <- object$rf[,t]$Y_pred[[i.leaf]][[cause]]$traj[id.predTimes]
 
           if (!is.null(pred_leaf_indiv)){
             pred[[cause]][[indiv]][t,] <- pred_leaf_indiv
@@ -208,7 +211,7 @@ predict.DynForest <- function(DynForest_obj,
 
         i.leaf <- pred_leaf[t,indiv]
 
-        pred_leaf_indiv <- DynForest_obj$rf[,t]$Y_pred[[i.leaf]]
+        pred_leaf_indiv <- object$rf[,t]$Y_pred[[i.leaf]]
 
         if (!is.null(pred_leaf_indiv)){
           pred[t,indiv] <- pred_leaf_indiv
@@ -225,7 +228,7 @@ predict.DynForest <- function(DynForest_obj,
   pred_out <- list(pred_leaf = pred_leaf,
                    pred = pred)
 
-  if (DynForest_obj$type=="surv"){
+  if (object$type=="surv"){
 
     # Average CIF by subjects for each cause
     pred_cif_mean <- lapply(pred_out$pred, FUN = function(x){
@@ -240,7 +243,7 @@ predict.DynForest <- function(DynForest_obj,
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
     #                = ( F(S+t) - F(S) ) / S(S)
     # With competing risk S(S) = sum of Fj(S) avec j event
-    pred_indiv <- apply(pred_cif_mean[[as.character(DynForest_obj$cause)]],
+    pred_indiv <- apply(pred_cif_mean[[as.character(object$cause)]],
                         MARGIN = 2,
                         FUN = function(x) {
                           if (length(pred_cif_mean)>1){
@@ -249,7 +252,7 @@ predict.DynForest <- function(DynForest_obj,
                             surv <- 1 - pred_cif_mean[[1]][,1]
                           }
 
-                          return((x-pred_cif_mean[[as.character(DynForest_obj$cause)]][,1])/surv)
+                          return((x-pred_cif_mean[[as.character(object$cause)]][,1])/surv)
                         })
 
     output <- list(pred_indiv = pred_indiv,
@@ -259,7 +262,7 @@ predict.DynForest <- function(DynForest_obj,
 
   }
 
-  if (DynForest_obj$type=="factor"){
+  if (object$type=="factor"){
     pred_indiv <- apply(pred_out$pred, 2, FUN = function(x) {
       tab_indiv <- table(x)
       return(names(which.max(tab_indiv)))
@@ -280,7 +283,7 @@ predict.DynForest <- function(DynForest_obj,
 
   }
 
-  if (DynForest_obj$type=="scalar"){
+  if (object$type=="scalar"){
     pred_indiv <- apply(pred_out$pred, 2, "mean", na.rm = TRUE)
 
     names(pred_indiv) <- Id.pred

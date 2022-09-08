@@ -11,7 +11,7 @@
 #' \dontrun{
 #'
 #' # Plot gVIMP
-#' plot_gVIMP(res_dyn_VIMP)
+#' plot_gVIMP(res_dyn_gVIMP)
 #'
 #' }
 #' @export
@@ -31,7 +31,8 @@ plot_gVIMP <- function(DynForest_obj, PCT = FALSE){
   }
 
   g <- ggplot(vimp.df) +
-    geom_bar(aes(reorder(var, vimp), vimp), stat = "identity") +
+    geom_bar(aes_string("var", "vimp"), stat = "identity") +
+    scale_x_discrete(limits=vimp.df$var[order(vimp.df$vimp)]) +
     xlab("Group of predictors") +
     ylab(ifelse(PCT,"% grouped-VIMP","grouped-VIMP")) +
     coord_flip() +

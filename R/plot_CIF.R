@@ -4,6 +4,7 @@
 #' @param id Identifiers for the selected subjects
 #'
 #' @import ggplot2
+#' @importFrom methods is
 #'
 #' @return Display the CIF for selected subjects
 #' @export
@@ -16,7 +17,7 @@
 #' }
 plot_CIF <- function(DynForestPred_obj, id = NULL){
 
-  if (class(DynForestPred_obj)!="DynForestPred"){
+  if (!methods::is(DynForestPred_obj,"DynForestPred")){
     stop("'DynForestPred_obj' should be a 'DynForestPred' class!")
   }
 
@@ -38,7 +39,7 @@ plot_CIF <- function(DynForestPred_obj, id = NULL){
                               Time = rep(times, length(id)),
                               CIF = c(t(data.CIF)))
 
-  g <- ggplot(data.CIF.plot, aes(x = Time, y = CIF)) +
+  g <- ggplot(data.CIF.plot, aes_string(x = "Time", y = "CIF")) +
     geom_step(aes(group = id, color = id)) +
     ylim(0,1) +
     geom_vline(xintercept = DynForestPred_obj$t0, linetype = "dashed") +

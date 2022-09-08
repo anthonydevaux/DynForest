@@ -1,6 +1,7 @@
 #' Display the summary of DynForest
 #'
 #' @param object \code{DynForest} or \code{DynForest_OOB} object
+#' @param ... Optional parameters to be passed to the low level function
 #'
 #' @return Return some information about the random forest
 #'
@@ -11,9 +12,9 @@
 #' # DynForest summary
 #' summary(object = res_dyn_OOB)
 #' }
-#'
+#' @rdname summary.DynForest
 #' @export
-summary.DynForest <- function(object){
+summary.DynForest <- function(object, ...){
 
   if (object$type=="surv"){
     if (length(object$causes)>1){

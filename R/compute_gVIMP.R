@@ -4,6 +4,8 @@
 #' @param group A list of groups with the name of the predictors assigned in each group
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
+#' @importFrom methods is
+#'
 #' @return \code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
@@ -40,13 +42,13 @@
 #' @examples
 #' \dontrun{
 #' # Compute gVIMP statistic
-#' res_dyn_VIMP <- compute_gVIMP(DynForest_obj = res_dyn_OOB,
-#'                               group = list(group1 = c("serBilir","SGOT"),
-#'                                            group2 = c("albumin","alkaline")))
+#' res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn_OOB,
+#'                                group = list(group1 = c("serBilir","SGOT"),
+#'                                             group2 = c("albumin","alkaline")))
 #' }
 compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
 
-  if (class(DynForest_obj)!="DynForest"){
+  if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
   }
 
@@ -95,6 +97,8 @@ compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
       assign(paste0(Input,".perm"), get(Input))
 
     }
+
+    k <- NULL
 
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)

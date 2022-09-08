@@ -5,6 +5,8 @@
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
+#' @importFrom methods is
+#'
 #' @return compute_OOBerror() function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
@@ -45,7 +47,7 @@ compute_OOBerror <- function(DynForest_obj,
                              IBS.min = 0, IBS.max = NULL,
                              ncores = NULL){
 
-  if (class(DynForest_obj)!="DynForest"){
+  if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
   }
 

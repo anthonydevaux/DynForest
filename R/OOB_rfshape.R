@@ -27,6 +27,7 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
 
   err <- rep(NA,length(unique(Y$id)))
 
+  i <- NULL
   Curve_courant <- NULL
   Scalar_courant <- NULL
   Factor_courant <- NULL
@@ -90,12 +91,12 @@ OOB.rfshape <- function(rf, Curve=NULL, Scalar=NULL, Factor=NULL, Y,
       }
 
       if (is.element("Scalar",Inputs)==TRUE){
-        w_XScalar <- which(Scalar$id== indiv)
+        w_XScalar <- which(Scalar$id==indiv)
         Scalar_courant <- list(type="Scalar", X=Scalar$X[w_XScalar,, drop=FALSE], id=Scalar$id[w_XScalar])
       }
 
       if (is.element("Factor",Inputs)==TRUE){
-        w_XFactor <- which(Factor$id== indiv)
+        w_XFactor <- which(Factor$id==indiv)
         Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
       }
 

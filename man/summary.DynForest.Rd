@@ -4,10 +4,12 @@
 \alias{summary.DynForest}
 \title{Display the summary of DynForest}
 \usage{
-\method{summary}{DynForest}(object)
+\method{summary}{DynForest}(object, ...)
 }
 \arguments{
 \item{object}{\code{DynForest} or \code{DynForest_OOB} object}
+
+\item{...}{Optional parameters to be passed to the low level function}
 }
 \value{
 Return some information about the random forest
@@ -20,7 +22,6 @@ Display the summary of DynForest
 # DynForest summary
 summary(object = res_dyn_OOB)
 }
-
 }
 \author{
 Anthony Devaux (\email{anthony.devaux@u-bordeaux.fr})

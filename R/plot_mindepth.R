@@ -41,9 +41,9 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("predictor","feature")){
       return(sum(!is.na(x)))
     })
 
-    g <- ggplot(depth.df, aes(x = var, y = num_noeud)) +
-      geom_boxplot(aes(fill = group)) +
-      geom_text(data = depth.nbtree, aes(x = var, label = num_noeud),
+    g <- ggplot(depth.df, aes_string(x = "var", y = "num_noeud")) +
+      geom_boxplot(aes_string(fill = "group")) +
+      geom_text(data = depth.nbtree, aes_string(x = "var", label = "num_noeud"),
                 y = max(depth.df$num_noeud, na.rm = T) - 1) +
       scale_x_discrete(limits=rev(unique(depth.df$var)[str_order(unique(depth.df$var))])) +
       xlab("Features") +
@@ -64,9 +64,9 @@ plot_mindepth <- function(var_depth_obj, plot_level = c("predictor","feature")){
 
     depthVar.nbtree <- aggregate(num_noeud ~ group, data = depthVar.df, FUN = length)
 
-    g <- ggplot(depthVar.df, aes(x = group, y = num_noeud)) +
-      geom_boxplot(aes(fill = group)) +
-      geom_text(data = depthVar.nbtree, aes(x = group, label = num_noeud),
+    g <- ggplot(depthVar.df, aes_string(x = "group", y = "num_noeud")) +
+      geom_boxplot(aes_string(fill = "group")) +
+      geom_text(data = depthVar.nbtree, aes_string(x = "group", label = "num_noeud"),
                 y = max(depthVar.df$num_noeud, na.rm = T) - 1) +
       scale_x_discrete(limits=rev(unique(depthVar.df$group)[str_order(unique(depthVar.df$group))])) +
       xlab("Predictors") +

@@ -32,14 +32,15 @@ plot_VIMP <- function(DynForest_obj, PCT = FALSE, ordering = TRUE){
 
   if (ordering){
     g <- ggplot(vimp.df) +
-      geom_bar(aes(reorder(var, vimp), vimp), stat = "identity") +
+      geom_bar(aes_string("var", "vimp"), stat = "identity") +
+      scale_x_discrete(limits=vimp.df$var[order(vimp.df$vimp)]) +
       xlab("Predictors") +
       ylab(ifelse(PCT,"% VIMP","VIMP")) +
       coord_flip() +
       theme_bw()
   }else{
     g <- ggplot(vimp.df) +
-      geom_bar(aes(var, vimp), stat = "identity") +
+      geom_bar(aes_string("var", "vimp"), stat = "identity") +
       xlab("Predictors") +
       ylab(ifelse(PCT,"% VIMP","VIMP")) +
       coord_flip() +

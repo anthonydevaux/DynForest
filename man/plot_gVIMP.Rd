@@ -18,7 +18,7 @@ Compute the grouped-VIMP statistic
 \dontrun{
 
 # Plot gVIMP
-plot_gVIMP(res_dyn_VIMP)
+plot_gVIMP(res_dyn_gVIMP)
 
 }
 }

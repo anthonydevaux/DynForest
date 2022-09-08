@@ -3,6 +3,8 @@
 #' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
+#' @importFrom methods is
+#'
 #' @return \code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
@@ -43,7 +45,7 @@
 #' }
 compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
-  if (class(DynForest_obj)!="DynForest"){
+  if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
   }
 
@@ -76,6 +78,7 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
   Scalar.perm <- Scalar
   Factor.perm <- Factor
 
+  p <- NULL
   Importance.Curve <- NULL
   Importance.Scalar <- NULL
   Importance.Factor <- NULL

@@ -5,24 +5,29 @@
 \title{Prediction using dynamic random forests}
 \usage{
 \method{predict}{DynForest}(
-  DynForest_obj,
+  object,
   timeData = NULL,
   fixedData = NULL,
   idVar,
   timeVar,
-  t0 = NULL
+  t0 = NULL,
+  ...
 )
 }
 \arguments{
-\item{DynForest_obj}{\code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data}
+\item{object}{\code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data}
+
+\item{timeData}{A data.frame containing the id and time measurements variables and the time-dependent predictors.}
+
+\item{fixedData}{A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.}
+
+\item{idVar}{A character indicating the name of variable to identify the subjects}
+
+\item{timeVar}{A character indicating the name of time variable}
 
 \item{t0}{Landmark time}
 
-\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
-
-\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
-
-\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
+\item{...}{Optional parameters to be passed to the low level function}
 }
 \value{
 Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
@@ -38,10 +43,9 @@ pbc2_pred <- pbc2_pred[which(pbc2_pred$id\%in\%id_pred),]
 timeData_pred <- pbc2_pred[,c("id", "time", "serBilir", "SGOT", "albumin", "alkaline")]
 fixedData_pred <- unique(pbc2_pred[,c("id","age","drug","sex")])
 
-pred_dyn <- predict(DynForest_obj = res_dyn,
+pred_dyn <- predict(object = res_dyn,
                     timeData = timeData_pred, fixedData = fixedData_pred,
                     idVar = "id", timeVar = "time",
                     t0 = 4)
 }
-
 }
