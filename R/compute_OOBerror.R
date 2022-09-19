@@ -4,6 +4,7 @@
 #' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
+#' @param verbose A logical controlling the function progress. Default is \code{TRUE}
 #'
 #' @importFrom methods is
 #'
@@ -39,13 +40,52 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' data(pbc2)
+#'
+#' # Sample 100 subjects
+#' set.seed(1234)
+#' id <- unique(pbc2$id)
+#' id_sample <- sample(id, 100)
+#' id_row <- which(pbc2$id%in%id_sample)
+#'
+#' pbc2_train <- pbc2[id_row,]
+#'
+#  Build longitudinal data
+#' timeData_train <- pbc2_train[,c("id","time",
+#'                                 "serBilir","SGOT",
+#'                                 "albumin","alkaline")]
+#'
+#' # Create object with longitudinal association for each predictor
+#' timeVarModel <- list(serBilir = list(fixed = serBilir ~ time,
+#'                                      random = ~ time),
+#'                      SGOT = list(fixed = SGOT ~ time + I(time^2),
+#'                                  random = ~ time + I(time^2)),
+#'                      albumin = list(fixed = albumin ~ time,
+#'                                     random = ~ time),
+#'                      alkaline = list(fixed = alkaline ~ time,
+#'                                      random = ~ time))
+#'
+#' # Build fixed data
+#' fixedData_train <- unique(pbc2_train[,c("id","age","drug","sex")])
+#'
+#' # Build outcome data
+#' Y <- list(type = "surv",
+#'           Y = unique(pbc2_train[,c("id","years","event")]))
+#'
+#' # Run DynForest function
+#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#'                      timeVar = "time", idVar = "id",
+#'                      timeVarModel = timeVarModel, Y = Y,
+#'                      ntree = 50, nodesize = 5, minsplit = 5,
+#'                      cause = 2, ncores = 2, seed = 1234)
+#'
 #' # Compute OOB error
-#' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn)
+#' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
 #' }
 compute_OOBerror <- function(DynForest_obj,
                              IBS.min = 0, IBS.max = NULL,
-                             ncores = NULL){
+                             ncores = NULL, verbose = TRUE){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
@@ -69,9 +109,14 @@ compute_OOBerror <- function(DynForest_obj,
     ncores <- parallel::detectCores()-1
   }
 
+  if (!verbose){
+    pbapply::pboptions(type="none")
+  }else{
+    pbapply::pboptions(type="timer")
+  }
+
   ##############################
 
-  print("OOB trees error...")
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)
 
@@ -89,16 +134,13 @@ compute_OOBerror <- function(DynForest_obj,
 
   # xerror <- rep(NA, ntree)
   # for (i in 1:ntree){
-  #   cat(paste0("Tree ", i,"\n"))
   #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y,
   #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
   # }
 
-  cat("OOB Forest error...")
   oob.err <- OOB.rfshape(rf, Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
                          IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause,
                          ncores = ncores)
-  cat("OK!\n")
 
   out <- list(data = rf$data,
               rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,

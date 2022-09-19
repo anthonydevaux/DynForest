@@ -7,9 +7,7 @@
 #'
 #' @import stringr
 #'
-#' @return Return leaf number for the given subjects
-#' @export
-#'
+#' @keywords internal
 pred.MMT <- function(tree, Curve=NULL,Scalar=NULL,Factor=NULL){
 
   Inputs <- read.Xarg(c(Curve,Scalar,Factor))

@@ -19,7 +19,7 @@ DynForest(
   nsplit_option = "quantile",
   ncores = NULL,
   seed = round(runif(1, 0, 10000)),
-  ...
+  verbose = TRUE
 )
 }
 \arguments{
@@ -51,7 +51,7 @@ DynForest(
 
 \item{seed}{Seed to replicate results}
 
-\item{...}{Optional parameters to be passed to the low level function}
+\item{verbose}{A logical controlling the function progress. Default is \code{TRUE}}
 }
 \value{
 DynForest function return a list with the following elements:\tabular{ll}{
@@ -83,19 +83,21 @@ Built a random forest using multivariate longitudinal endogenous covariates
 The function currently supports survival (competing or single event), continuous or factor outcome.
 
 FUTUR IMPROVEMENTS:
+\itemize{
+\item TBD
+}
 }
 \examples{
-\dontrun{
+\donttest{
 data(pbc2)
 
-# Split the data for training and prediction steps
+# Sample 100 subjects
 set.seed(1234)
 id <- unique(pbc2$id)
-id_sample <- sample(id, length(id)*2/3)
+id_sample <- sample(id, 100)
 id_row <- which(pbc2$id\%in\%id_sample)
 
 pbc2_train <- pbc2[id_row,]
-pbc2_pred <- pbc2[-id_row,]
 
 timeData_train <- pbc2_train[,c("id","time",
                                 "serBilir","SGOT",
@@ -122,8 +124,8 @@ Y <- list(type = "surv",
 res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      timeVar = "time", idVar = "id",
                      timeVarModel = timeVarModel, Y = Y,
-                     ntree = 200, nodesize = 2, minsplit = 3,
-                     cause = 2, seed = 1234)
+                     ntree = 50, nodesize = 5, minsplit = 5,
+                     cause = 2, ncores = 2, seed = 1234)
 }
 }
 \references{

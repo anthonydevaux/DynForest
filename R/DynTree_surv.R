@@ -16,7 +16,7 @@
 #' @import prodlim
 #' @importFrom splines ns
 #'
-#' @export
+#' @keywords internal
 DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
                          nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
                          seed = 1234){
@@ -72,11 +72,9 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
   feuilles_terminales <- NULL
 
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
-    #cat(p, "\n")
-    #browser(expr = {p == 6})
+
     count_split <- 0
     for (i in 1:length(feuilles_courantes)){
-      #cat(i, "\n")
 
       # List inputs
       V <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))

@@ -14,7 +14,7 @@
 #' @import prodlim
 #' @importFrom splines ns
 #'
-#' @export
+#' @keywords internal
 DynTree <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
                     nsplit_option = "quantile", nodesize = 1,
                     seed = 1234){

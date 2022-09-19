@@ -2,6 +2,8 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/DynForest)](https://CRAN.R-project.org/package=DynForest)
 [![R-CMD-check](https://github.com/anthonydevaux/DynForest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/anthonydevaux/DynForest/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -21,10 +23,21 @@ outcome in the paper:
 
 ## Installation
 
-You can install the development version of DynForest from
+`DynForest` package could be install from the
+[CRAN](https://cran.r-project.org/package=DynForest) with:
+
+``` r
+install.packages("DynForest")
+```
+
+Development version of DynForest is also available from
 [GitHub](https://github.com/anthonydevaux/DynForest) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("anthonydevaux/DynForest")
 ```
+
+## Acknowlegments
+
+We thank Louis Capitaine for his precious help for the R code.

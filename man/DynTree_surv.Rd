@@ -41,3 +41,4 @@ DynTree_surv(
 \description{
 Grow random survival tree using multivariate longitudinal endogenous covariates
 }
+\keyword{internal}

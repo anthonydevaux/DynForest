@@ -14,7 +14,7 @@
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
 #' @param cause (Only with competing events) Number indicates the event of interest.
 #' @param seed Seed to replicate results
-#' @param ... Optional parameters to be passed to the low level function
+#' @param verbose A logical controlling the function progress. Default is \code{TRUE}
 #'
 #' @import foreach
 #' @import doParallel
@@ -24,7 +24,13 @@
 #' @keywords internal
 rf_shape_para <- function(Curve = NULL, Scalar = NULL, Factor = NULL, Y, mtry, ntree, timeScale, ncores,
                           nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
-                          seed = 1234){
+                          seed = 1234, verbose = TRUE){
+
+  if (!verbose){
+    pbapply::pboptions(type="none")
+  }else{
+    pbapply::pboptions(type="timer")
+  }
 
   cl <- parallel::makeCluster(ncores)
   doParallel::registerDoParallel(cl)

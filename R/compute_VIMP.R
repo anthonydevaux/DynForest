@@ -39,7 +39,49 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' data(pbc2)
+#'
+#' # Sample 100 subjects
+#' set.seed(1234)
+#' id <- unique(pbc2$id)
+#' id_sample <- sample(id, 100)
+#' id_row <- which(pbc2$id%in%id_sample)
+#'
+#' pbc2_train <- pbc2[id_row,]
+#'
+#  Build longitudinal data
+#' timeData_train <- pbc2_train[,c("id","time",
+#'                                 "serBilir","SGOT",
+#'                                 "albumin","alkaline")]
+#'
+#' # Create object with longitudinal association for each predictor
+#' timeVarModel <- list(serBilir = list(fixed = serBilir ~ time,
+#'                                      random = ~ time),
+#'                      SGOT = list(fixed = SGOT ~ time + I(time^2),
+#'                                  random = ~ time + I(time^2)),
+#'                      albumin = list(fixed = albumin ~ time,
+#'                                     random = ~ time),
+#'                      alkaline = list(fixed = alkaline ~ time,
+#'                                      random = ~ time))
+#'
+#' # Build fixed data
+#' fixedData_train <- unique(pbc2_train[,c("id","age","drug","sex")])
+#'
+#' # Build outcome data
+#' Y <- list(type = "surv",
+#'           Y = unique(pbc2_train[,c("id","years","event")]))
+#'
+#' # Run DynForest function
+#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#'                      timeVar = "time", idVar = "id",
+#'                      timeVarModel = timeVarModel, Y = Y,
+#'                      ntree = 50, nodesize = 5, minsplit = 5,
+#'                      cause = 2, ncores = 2, seed = 1234)
+#'
+#' # Compute OOB error
+#' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
+#'
 #' # Compute VIMP statistic
 #' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB)
 #' }
@@ -73,7 +115,6 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
   #####################
 
-  cat("VIMP...")
   Curve.perm <- Curve
   Scalar.perm <- Scalar
   Factor.perm <- Factor
@@ -85,7 +126,6 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
   if (is.element("Curve",Inputs)==TRUE){
 
-    cat("Curves...")
     Curve.err <- matrix(NA, ntree, ncol(Curve$X))
 
     cl <- parallel::makeCluster(ncores)
@@ -129,7 +169,6 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
   if (is.element("Scalar",Inputs)==TRUE){
 
-    cat("Scalars...")
     Scalar.err <- matrix(NA, ntree, dim(Scalar$X)[2])
 
     cl <- parallel::makeCluster(ncores)
@@ -165,7 +204,6 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
   if (is.element("Factor",Inputs)==TRUE){
 
-    cat("Factors...")
     Factor.err <- matrix(NA, ntree, dim(Factor$X)[2])
 
     cl <- parallel::makeCluster(ncores)
@@ -211,8 +249,6 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
               comput.time = rf$comput.time,
               xerror = rf$xerror, oob.err = rf$oob.err, oob.pred = rf$oob.err,
               IBS.range = rf$IBS.range, Importance = Importance)
-
-  cat("OK!\n")
 
   class(out) <- c("DynForest")
 

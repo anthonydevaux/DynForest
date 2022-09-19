@@ -14,13 +14,56 @@
 #' @return Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
 #'
 #' @examples
-#' \dontrun{
-#' # Predict on subjects still at risk at landmark time at 4 years
-#' id_pred <- unique(pbc2_pred$id[which(pbc2_pred$years>4)])
-#' pbc2_pred <- pbc2_pred[which(pbc2_pred$id%in%id_pred),]
+#' \donttest{
+#' data(pbc2)
+#'
+#' # Sample 100 subjects
+#' set.seed(1234)
+#' id <- unique(pbc2$id)
+#' id_sample <- sample(id, 100)
+#' id_row <- which(pbc2$id%in%id_sample)
+#'
+#' pbc2_train <- pbc2[id_row,]
+#'
+#  Build longitudinal data
+#' timeData_train <- pbc2_train[,c("id","time",
+#'                                 "serBilir","SGOT",
+#'                                 "albumin","alkaline")]
+#'
+#' # Create object with longitudinal association for each predictor
+#' timeVarModel <- list(serBilir = list(fixed = serBilir ~ time,
+#'                                      random = ~ time),
+#'                      SGOT = list(fixed = SGOT ~ time + I(time^2),
+#'                                  random = ~ time + I(time^2)),
+#'                      albumin = list(fixed = albumin ~ time,
+#'                                     random = ~ time),
+#'                      alkaline = list(fixed = alkaline ~ time,
+#'                                      random = ~ time))
+#'
+#' # Build fixed data
+#' fixedData_train <- unique(pbc2_train[,c("id","age","drug","sex")])
+#'
+#' # Build outcome data
+#' Y <- list(type = "surv",
+#'           Y = unique(pbc2_train[,c("id","years","event")]))
+#'
+#' # Run DynForest function
+#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#'                      timeVar = "time", idVar = "id",
+#'                      timeVarModel = timeVarModel, Y = Y,
+#'                      ntree = 50, nodesize = 5, minsplit = 5,
+#'                      cause = 2, ncores = 2, seed = 1234)
+#'
+#' # Sample 5 subjects to predict the event
+#' set.seed(123)
+#' id_pred <- sample(id, 5)
+#'
+#' # Create predictors objects
+#' pbc2_pred <- pbc2[which(pbc2$id%in%id_pred),]
 #' timeData_pred <- pbc2_pred[,c("id", "time", "serBilir", "SGOT", "albumin", "alkaline")]
 #' fixedData_pred <- unique(pbc2_pred[,c("id","age","drug","sex")])
 #'
+#' # Predict the CIF function for the new subjects with landmark time at 4 years
 #' pred_dyn <- predict(object = res_dyn,
 #'                     timeData = timeData_pred, fixedData = fixedData_pred,
 #'                     idVar = "id", timeVar = "time",

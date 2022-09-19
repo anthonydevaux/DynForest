@@ -1,15 +1,15 @@
 Package: DynForest
-Title: Random forest with multivariate longitudinal predictors
+Title: Random Forest with Multivariate Longitudinal Predictors
 Version: 1.0.0
 Authors@R: 
     person("Anthony", "Devaux", email = "anthony.devaux@u-bordeaux.fr", 
     role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8862-4218"))
-Description: Based on random forest principle, DynForest allows to include 
+Description: Based on random forest principle, 'DynForest' is able to include 
     multiple longitudinal predictors to provide individual predictions. 
-    Longitudinal predictors are modeled using lcmm package through the 
-    random forest. The methodology is fully described for a survival outcome 
-    in: Devaux, Helmer, Dufouil, Genuer & Proust-Lima (2022) 
+    Longitudinal predictors are modeled through the random forest. The 
+    methodology is fully described for a survival outcome in: 
+    Devaux, Helmer, Dufouil, Genuer & Proust-Lima (2022) 
     <doi: 10.48550/arXiv.2208.05801>.
 Imports: DescTools, cmprsk, doParallel, foreach, ggplot2, lcmm, methods, 
     pbapply, pec, prodlim, stringr, survival, zoo

@@ -17,7 +17,8 @@ rf_shape_para(
   nodesize = 1,
   minsplit = 2,
   cause = 1,
-  seed = 1234
+  seed = 1234,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -47,7 +48,7 @@ rf_shape_para(
 
 \item{seed}{Seed to replicate results}
 
-\item{...}{Optional parameters to be passed to the low level function}
+\item{verbose}{A logical controlling the function progress. Default is \code{TRUE}}
 }
 \description{
 Paralleled random survival Forest using multivariate longitudinal endogenous covariates

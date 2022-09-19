@@ -16,7 +16,7 @@
 #' @param cause (Only with competing events) Number indicates the event of interest.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #' @param seed Seed to replicate results
-#' @param ... Optional parameters to be passed to the low level function
+#' @param verbose A logical controlling the function progress. Default is \code{TRUE}
 #'
 #' @import stringr
 #' @import foreach
@@ -30,6 +30,7 @@
 #' @details The function currently supports survival (competing or single event), continuous or factor outcome.
 #'
 #' FUTUR IMPROVEMENTS:
+#' - TBD
 #'
 #' @return DynForest function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
@@ -60,17 +61,16 @@
 #' @seealso \code{\link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot_VIMP} \link{plot_gVIMP} \link{plot_mindepth}}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(pbc2)
 #'
-#' # Split the data for training and prediction steps
+#' # Sample 100 subjects
 #' set.seed(1234)
 #' id <- unique(pbc2$id)
-#' id_sample <- sample(id, length(id)*2/3)
+#' id_sample <- sample(id, 100)
 #' id_row <- which(pbc2$id%in%id_sample)
 #'
 #' pbc2_train <- pbc2[id_row,]
-#' pbc2_pred <- pbc2[-id_row,]
 #'
 #  Build longitudinal data
 #' timeData_train <- pbc2_train[,c("id","time",
@@ -98,8 +98,8 @@
 #' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
-#'                      ntree = 200, nodesize = 2, minsplit = 3,
-#'                      cause = 2, seed = 1234)
+#'                      ntree = 50, nodesize = 5, minsplit = 5,
+#'                      cause = 2, ncores = 2, seed = 1234)
 #' }
 #' @export
 DynForest <- function(timeData = NULL, fixedData = NULL,
@@ -109,7 +109,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                       nsplit_option = "quantile",
                       ncores = NULL,
                       seed = round(runif(1,0,10000)),
-                      ...){
+                      verbose = TRUE){
 
   debut <- Sys.time()
 
@@ -193,19 +193,16 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
   }
 
   ######### DynTree #########
-  print("Growing Dynamic trees...")
 
   rf <-  rf_shape_para(Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
                        mtry = mtry, ntree = ntree, ncores = ncores,
                        nsplit_option = nsplit_option,
                        nodesize = nodesize, minsplit = minsplit,
-                       cause = cause, seed = seed)
+                       cause = cause, seed = seed, verbose = verbose)
 
   rf <- list(type=Y$type, rf=rf)
 
   ###########################
-
-  cat("DynForest DONE!\n")
 
   if (Y$type == "surv"){
     drf <- list(data = list(Curve = Curve, Factor = Factor, Scalar = Scalar, Y = Y),
@@ -217,8 +214,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
     class(drf) <- c("DynForest")
     return(drf)
   }
-  #var.ini <- impurity(Y)
-  #varex <- 1 - mean(oob.err$err)/var.ini
+
   drf <- list(data = list(Curve = Curve, Factor = Factor, Scalar = Scalar, Y = Y),
               rf = rf$rf, type = rf$type, levels = Ylevels,
               Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
