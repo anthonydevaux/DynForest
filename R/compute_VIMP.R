@@ -83,7 +83,7 @@
 #' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
 #'
 #' # Compute VIMP statistic
-#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB)
+#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB, ncores = 2)
 #' }
 compute_VIMP <- function(DynForest_obj, ncores = NULL){
 

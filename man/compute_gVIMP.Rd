@@ -93,7 +93,8 @@ res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
 # Compute gVIMP statistic
 res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn_OOB,
                                group = list(group1 = c("serBilir","SGOT"),
-                                            group2 = c("albumin","alkaline")))
+                                            group2 = c("albumin","alkaline")),
+                               ncores = 2)
 }
 }
 \author{

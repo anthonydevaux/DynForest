@@ -86,7 +86,8 @@
 #' # Compute gVIMP statistic
 #' res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn_OOB,
 #'                                group = list(group1 = c("serBilir","SGOT"),
-#'                                             group2 = c("albumin","alkaline")))
+#'                                             group2 = c("albumin","alkaline")),
+#'                                ncores = 2)
 #' }
 compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
 
