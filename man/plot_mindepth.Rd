@@ -11,6 +11,9 @@ plot_mindepth(var_depth_obj, plot_level = c("predictor", "feature"))
 
 \item{plot_level}{Compute the statistic at predictor (\code{plot_level}="predictor") or feature (\code{plot_level}="feature") level}
 }
+\value{
+Display the minimal depth for each predictor/feature
+}
 \description{
 Compute the average minimal depth statistic
 }

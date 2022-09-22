@@ -8,6 +8,7 @@
 #'
 #' @seealso \code{\link{DynForest} \link{var_depth} \link{plot_VIMP} \link{plot_gVIMP}}
 #'
+#' @return Display the minimal depth for each predictor/feature
 #' @examples
 #' \donttest{
 #' data(pbc2)

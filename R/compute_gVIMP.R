@@ -123,8 +123,6 @@ compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
 
   #####################
 
-  cat("Grouped VIMP...")
-
   gVIMP <- vector("numeric", length(group))
   names(gVIMP) <- names(group)
 
@@ -225,8 +223,6 @@ compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
               IBS.range = rf$IBS.range, gVIMP = gVIMP)
 
   class(out) <- c("DynForest")
-
-  cat("OK!\n")
 
   return(out)
 }
