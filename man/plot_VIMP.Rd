@@ -4,12 +4,12 @@
 \alias{plot_VIMP}
 \title{Compute the VIMP statistic}
 \usage{
-plot_VIMP(DynForest_obj, PCT = FALSE, ordering = TRUE)
+plot_VIMP(DynForest_VIMP_obj, PCT = FALSE, ordering = TRUE)
 }
 \arguments{
-\item{DynForest_obj}{\code{DynForest} object}
+\item{DynForest_VIMP_obj}{\code{DynForest_VIMP} object}
 
-\item{PCT}{Display VIMP statistic in pourcentage. Default value is FALSE.}
+\item{PCT}{Display VIMP statistic in percentage. Default value is FALSE.}
 
 \item{ordering}{Order predictors according to VIMP value. Default value is TRUE.}
 }
@@ -59,14 +59,11 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      ntree = 50, nodesize = 5, minsplit = 5,
                      cause = 2, ncores = 2, seed = 1234)
 
-# Compute OOB error
-res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
-
 # Compute VIMP statistic
 res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB)
 
 # Plot VIMP
-plot_VIMP(res_dyn_VIMP)
+plot_VIMP(DynForest_VIMP_obj = res_dyn_VIMP)
 
 }
 }

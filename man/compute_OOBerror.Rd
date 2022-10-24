@@ -4,13 +4,7 @@
 \alias{compute_OOBerror}
 \title{Compute the Out-Of-Bag error (OOB error)}
 \usage{
-compute_OOBerror(
-  DynForest_obj,
-  IBS.min = 0,
-  IBS.max = NULL,
-  ncores = NULL,
-  verbose = TRUE
-)
+compute_OOBerror(DynForest_obj, IBS.min = 0, IBS.max = NULL, ncores = NULL)
 }
 \arguments{
 \item{DynForest_obj}{\code{DynForest} object containing the dynamic random forest used on train data}
@@ -24,10 +18,10 @@ compute_OOBerror(
 \item{verbose}{A logical controlling the function progress. Default is \code{TRUE}}
 }
 \value{
-compute_OOBerror() function return a list with the following elements:\tabular{ll}{
+\code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
 \code{data} \tab A list containing the data used to grow the trees \cr
 \tab \cr
-\code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
+\code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
 \tab \cr
 \code{type} \tab Outcome type \cr
 \tab \cr

@@ -8,10 +8,10 @@
 #'
 #' @importFrom methods is
 #'
-#' @return compute_OOBerror() function return a list with the following elements:\tabular{ll}{
+#' @return \code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
-#'    \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
+#'    \code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
 #'    \tab \cr
 #'    \code{type} \tab Outcome type \cr
 #'    \tab \cr
@@ -85,7 +85,7 @@
 #' }
 compute_OOBerror <- function(DynForest_obj,
                              IBS.min = 0, IBS.max = NULL,
-                             ncores = NULL, verbose = TRUE){
+                             ncores = NULL){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
@@ -109,35 +109,6 @@ compute_OOBerror <- function(DynForest_obj,
     ncores <- parallel::detectCores()-1
   }
 
-  if (!verbose){
-    pbapply::pboptions(type="none")
-  }else{
-    pbapply::pboptions(type="timer")
-  }
-
-  ##############################
-
-  cl <- parallel::makeCluster(ncores)
-  doParallel::registerDoParallel(cl)
-
-  pck <- .packages()
-  dir0 <- find.package()
-  dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
-  parallel::clusterExport(cl,list("pck","dir"),envir=environment())
-  parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
-
-  xerror <- pbsapply(1:ntree,
-                     FUN=function(i){OOB.tree(rf$rf[,i], Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
-                                              IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
-
-  parallel::stopCluster(cl)
-
-  # xerror <- rep(NA, ntree)
-  # for (i in 1:ntree){
-  #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y,
-  #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
-  # }
-
   oob.err <- OOB.rfshape(rf, Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
                          IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause,
                          ncores = ncores)
@@ -146,7 +117,7 @@ compute_OOBerror <- function(DynForest_obj,
               rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,
               Inputs = rf$Inputs, Curve.model = rf$Curve.model, param = rf$param,
               comput.time = rf$comput.time,
-              xerror = xerror, oob.err = oob.err$err, oob.pred = oob.err$oob.pred,
+              oob.err = oob.err$err, oob.pred = oob.err$oob.pred,
               IBS.range = c(IBS.min, IBS.max))
 
   class(out) <- c("DynForest")

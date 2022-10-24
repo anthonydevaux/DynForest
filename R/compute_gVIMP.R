@@ -1,15 +1,17 @@
 #' Compute the grouped importance of variables (gVIMP) statistic
 #'
 #' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
+#' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
+#' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param group A list of groups with the name of the predictors assigned in each group
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
 #' @importFrom methods is
 #'
-#' @return \code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
+#' @return \code{compute_gVIMP()} function returns a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
-#'    \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
+#'    \code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
 #'    \tab \cr
 #'    \code{type} \tab Outcome type \cr
 #'    \tab \cr
@@ -89,19 +91,17 @@
 #'                                             group2 = c("albumin","alkaline")),
 #'                                ncores = 2)
 #' }
-compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
+compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
+                          group = NULL, ncores = NULL){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
   }
 
-  if (is.null(DynForest_obj$xerror)){
-    stop("OOB error should be first computed using 'compute_OOBerror()' function!")
-  }
-
   if (DynForest_obj$type=="surv"){
-    IBS.min <- DynForest_obj$IBS.range[1]
-    IBS.max <- DynForest_obj$IBS.range[2]
+    if (is.null(IBS.max)){
+      IBS.max <- max(DynForest_obj$data$Y$Y[,1])
+    }
   }
 
   if (is.null(group)){
@@ -120,6 +120,31 @@ compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
   if (is.null(ncores)==TRUE){
     ncores <- parallel::detectCores()-1
   }
+
+  ##############################
+
+  pbapply::pboptions(type="none")
+
+  cl <- parallel::makeCluster(ncores)
+  doParallel::registerDoParallel(cl)
+
+  pck <- .packages()
+  dir0 <- find.package()
+  dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+  parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+  parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+  xerror <- pbsapply(1:ntree,
+                     FUN=function(i){OOB.tree(rf$rf[,i], Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
+                                              IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
+
+  parallel::stopCluster(cl)
+
+  # xerror <- rep(NA, ntree)
+  # for (i in 1:ntree){
+  #   xerror[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y,
+  #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
+  # }
 
   #####################
 
@@ -219,7 +244,7 @@ compute_gVIMP <- function(DynForest_obj, group = NULL, ncores = NULL){
   out <- list(rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,
               Inputs = rf$Inputs, Curve.model = rf$Curve.model, param = rf$param,
               comput.time = rf$comput.time,
-              xerror = rf$xerror, oob.err = rf$oob.err, oob.pred = rf$oob.err,
+              oob.err = rf$oob.err, oob.pred = rf$oob.err,
               IBS.range = rf$IBS.range, gVIMP = gVIMP)
 
   class(out) <- c("DynForest")

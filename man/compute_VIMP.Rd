@@ -4,42 +4,26 @@
 \alias{compute_VIMP}
 \title{Compute the importance of variables (VIMP) statistic}
 \usage{
-compute_VIMP(DynForest_obj, ncores = NULL)
+compute_VIMP(DynForest_obj, IBS.min = 0, IBS.max = NULL, ncores = NULL)
 }
 \arguments{
 \item{DynForest_obj}{\code{DynForest} object containing the dynamic random forest used on train data}
 
+\item{IBS.min}{(Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.}
+
+\item{IBS.max}{(Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.}
+
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 }
 \value{
-\code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
-\code{data} \tab A list containing the data used to grow the trees \cr
-\tab \cr
-\code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
-\tab \cr
-\code{type} \tab Outcome type \cr
-\tab \cr
-\code{times} \tab A numeric vector containing the time-to-event for all subjects \cr
-\tab \cr
-\code{cause} \tab Indicating the cause of interest \cr
-\tab \cr
-\code{causes} \tab A numeric vector containing the causes indicator \cr
-\tab \cr
+\code{compute_VIMP()} function returns a list with the following elements:\tabular{ll}{
 \code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
 \tab \cr
-\code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
+\code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
 \tab \cr
-\code{param} \tab A list containing the hyperparameters \cr
-\tab \cr
-\code{xerror} \tab A numeric vector containing the OOB error for each tree \cr
-\tab \cr
-\code{oob.err} \tab A numeric vector containing the OOB error for each subject \cr
-\tab \cr
-\code{oob.pred} \tab Outcome prediction for all subjects \cr
+\code{tree_oob_err} \tab A numeric vector containing the OOB error for each tree \cr
 \tab \cr
 \code{IBS.range} \tab A vector containing the IBS min and max \cr
-\tab \cr
-\code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
 }
 }
 \description{

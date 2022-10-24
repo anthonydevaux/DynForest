@@ -1,7 +1,7 @@
 #' Compute the VIMP statistic
 #'
-#' @param DynForest_obj \code{DynForest} object
-#' @param PCT Display VIMP statistic in pourcentage. Default value is FALSE.
+#' @param DynForest_VIMP_obj \code{DynForest_VIMP} object
+#' @param PCT Display VIMP statistic in percentage. Default value is FALSE.
 #' @param ordering Order predictors according to VIMP value. Default value is TRUE.
 #'
 #' @import ggplot2
@@ -52,28 +52,25 @@
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Compute OOB error
-#' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
-#'
 #' # Compute VIMP statistic
 #' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB)
 #'
 #' # Plot VIMP
-#' plot_VIMP(res_dyn_VIMP)
+#' plot_VIMP(DynForest_VIMP_obj = res_dyn_VIMP)
 #'
 #' }
-plot_VIMP <- function(DynForest_obj, PCT = FALSE, ordering = TRUE){
+plot_VIMP <- function(DynForest_VIMP_obj, PCT = FALSE, ordering = TRUE){
 
   # checking
-  if (!inherits(DynForest_obj, "DynForest")){
-    stop("DynForest_obj argument should be DynForest class!")
+  if (!inherits(DynForest_VIMP_obj, "DynForest_VIMP")){
+    stop("DynForest_VIMP_obj argument should be DynForest_VIMP class!")
   }
 
-  vimp.df <- data.frame(var = unlist(DynForest_obj$Inputs),
-                        vimp = unlist(DynForest_obj$Importance))
+  vimp.df <- data.frame(var = unlist(DynForest_VIMP_obj$Inputs),
+                        vimp = unlist(DynForest_VIMP_obj$Importance))
 
   if (PCT){
-    vimp.df$vimp <- vimp.df$vimp*100/mean(DynForest_obj$oob.err, na.rm = T) # vimp relative
+    vimp.df$vimp <- vimp.df$vimp*100/mean(DynForest_VIMP_obj$tree_oob_err, na.rm = T) # vimp relative
   }
 
   if (ordering){

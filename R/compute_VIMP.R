@@ -1,38 +1,20 @@
 #' Compute the importance of variables (VIMP) statistic
 #'
 #' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
+#' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
+#' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #'
 #' @importFrom methods is
 #'
-#' @return \code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
-#'    \code{data} \tab A list containing the data used to grow the trees \cr
-#'    \tab \cr
-#'    \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
-#'    \tab \cr
-#'    \code{type} \tab Outcome type \cr
-#'    \tab \cr
-#'    \code{times} \tab A numeric vector containing the time-to-event for all subjects \cr
-#'    \tab \cr
-#'    \code{cause} \tab Indicating the cause of interest \cr
-#'    \tab \cr
-#'    \code{causes} \tab A numeric vector containing the causes indicator \cr
-#'    \tab \cr
+#' @return \code{compute_VIMP()} function returns a list with the following elements:\tabular{ll}{
 #'    \code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
 #'    \tab \cr
-#'    \code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
+#'    \code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
 #'    \tab \cr
-#'    \code{param} \tab A list containing the hyperparameters \cr
-#'    \tab \cr
-#'    \code{xerror} \tab A numeric vector containing the OOB error for each tree \cr
-#'    \tab \cr
-#'    \code{oob.err} \tab A numeric vector containing the OOB error for each subject \cr
-#'    \tab \cr
-#'    \code{oob.pred} \tab Outcome prediction for all subjects \cr
+#'    \code{tree_oob_err} \tab A numeric vector containing the OOB error for each tree \cr
 #'    \tab \cr
 #'    \code{IBS.range} \tab A vector containing the IBS min and max \cr
-#'    \tab \cr
-#'    \code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
 #' }
 #'
 #' @author Anthony Devaux (\email{anthony.devaux@@u-bordeaux.fr})
@@ -85,19 +67,17 @@
 #' # Compute VIMP statistic
 #' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB, ncores = 2)
 #' }
-compute_VIMP <- function(DynForest_obj, ncores = NULL){
+compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
+                         ncores = NULL){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
   }
 
-  if (is.null(DynForest_obj$xerror)){
-    stop("OOB error should be first computed using 'compute_OOBerror()' function!")
-  }
-
   if (DynForest_obj$type=="surv"){
-    IBS.min <- DynForest_obj$IBS.range[1]
-    IBS.max <- DynForest_obj$IBS.range[2]
+    if (is.null(IBS.max)){
+      IBS.max <- max(DynForest_obj$data$Y$Y[,1])
+    }
   }
 
   rf <- DynForest_obj
@@ -112,6 +92,31 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
   if (is.null(ncores)==TRUE){
     ncores <- parallel::detectCores()-1
   }
+
+  ##############################
+
+  pbapply::pboptions(type="none")
+
+  cl <- parallel::makeCluster(ncores)
+  doParallel::registerDoParallel(cl)
+
+  pck <- .packages()
+  dir0 <- find.package()
+  dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+  parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+  parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+  tree_oob_err <- pbsapply(1:ntree,
+                     FUN=function(i){OOB.tree(rf$rf[,i], Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
+                                              IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
+
+  parallel::stopCluster(cl)
+
+  # tree_oob_err <- rep(NA, ntree)
+  # for (i in 1:ntree){
+  #   tree_oob_err[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y,
+  #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
+  # }
 
   #####################
 
@@ -159,7 +164,7 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
       }
       Curve.perm$X[,p] <- Curve$X[,p]
-      res <- mean(Curve.err[,p]- rf$xerror)
+      res <- mean(Curve.err[,p]- rf$tree_oob_err)
     }
 
     parallel::stopCluster(cl)
@@ -196,7 +201,7 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
       }
       Scalar.perm$X[,p] <- Scalar$X[,p]
-      res <- mean(Scalar.err[,p]- rf$xerror)
+      res <- mean(Scalar.err[,p]- rf$tree_oob_err)
     }
 
     parallel::stopCluster(cl)
@@ -236,7 +241,7 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
       }
       ##on remet la variable en place :::
       Factor.perm$X[,p] <- Factor$X[,p]
-      res <- mean(Factor.err[,p]- rf$xerror)
+      res <- mean(Factor.err[,p]- rf$tree_oob_err)
     }
 
     parallel::stopCluster(cl)
@@ -244,13 +249,12 @@ compute_VIMP <- function(DynForest_obj, ncores = NULL){
 
   Importance <- list(Curve=as.vector(Importance.Curve), Scalar=as.vector(Importance.Scalar), Factor=as.vector(Importance.Factor))
 
-  out <- list(rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,
-              Inputs = rf$Inputs, Curve.model = rf$Curve.model, param = rf$param,
-              comput.time = rf$comput.time,
-              xerror = rf$xerror, oob.err = rf$oob.err, oob.pred = rf$oob.err,
-              IBS.range = rf$IBS.range, Importance = Importance)
+  out <- list(Inputs = Inputs,
+              Importance = Importance,
+              tree_oob_err = tree_oob_err,
+              IBS.range = c(IBS.min, IBS.max))
 
-  class(out) <- c("DynForest")
+  class(out) <- c("DynForest_VIMP")
 
   return(out)
 

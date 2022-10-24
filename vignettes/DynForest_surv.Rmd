@@ -49,7 +49,7 @@ Then, we build the dataframe for the longitudinal predictors including:
 * **time** the observed time measurements; 
 * **serBilir**, **SGOT**, **albumin** and **alkaline** the longitudinal predictors. 
 
-These predictors were previously normalized to satisfy the Gaussian assumption for the linear mixed models. We also build the dataframe with the time-fixed predictors including:
+We also build the dataframe with the time-fixed predictors including:
 
 * **id** the unique patient identifier; 
 * **age**, **drug** and **sex** predictors measured at enrollment. 

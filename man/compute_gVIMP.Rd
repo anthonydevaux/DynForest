@@ -4,20 +4,30 @@
 \alias{compute_gVIMP}
 \title{Compute the grouped importance of variables (gVIMP) statistic}
 \usage{
-compute_gVIMP(DynForest_obj, group = NULL, ncores = NULL)
+compute_gVIMP(
+  DynForest_obj,
+  IBS.min = 0,
+  IBS.max = NULL,
+  group = NULL,
+  ncores = NULL
+)
 }
 \arguments{
 \item{DynForest_obj}{\code{DynForest} object containing the dynamic random forest used on train data}
+
+\item{IBS.min}{(Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.}
+
+\item{IBS.max}{(Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.}
 
 \item{group}{A list of groups with the name of the predictors assigned in each group}
 
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 }
 \value{
-\code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
+\code{compute_gVIMP()} function returns a list with the following elements:\tabular{ll}{
 \code{data} \tab A list containing the data used to grow the trees \cr
 \tab \cr
-\code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
+\code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
 \tab \cr
 \code{type} \tab Outcome type \cr
 \tab \cr

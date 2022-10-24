@@ -73,14 +73,14 @@ summary.DynForest <- function(object, ...){
   if (object$type=="factor"){
     type <- "classification"
     oob.type <- "Missclassification"
-    split.rule <- "Minimize variance"
+    split.rule <- "Minimize weighted within-group Shannon entropy"
     leaf.stat <- "Majority vote"
   }
 
   if (object$type=="scalar"){
     type <- "regression"
     oob.type <- "Mean square error"
-    split.rule <- "Minimize Gini index"
+    split.rule <- "Minimize weighted within-group variance"
     leaf.stat <- "Mean"
   }
 

@@ -319,7 +319,7 @@ DynTree_surv <- function(Y, Curve=NULL, Scalar=NULL, Factor=NULL, mtry = 1,
     id_feuille <- id_feuille_prime
     feuilles_courantes <- setdiff(unique(na.omit(id_feuille_prime)), feuilles_terminales)
 
-    if (count_split ==0 ){
+    if (count_split ==0){
 
       V_split <- V_split[order(V_split$num_noeud),]
       V_split$depth <- floor(log(V_split$num_noeud, base = 2)) + 1 # depth level

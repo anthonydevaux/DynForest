@@ -35,7 +35,7 @@
 #' @return DynForest function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
-#'    \code{rf} \tab A table with each tree in column. Provide multiple charactistics about the tree building \cr
+#'    \code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
 #'    \tab \cr
 #'    \code{type} \tab Outcome type \cr
 #'    \tab \cr
