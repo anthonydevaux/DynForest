@@ -4,15 +4,16 @@
 #' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
+#' @param seed Seed to replicate results
 #'
 #' @importFrom methods is
 #'
 #' @return \code{compute_VIMP()} function returns a list with the following elements:\tabular{ll}{
-#'    \code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
+#'    \code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
 #'    \tab \cr
-#'    \code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
+#'    \code{Importance} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
 #'    \tab \cr
-#'    \code{tree_oob_err} \tab A numeric vector containing the OOB error for each tree \cr
+#'    \code{tree_oob_err} \tab A numeric vector containing the OOB error for each tree needed to compute the VIMP statistic \cr
 #'    \tab \cr
 #'    \code{IBS.range} \tab A vector containing the IBS min and max \cr
 #' }
@@ -61,14 +62,11 @@
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Compute OOB error
-#' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
-#'
 #' # Compute VIMP statistic
-#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB, ncores = 2)
+#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2)
 #' }
 compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
-                         ncores = NULL){
+                         ncores = NULL, seed = round(runif(1,0,10000))){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
@@ -81,8 +79,8 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
   }
 
   rf <- DynForest_obj
-  Curve <- rf$data$Curve
-  Scalar <- rf$data$Scalar
+  Longitudinal <- rf$data$Longitudinal
+  Numeric <- rf$data$Numeric
   Factor <- rf$data$Factor
   Y <- rf$data$Y
   ntree <- ncol(rf$rf)
@@ -107,31 +105,31 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
   parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
   tree_oob_err <- pbsapply(1:ntree,
-                     FUN=function(i){OOB.tree(rf$rf[,i], Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
+                     FUN=function(i){OOB.tree(rf$rf[,i], Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, Y = Y,
                                               IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
 
   parallel::stopCluster(cl)
 
   # tree_oob_err <- rep(NA, ntree)
   # for (i in 1:ntree){
-  #   tree_oob_err[i] = OOB.tree(rf$rf[,i], Curve=Curve,Scalar=Scalar,Factor = Factor, Y=Y,
+  #   tree_oob_err[i] = OOB.tree(rf$rf[,i], Longitudinal=Longitudinal,Numeric=Numeric,Factor = Factor, Y=Y,
   #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
   # }
 
   #####################
 
-  Curve.perm <- Curve
-  Scalar.perm <- Scalar
+  Longitudinal.perm <- Longitudinal
+  Numeric.perm <- Numeric
   Factor.perm <- Factor
 
   p <- NULL
-  Importance.Curve <- NULL
-  Importance.Scalar <- NULL
+  Importance.Longitudinal <- NULL
+  Importance.Numeric <- NULL
   Importance.Factor <- NULL
 
-  if (is.element("Curve",Inputs)==TRUE){
+  if (is.element("Longitudinal",Inputs)==TRUE){
 
-    Curve.err <- matrix(NA, ntree, ncol(Curve$X))
+    Longitudinal.err <- matrix(NA, ntree, ncol(Longitudinal$X))
 
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
@@ -142,29 +140,24 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     parallel::clusterExport(cl,list("pck","dir"),envir=environment())
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
-    Importance.Curve <- foreach::foreach(p=1:ncol(Curve$X),
-                                         #.packages = "kmlShape" ,
+    Importance.Longitudinal <- foreach::foreach(p=1:ncol(Longitudinal$X),
                                          .combine = "c") %dopar% {
-      # for (p in 1:ncol(Curve$X)){
+    # for (p in 1:ncol(Longitudinal$X)){
+
+    set.seed(seed+p) # set seed for permutation
+
+    Longitudinal.perm$X[,p] <- sample(x = na.omit(Longitudinal$X[,p]),
+                                      size = length(Longitudinal$X[,p]),
+                                      replace = TRUE) # avoid NA issue with permut
 
       for (k in 1:ntree){
 
-        BOOT <- rf$rf[,k]$boot
-        nboot <- length(unique(Y$id))- length(BOOT)
-        id_boot_Curve <- which(Curve$id%in%BOOT)
-
-        # Il faut maintenant faire la permutation :
-
-        Curve.perm$X[-id_boot_Curve,p] <- sample(x = na.omit(Curve.perm$X[-id_boot_Curve,p]),
-                                                 size = length(Curve.perm$X[-id_boot_Curve,p]),
-                                                 replace = TRUE) # avoid NA issue with permut
-
-        Curve.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve.perm, Scalar = Scalar, Factor=Factor, Y,
+        Longitudinal.err[k,p] <- OOB.tree(rf$rf[,k], Longitudinal = Longitudinal.perm, Numeric = Numeric, Factor = Factor, Y,
                                    IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
 
       }
-      Curve.perm$X[,p] <- Curve$X[,p]
-      res <- mean(Curve.err[,p]- rf$tree_oob_err)
+      Longitudinal.perm$X[,p] <- Longitudinal$X[,p]
+      res <- mean(Longitudinal.err[,p]- tree_oob_err)
     }
 
     parallel::stopCluster(cl)
@@ -172,9 +165,9 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
   }
 
 
-  if (is.element("Scalar",Inputs)==TRUE){
+  if (is.element("Numeric",Inputs)==TRUE){
 
-    Scalar.err <- matrix(NA, ntree, dim(Scalar$X)[2])
+    Numeric.err <- matrix(NA, ntree, dim(Numeric$X)[2])
 
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
@@ -185,23 +178,22 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     parallel::clusterExport(cl,list("pck","dir"),envir=environment())
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
-    Importance.Scalar <- foreach::foreach(p=1:ncol(Scalar$X),
-                                          #.packages = "kmlShape" ,
+    Importance.Numeric <- foreach::foreach(p=1:ncol(Numeric$X),
                                           .combine = "c") %dopar% {
 
+    set.seed(seed+p) # set seed for permutation
+
+    Numeric.perm$X[,p] <- sample(Numeric$X[,p])
+
+    # for (p in 1:ncol(Numeric$X)){
       for (k in 1:ntree){
-        BOOT <- rf$rf[,k]$boot
-        nboot <- length(unique(Y$id))- length(BOOT)
-        id_boot_Scalar <- which(Scalar$id%in%BOOT)
 
-        Scalar.perm$X[-id_boot_Scalar,p] <- sample(Scalar.perm$X[-id_boot_Scalar,p])
-
-        Scalar.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar.perm, Factor=Factor, Y,
-                                    IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
+        Numeric.err[k,p] <- OOB.tree(rf$rf[,k], Longitudinal = Longitudinal, Numeric = Numeric.perm, Factor = Factor, Y,
+                                     IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
 
       }
-      Scalar.perm$X[,p] <- Scalar$X[,p]
-      res <- mean(Scalar.err[,p]- rf$tree_oob_err)
+      Numeric.perm$X[,p] <- Numeric$X[,p]
+      res <- mean(Numeric.err[,p]- tree_oob_err)
     }
 
     parallel::stopCluster(cl)
@@ -221,40 +213,36 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
     Importance.Factor <- foreach::foreach(p=1:ncol(Factor$X),
-                                          #.packages = "kmlShape" ,
                                           .combine = "c") %dopar% {
+
+    set.seed(seed+p) # set seed for permutation
+
+    Factor.perm$X[,p] <- sample(Factor$X[,p])
+
     #for (p in 1:ncol(Factor$X)){
 
       for (k in 1:ntree){
 
-        BOOT <- rf$rf[,k]$boot
-        nboot <- length(unique(Y$id))- length(BOOT)
-        id_boot_Factor <- which(Factor$id%in%BOOT)
-
-        # Il faut maintenant faire la permutation :
-
-        Factor.perm$X[-id_boot_Factor,p] <- sample(Factor.perm$X[-id_boot_Factor,p])
-
-        Factor.err[k,p] <- OOB.tree(rf$rf[,k], Curve=Curve, Scalar = Scalar, Factor=Factor.perm , Y,
+        Factor.err[k,p] <- OOB.tree(rf$rf[,k], Longitudinal=Longitudinal, Numeric = Numeric, Factor=Factor.perm , Y,
                                     IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
 
       }
-      ##on remet la variable en place :::
+
       Factor.perm$X[,p] <- Factor$X[,p]
-      res <- mean(Factor.err[,p]- rf$tree_oob_err)
+      res <- mean(Factor.err[,p]- tree_oob_err)
     }
 
     parallel::stopCluster(cl)
   }
 
-  Importance <- list(Curve=as.vector(Importance.Curve), Scalar=as.vector(Importance.Scalar), Factor=as.vector(Importance.Factor))
+  Importance <- list(Longitudinal=as.vector(Importance.Longitudinal), Numeric=as.vector(Importance.Numeric), Factor=as.vector(Importance.Factor))
 
-  out <- list(Inputs = Inputs,
+  out <- list(Inputs = DynForest_obj$Inputs,
               Importance = Importance,
               tree_oob_err = tree_oob_err,
               IBS.range = c(IBS.min, IBS.max))
 
-  class(out) <- c("DynForest_VIMP")
+  class(out) <- c("DynForestVIMP")
 
   return(out)
 

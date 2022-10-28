@@ -9,7 +9,8 @@ compute_gVIMP(
   IBS.min = 0,
   IBS.max = NULL,
   group = NULL,
-  ncores = NULL
+  ncores = NULL,
+  seed = round(runif(1, 0, 10000))
 )
 }
 \arguments{
@@ -22,36 +23,18 @@ compute_gVIMP(
 \item{group}{A list of groups with the name of the predictors assigned in each group}
 
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
+
+\item{seed}{Seed to replicate results}
 }
 \value{
 \code{compute_gVIMP()} function returns a list with the following elements:\tabular{ll}{
-\code{data} \tab A list containing the data used to grow the trees \cr
-\tab \cr
-\code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
-\tab \cr
-\code{type} \tab Outcome type \cr
-\tab \cr
-\code{times} \tab A numeric vector containing the time-to-event for all subjects \cr
-\tab \cr
-\code{cause} \tab Indicating the cause of interest \cr
-\tab \cr
-\code{causes} \tab A numeric vector containing the causes indicator \cr
-\tab \cr
-\code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
-\tab \cr
-\code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
-\tab \cr
-\code{param} \tab A list containing the hyperparameters \cr
-\tab \cr
-\code{xerror} \tab A numeric vector containing the OOB error for each tree \cr
-\tab \cr
-\code{oob.err} \tab A numeric vector containing the OOB error for each subject \cr
-\tab \cr
-\code{oob.pred} \tab Outcome prediction for all subjects \cr
-\tab \cr
-\code{IBS.range} \tab A vector containing the IBS min and max \cr
+\code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
 \tab \cr
 \code{gVIMP} \tab A numeric vector containing the gVIMP for each group defined in \code{group} argument \cr
+\tab \cr
+\code{tree_oob_err} \tab A numeric vector containing the OOB error for each tree needed to compute the VIMP statistic \cr
+\tab \cr
+\code{IBS.range} \tab A vector containing the IBS min and max \cr
 }
 }
 \description{
@@ -97,11 +80,8 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      ntree = 50, nodesize = 5, minsplit = 5,
                      cause = 2, ncores = 2, seed = 1234)
 
-# Compute OOB error
-res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
-
 # Compute gVIMP statistic
-res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn_OOB,
+res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn,
                                group = list(group1 = c("serBilir","SGOT"),
                                             group2 = c("albumin","alkaline")),
                                ncores = 2)

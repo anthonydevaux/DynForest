@@ -1,6 +1,6 @@
 #' Prediction using dynamic random forests
 #'
-#' @param object \code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data
+#' @param object \code{DynForest} object containing the dynamic random forest used on train data
 #' @param timeData A data.frame containing the id and time measurements variables and the time-dependent predictors.
 #' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.
 #' @param idVar A character indicating the name of variable to identify the subjects
@@ -156,13 +156,13 @@ predict.DynForest <- function(object,
 
   # Inputs
   if (!is.null(timeData)){
-    Curve <- list(type = "Curve",
+    Longitudinal <- list(type = "Longitudinal",
                   X = subset(timeData, select = -c(get(idVar), get(timeVar))),
                   id = timeData[,idVar],
                   time = timeData[,timeVar],
-                  model = object$Curve.model)
+                  model = object$Longitudinal.model)
   }else{
-    Curve <- NULL
+    Longitudinal <- NULL
   }
 
   if (!is.null(fixedData)){
@@ -182,11 +182,11 @@ predict.DynForest <- function(object,
     }
 
     if (length(var_num[which(var_num==T)])>0){
-      Scalar <- list(type = "Scalar",
+      Numeric <- list(type = "Numeric",
                      X = subset(fixedData, select = names(var_num[which(var_num==T)])),
                      id = fixedData[,idVar])
     }else{
-      Scalar <- NULL
+      Numeric <- NULL
     }
 
   }
@@ -226,7 +226,7 @@ predict.DynForest <- function(object,
   for (t in 1:ncol(object$rf)){
 
     pred_leaf[t,] <- pred.MMT(object$rf[,t],
-                              Curve = Curve, Scalar = Scalar, Factor = Factor)
+                              Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor)
 
     if (object$type=="surv"){
 
@@ -326,7 +326,7 @@ predict.DynForest <- function(object,
 
   }
 
-  if (object$type=="scalar"){
+  if (object$type=="numeric"){
     pred_indiv <- apply(pred_out$pred, 2, "mean", na.rm = TRUE)
 
     names(pred_indiv) <- Id.pred

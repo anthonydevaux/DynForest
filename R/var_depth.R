@@ -65,80 +65,80 @@ var_depth <- function(DynForest_obj){
 
   Inputs <- names(DynForest_obj$Inputs)[unlist(lapply(DynForest_obj$Inputs, FUN = function(x) return(!is.null(x))))]
 
-  if (any(Inputs%in%c("Curve"))){
+  if (any(Inputs%in%c("Longitudinal"))){
 
     # mindepth and node at depth
 
-    Curve_depth_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
+    Longitudinal_depth_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
-      if (nrow(x$V_split[x$V_split$type=="Curve",])==0){
+      if (nrow(x$V_split[x$V_split$type=="Longitudinal",])==0){
         return(data.frame("var" = character(), "depth" = numeric()))
       }
 
-      df <- aggregate(depth ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], min)
-      df <- data.frame(var = paste0(DynForest_obj$Inputs$Curve[df$var_split], ".bi", df$var_summary-1),
+      df <- aggregate(depth ~ type + var_split + feature, x$V_split[x$V_split$type=="Longitudinal",], min)
+      df <- data.frame(var = paste0(DynForest_obj$Inputs$Longitudinal[df$var_split], ".bi", df$feature-1),
                        depth = df$depth)
       return(df)
 
     })
 
-    Curve_depth <- aggregate(depth ~ var,
-                             do.call(rbind, Curve_depth_list), mean)
-    Curve_depth <- Curve_depth[str_order(Curve_depth$var),]
+    Longitudinal_depth <- aggregate(depth ~ var,
+                             do.call(rbind, Longitudinal_depth_list), mean)
+    Longitudinal_depth <- Longitudinal_depth[str_order(Longitudinal_depth$var),]
 
-    Curve_node_depth <- suppressWarnings(
+    Longitudinal_node_depth <- suppressWarnings(
       Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "var",
                                         all.x = TRUE, all.y = TRUE),
-             Curve_depth_list))
-    Curve_node_depth <- Curve_node_depth[str_order(Curve_node_depth$var),]
-    colnames(Curve_node_depth)[2:ncol(Curve_node_depth)] <- paste0("tree", seq(ncol(Curve_node_depth)-1))
+             Longitudinal_depth_list))
+    Longitudinal_node_depth <- Longitudinal_node_depth[str_order(Longitudinal_node_depth$var),]
+    colnames(Longitudinal_node_depth)[2:ncol(Longitudinal_node_depth)] <- paste0("tree", seq(ncol(Longitudinal_node_depth)-1))
 
     # count by tree
 
-    Curve_count_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
+    Longitudinal_count_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
-      if (nrow(x$V_split[x$V_split$type=="Curve",])==0){
+      if (nrow(x$V_split[x$V_split$type=="Longitudinal",])==0){
         return(data.frame("var" = character(), "depth" = numeric()))
       }
 
-      df <- aggregate(depth ~ type + var_split + var_summary, x$V_split[x$V_split$type=="Curve",], length)
-      df <- data.frame(var = paste0(DynForest_obj$Inputs$Curve[df$var_split], ".bi", df$var_summary-1),
+      df <- aggregate(depth ~ type + var_split + feature, x$V_split[x$V_split$type=="Longitudinal",], length)
+      df <- data.frame(var = paste0(DynForest_obj$Inputs$Longitudinal[df$var_split], ".bi", df$feature-1),
                        depth = df$depth)
       return(df)
 
     })
 
-    Curve_count <- suppressWarnings(
+    Longitudinal_count <- suppressWarnings(
       Reduce(function(dtf1, dtf2) merge(dtf1, dtf2, by = "var",
                                         all.x = TRUE, all.y = TRUE),
-             Curve_count_list))
+             Longitudinal_count_list))
 
-    Curve_count <- Curve_count[str_order(Curve_count$var),]
-    colnames(Curve_count)[2:ncol(Curve_count)] <- paste0("tree", seq(ncol(Curve_count)-1))
+    Longitudinal_count <- Longitudinal_count[str_order(Longitudinal_count$var),]
+    colnames(Longitudinal_count)[2:ncol(Longitudinal_count)] <- paste0("tree", seq(ncol(Longitudinal_count)-1))
 
   }else{
 
-    Curve_depth <- NULL
-    Curve_node_depth <- NULL
-    Curve_count <- NULL
+    Longitudinal_depth <- NULL
+    Longitudinal_node_depth <- NULL
+    Longitudinal_count <- NULL
 
   }
 
-  if (any(Inputs%in%c("Scalar","Factor"))){
+  if (any(Inputs%in%c("Numeric","Factor"))){
 
     # mindepth and node at depth
 
     Other_depth_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
-      if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
+      if (nrow(x$V_split[x$V_split$type%in%c("Numeric"),])>0){
 
-        df_scalar <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], min)
-        df_scalar <- data.frame(var = DynForest_obj$Inputs$Scalar[df_scalar$var_split],
-                                depth = df_scalar$depth)
+        df_Numeric <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Numeric"),], min)
+        df_Numeric <- data.frame(var = DynForest_obj$Inputs$Numeric[df_Numeric$var_split],
+                                depth = df_Numeric$depth)
 
       }else{
 
-        df_scalar <- data.frame("var" = character(), "depth" = numeric())
+        df_Numeric <- data.frame("var" = character(), "depth" = numeric())
 
       }
 
@@ -154,7 +154,7 @@ var_depth <- function(DynForest_obj){
 
       }
 
-      df <- rbind(df_scalar, df_factor)
+      df <- rbind(df_Numeric, df_factor)
 
       return(df)
 
@@ -175,15 +175,15 @@ var_depth <- function(DynForest_obj){
 
     Other_count_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
 
-      if (nrow(x$V_split[x$V_split$type%in%c("Scalar"),])>0){
+      if (nrow(x$V_split[x$V_split$type%in%c("Numeric"),])>0){
 
-        df_scalar <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Scalar"),], length)
-        df_scalar <- data.frame(var = DynForest_obj$Inputs$Scalar[df_scalar$var_split],
-                                depth = df_scalar$depth)
+        df_Numeric <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Numeric"),], length)
+        df_Numeric <- data.frame(var = DynForest_obj$Inputs$Numeric[df_Numeric$var_split],
+                                depth = df_Numeric$depth)
 
       }else{
 
-        df_scalar <- data.frame("var" = character(), "depth" = numeric())
+        df_Numeric <- data.frame("var" = character(), "depth" = numeric())
 
       }
 
@@ -199,7 +199,7 @@ var_depth <- function(DynForest_obj){
 
       }
 
-      df <- rbind(df_scalar, df_factor)
+      df <- rbind(df_Numeric, df_factor)
 
       return(df)
 
@@ -221,17 +221,21 @@ var_depth <- function(DynForest_obj){
 
   }
 
-  min_depth <- rbind(Curve_depth, Other_depth)
+  min_depth <- rbind(Longitudinal_depth, Other_depth)
   min_depth$rank <- rank(min_depth$depth)
 
-  var_node_depth <- rbind(Curve_node_depth, Other_node_depth)
+  var_node_depth <- rbind(Longitudinal_node_depth, Other_node_depth)
   rownames(var_node_depth) <- seq(nrow(var_node_depth))
 
-  var_count <- rbind(Curve_count, Other_count)
+  var_count <- rbind(Longitudinal_count, Other_count)
   var_count[is.na(var_count)] <- 0
   rownames(var_count) <- seq(nrow(var_count))
 
-  return(list(min_depth = min_depth, var_node_depth = var_node_depth,
-              var_count = var_count))
+  out <- list(min_depth = min_depth, var_node_depth = var_node_depth,
+              var_count = var_count)
+
+  class(out) <- "DynForestVarDepth"
+
+  return(out)
 
 }

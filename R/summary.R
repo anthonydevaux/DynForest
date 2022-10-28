@@ -77,7 +77,7 @@ summary.DynForest <- function(object, ...){
     leaf.stat <- "Majority vote"
   }
 
-  if (object$type=="scalar"){
+  if (object$type=="numeric"){
     type <- "regression"
     oob.type <- "Mean square error"
     split.rule <- "Minimize weighted within-group variance"
@@ -95,8 +95,8 @@ summary.DynForest <- function(object, ...){
   # input
   cat("Input","\n")
   cat(paste0("\t","Number of subjects: ", length(unique(unlist(apply(object$rf, 2, FUN = function(x) x$idY))))),"\n")
-  cat(paste0("\t","Curve: ", length(object$Inputs$Curve), " predictor(s)"),"\n")
-  cat(paste0("\t","Scalar: ", length(object$Inputs$Scalar), " predictor(s)"),"\n")
+  cat(paste0("\t","Longitudinal: ", length(object$Inputs$Longitudinal), " predictor(s)"),"\n")
+  cat(paste0("\t","Numeric: ", length(object$Inputs$Numeric), " predictor(s)"),"\n")
   cat(paste0("\t","Factor: ", length(object$Inputs$Factor), " predictor(s)"),"\n")
   cat("----------------","\n")
 
@@ -136,11 +136,7 @@ summary.DynForest <- function(object, ...){
 
   # erreur out-of-bag
   cat(paste0("Out-of-bag error based on ", oob.type),"\n")
-  cat(paste0("\t","Tree-based out-of-bag error: ",
-             ifelse(!is.null(object$xerror),
-                    round(mean(object$xerror, na.rm = T), 4),
-                    "Not computed!")),"\n")
-  cat(paste0("\t","Individual-based out-of-bag error: ",
+  cat(paste0("\t","Out-of-bag error: ",
              ifelse(!is.null(object$oob.err),
                     round(mean(object$oob.err, na.rm = T), 4),
                     "Not computed!")),"\n")
@@ -150,7 +146,6 @@ summary.DynForest <- function(object, ...){
   cat("Time to build the random forest \n")
   cat("\t")
   print(object$comput.time)
-  cat("\n")
   cat("----------------","\n")
 
 }

@@ -15,7 +15,7 @@
 )
 }
 \arguments{
-\item{object}{\code{DynForest} or \code{DynForest_OOB} object containing the dynamic random forest used on train data}
+\item{object}{\code{DynForest} object containing the dynamic random forest used on train data}
 
 \item{timeData}{A data.frame containing the id and time measurements variables and the time-dependent predictors.}
 

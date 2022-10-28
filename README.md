@@ -1,10 +1,10 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
 <!-- badges: start -->
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version-last-release/DynForest)](https://CRAN.R-project.org/package=DynForest)
-[![R-CMD-check](https://github.com/anthonydevaux/DynForest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/anthonydevaux/DynForest/actions/workflows/R-CMD-check.yaml)
 [![Downloads](https://cranlogs.r-pkg.org/badges/DynForest?color=blue)](https://www.r-pkg.org/pkg/DynForest)
 <!-- badges: end -->
 
@@ -13,14 +13,14 @@ status](https://www.r-pkg.org/badges/version-last-release/DynForest)](https://CR
 `DynForest` is a R package aiming to predict an outcome using
 multivariate longitudinal predictors. The method is based on random
 forest principle where the longitudinal predictors are modeled through
-the random forest. `DynForest` currently supports continuous, discrete
-and survival outcome. The methodology is fully described for a survival
-outcome in the paper:
+the random forest. `DynForest` currently supports continuous,
+categorical and survival outcome. The methodology is fully described for
+a survival outcome in the paper:
 
 > Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022).
 > Random survival forests for competing risks with multivariate
-> longitudinal endogenous covariates. *arXiv*. [\<doi:
-> 10.48550/arXiv.2208.05801\>](https://doi.org/10.48550/arXiv.2208.05801)
+> longitudinal endogenous covariates. *arXiv*.
+> [\<doi: 10.48550/arXiv.2208.05801\>](https://doi.org/10.48550/arXiv.2208.05801)
 
 ## Installation
 
@@ -39,6 +39,6 @@ Development version of DynForest is also available from
 devtools::install_github("anthonydevaux/DynForest")
 ```
 
-## Acknowlegments
+## Acknowledgements
 
-We thank Louis Capitaine for his precious help for the R code.
+We thank Dr. Louis Capitaine for FrechForest R code used in DynForest.

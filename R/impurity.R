@@ -7,7 +7,7 @@
 #' @keywords internal
 impurity <- function(Y){
 
-  if (Y$type=="scalar"){
+  if (Y$type=="numeric"){
     if (length(Y$Y)==1){
       return(0)
     }

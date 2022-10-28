@@ -4,7 +4,13 @@
 \alias{compute_VIMP}
 \title{Compute the importance of variables (VIMP) statistic}
 \usage{
-compute_VIMP(DynForest_obj, IBS.min = 0, IBS.max = NULL, ncores = NULL)
+compute_VIMP(
+  DynForest_obj,
+  IBS.min = 0,
+  IBS.max = NULL,
+  ncores = NULL,
+  seed = round(runif(1, 0, 10000))
+)
 }
 \arguments{
 \item{DynForest_obj}{\code{DynForest} object containing the dynamic random forest used on train data}
@@ -14,14 +20,16 @@ compute_VIMP(DynForest_obj, IBS.min = 0, IBS.max = NULL, ncores = NULL)
 \item{IBS.max}{(Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.}
 
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
+
+\item{seed}{Seed to replicate results}
 }
 \value{
 \code{compute_VIMP()} function returns a list with the following elements:\tabular{ll}{
-\code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
+\code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
 \tab \cr
-\code{Importance} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
+\code{Importance} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains a numeric vector of VIMP statistic predictor in \code{Inputs} value \cr
 \tab \cr
-\code{tree_oob_err} \tab A numeric vector containing the OOB error for each tree \cr
+\code{tree_oob_err} \tab A numeric vector containing the OOB error for each tree needed to compute the VIMP statistic \cr
 \tab \cr
 \code{IBS.range} \tab A vector containing the IBS min and max \cr
 }
@@ -69,11 +77,8 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      ntree = 50, nodesize = 5, minsplit = 5,
                      cause = 2, ncores = 2, seed = 1234)
 
-# Compute OOB error
-res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
-
 # Compute VIMP statistic
-res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn_OOB, ncores = 2)
+res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2)
 }
 }
 \author{

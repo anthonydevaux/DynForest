@@ -1,0 +1,11 @@
+citHeader("To cite DynForest in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Random survival forests for competing risks with multivariate longitudinal endogenous covariates",
+  author   = c(person("Anthony Devaux"), person("Catherine Helmer"), person("Carole Dufouil"), person("Robin Genuer"), person("C\\'ecile Proust-Lima")),
+  journal  = "arXiv preprint arXiv:2208.05801",
+  year     = "2022",
+  url      = "https://arxiv.org/abs/2208.05801",
+  textVersion = "Devaux A, Helmer C, Dufouil C, Genuer R, Proust-Lima C (2022). Random survival forests for competing risks with multivariate longitudinal endogenous covariates. arXiv preprint arXiv:2208.05801."
+)

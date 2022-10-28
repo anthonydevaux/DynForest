@@ -5,13 +5,12 @@
 \title{Paralleled random survival Forest using multivariate longitudinal endogenous covariates}
 \usage{
 rf_shape_para(
-  Curve = NULL,
-  Scalar = NULL,
+  Longitudinal = NULL,
+  Numeric = NULL,
   Factor = NULL,
   Y,
   mtry,
   ntree,
-  timeScale,
   ncores,
   nsplit_option = "quantile",
   nodesize = 1,
@@ -22,19 +21,17 @@ rf_shape_para(
 )
 }
 \arguments{
-\item{Curve}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
+\item{Longitudinal}{A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.}
 
-\item{Scalar}{A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.}
+\item{Numeric}{A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
+\item{Factor}{A list of categorical predictors which should contain: \code{X} a dataframe with as many columns as categorical predictors; \code{id} is the vector of the identifiers for each individual.}
 
-\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
+\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; \code{Y} is the outcome variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
 
 \item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is \code{NULL}.}
 
 \item{ntree}{Number of trees to grow. Default value set to 200.}
-
-\item{timeScale}{Experimental}
 
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 

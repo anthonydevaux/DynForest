@@ -1,13 +1,13 @@
 #' Random forest with multivariate longitudinal endogenous covariates
 #'
-#' Built a random forest using multivariate longitudinal endogenous covariates
+#' Build a random forest using multivariate longitudinal endogenous covariates
 #'
 #' @param timeData A data.frame containing the id and time measurements variables and the time-dependent predictors.
-#' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.
+#' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Categorical variables should be characterized as factor.
 #' @param idVar A character indicating the name of variable to identify the subjects
 #' @param timeVar A character indicating the name of time variable
 #' @param timeVarModel A list for each time-dependent predictors containing a list of formula for fixed and random part from the mixed model
-#' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{scalar}" or "\code{factor}"; .
+#' @param Y A list of output which should contain: \code{type} defines the nature of the outcome, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; .
 #' @param ntree Number of trees to grow. Default value set to 200.
 #' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is defined as the square root of the number of predictors.
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
@@ -27,10 +27,10 @@
 #' @import stats
 #' @import utils
 #'
-#' @details The function currently supports survival (competing or single event), continuous or factor outcome.
+#' @details The function currently supports survival (competing or single event), continuous or categorical outcome.
 #'
-#' FUTUR IMPROVEMENTS:
-#' - TBD
+#' FUTUR IMPLEMENTATIONS:
+#' - Continuous longitudinal outcome
 #'
 #' @return DynForest function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
@@ -45,9 +45,9 @@
 #'    \tab \cr
 #'    \code{causes} \tab A numeric vector containing the causes indicator \cr
 #'    \tab \cr
-#'    \code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
+#'    \code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
 #'    \tab \cr
-#'    \code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
+#'    \code{Longitudinal.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
 #'    \tab \cr
 #'    \code{param} \tab A list containing the hyperparameters \cr
 #'    \tab \cr
@@ -58,7 +58,7 @@
 #'
 #' @references Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022). Random survival forests for competing risks with multivariate longitudinal endogenous covariates. arXiv <doi: 10.48550/arXiv.2208.05801>
 #'
-#' @seealso \code{\link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot_VIMP} \link{plot_gVIMP} \link{plot_mindepth}}
+#' @seealso \code{\link{summary.DynForest} \link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot.DynForest}}
 #'
 #' @examples
 #' \donttest{
@@ -125,13 +125,13 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
 
   # Inputs
   if (!is.null(timeData)){
-    Curve <- list(type = "Curve",
-                  X = subset(timeData, select = -c(get(idVar), get(timeVar))),
-                  id = timeData[,idVar],
-                  time = timeData[,timeVar],
-                  model = timeVarModel)
+    Longitudinal <- list(type = "Longitudinal",
+                         X = subset(timeData, select = -c(get(idVar), get(timeVar))),
+                         id = timeData[,idVar],
+                         time = timeData[,timeVar],
+                         model = timeVarModel)
   }else{
-    Curve <- NULL
+    Longitudinal <- NULL
   }
 
   if (!is.null(fixedData)){
@@ -151,21 +151,21 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
     }
 
     if (length(var_num[which(var_num==T)])>0){
-      Scalar <- list(type = "Scalar",
-                     X = subset(fixedData, select = names(var_num[which(var_num==T)])),
-                     id = fixedData[,idVar])
+      Numeric <- list(type = "Numeric",
+                      X = subset(fixedData, select = names(var_num[which(var_num==T)])),
+                      id = fixedData[,idVar])
     }else{
-      Scalar <- NULL
+      Numeric <- NULL
     }
 
   }
 
-  Inputs <- read.Xarg(c(Curve,Scalar,Factor))
+  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
   for (k in 1:length(Inputs)){
     str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
   }
 
-  # Output
+  # Outcome
   Y <- list(type = Y$type,
             id = Y$Y[,idVar],
             Y = Y$Y)
@@ -194,7 +194,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
 
   ######### DynTree #########
 
-  rf <-  rf_shape_para(Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
+  rf <-  rf_shape_para(Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, Y = Y,
                        mtry = mtry, ntree = ntree, ncores = ncores,
                        nsplit_option = nsplit_option,
                        nodesize = nodesize, minsplit = minsplit,
@@ -205,22 +205,21 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
   ###########################
 
   if (Y$type == "surv"){
-    drf <- list(data = list(Curve = Curve, Factor = Factor, Scalar = Scalar, Y = Y),
+    out <- list(data = list(Longitudinal = Longitudinal, Factor = Factor, Numeric = Numeric, Y = Y),
                 rf = rf$rf, type = rf$type, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
-                Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
-                Curve.model = Curve$model, param = list(mtry = mtry, nodesize = nodesize,
-                                                        minsplit = minsplit, ntree = ntree),
+                Inputs = list(Longitudinal = names(Longitudinal$X), Numeric = names(Numeric$X), Factor = names(Factor$X)),
+                Longitudinal.model = Longitudinal$model, param = list(mtry = mtry, nodesize = nodesize,
+                                                                      minsplit = minsplit, ntree = ntree),
                 comput.time = Sys.time() - debut)
-    class(drf) <- c("DynForest")
-    return(drf)
+  }else{
+    out <- list(data = list(Longitudinal = Longitudinal, Factor = Factor, Numeric = Numeric, Y = Y),
+                rf = rf$rf, type = rf$type, levels = Ylevels,
+                Inputs = list(Longitudinal = names(Longitudinal$X), Numeric = names(Numeric$X), Factor = names(Factor$X)),
+                Longitudinal.model = Longitudinal$model, param = list(mtry = mtry, nodesize = nodesize,
+                                                                      minsplit = NULL, ntree = ntree),
+                comput.time = Sys.time() - debut)
   }
 
-  drf <- list(data = list(Curve = Curve, Factor = Factor, Scalar = Scalar, Y = Y),
-              rf = rf$rf, type = rf$type, levels = Ylevels,
-              Inputs = list(Curve = names(Curve$X), Scalar = names(Scalar$X), Factor = names(Factor$X)),
-              Curve.model = Curve$model, param = list(mtry = mtry, nodesize = nodesize,
-                                                      minsplit = NULL, ntree = ntree),
-              comput.time = Sys.time() - debut)
-  class(drf) <- c("DynForest")
-  return(drf)
+  class(out) <- c("DynForest")
+  return(out)
 }

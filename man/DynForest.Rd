@@ -25,7 +25,7 @@ DynForest(
 \arguments{
 \item{timeData}{A data.frame containing the id and time measurements variables and the time-dependent predictors.}
 
-\item{fixedData}{A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.}
+\item{fixedData}{A data.frame containing the id variable and the time-fixed predictors. Categorical variables should be characterized as factor.}
 
 \item{idVar}{A character indicating the name of variable to identify the subjects}
 
@@ -33,7 +33,7 @@ DynForest(
 
 \item{timeVarModel}{A list for each time-dependent predictors containing a list of formula for fixed and random part from the mixed model}
 
-\item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{scalar}" or "\code{factor}"; .}
+\item{Y}{A list of output which should contain: \code{type} defines the nature of the outcome, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; .}
 
 \item{ntree}{Number of trees to grow. Default value set to 200.}
 
@@ -67,9 +67,9 @@ DynForest function return a list with the following elements:\tabular{ll}{
 \tab \cr
 \code{causes} \tab A numeric vector containing the causes indicator \cr
 \tab \cr
-\code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
+\code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
 \tab \cr
-\code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
+\code{Longitudinal.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
 \tab \cr
 \code{param} \tab A list containing the hyperparameters \cr
 \tab \cr
@@ -77,14 +77,14 @@ DynForest function return a list with the following elements:\tabular{ll}{
 }
 }
 \description{
-Built a random forest using multivariate longitudinal endogenous covariates
+Build a random forest using multivariate longitudinal endogenous covariates
 }
 \details{
-The function currently supports survival (competing or single event), continuous or factor outcome.
+The function currently supports survival (competing or single event), continuous or categorical outcome.
 
-FUTUR IMPROVEMENTS:
+FUTUR IMPLEMENTATIONS:
 \itemize{
-\item TBD
+\item Continuous longitudinal outcome
 }
 }
 \examples{
@@ -132,7 +132,7 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022). Random survival forests for competing risks with multivariate longitudinal endogenous covariates. arXiv <doi: 10.48550/arXiv.2208.05801>
 }
 \seealso{
-\code{\link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot_VIMP} \link{plot_gVIMP} \link{plot_mindepth}}
+\code{\link{summary.DynForest} \link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot.DynForest}}
 }
 \author{
 Anthony Devaux (\email{anthony.devaux@u-bordeaux.fr})

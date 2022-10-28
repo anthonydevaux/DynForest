@@ -1,10 +1,10 @@
 #' Compute Out-Of-Bag error on the tree
 #'
 #' @param tree Tree object resulting from \code{Rtmax_surv} function
-#' @param Curve A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
-#' @param Scalar A list of scalar predictors which should contain: \code{X} a dataframe with as many columns as scalar predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param Longitudinal A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
+#' @param Numeric A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
-#' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{curve}", "\code{scalar}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the Inputs.
+#' @param Y A list of output which should contain: \code{type} defines the nature of the outcome, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the Inputs.
 #' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param cause (Only with competing events) Number indicates the event of interest.
@@ -14,17 +14,17 @@
 #' @import prodlim
 #'
 #' @keywords internal
-OOB.tree <- function(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
+OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
                      IBS.min = 0, IBS.max = NULL, cause = 1){
 
-  Inputs <- read.Xarg(c(Curve,Scalar,Factor))
+  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
 
   BOOT <- tree$boot
   OOB <- setdiff(unique(Y$id), BOOT)
 
-  Scalar_courant <- NULL
-  Factor_courant <- NULL
-  Curve_courant <- NULL
+  Numeric_current <- NULL
+  Factor_current <- NULL
+  Longitudinal_current <- NULL
 
   if (Y$type=="surv"){ # survival outcome
     allTimes <- sort(unique(c(0,Y$Y[,1])))
@@ -59,32 +59,33 @@ OOB.tree <- function(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
     for (i in OOB_IBS){
 
       id_wY <- which(Y$id==i)
-      if (is.element("Curve",Inputs)==TRUE) {
+      if (is.element("Longitudinal",Inputs)==TRUE) {
 
         if (IBS.min==0){
-          id_wXCurve <- which(Curve$id==i) # all measurements
+          id_wXLongitudinal <- which(Longitudinal$id==i) # all measurements
         }else{
-          id_wXCurve <- which(Curve$id==i&Curve$time<=IBS.min) # only measurements until IBS.min
+          id_wXLongitudinal <- which(Longitudinal$id==i&Longitudinal$time<=IBS.min) # only measurements until IBS.min
         }
 
-        Curve_courant <- list(type="Curve",X=Curve$X[id_wXCurve,,drop=FALSE], id=Curve$id[id_wXCurve],time=Curve$time[id_wXCurve],
-                              model=Curve$model)
+        Longitudinal_current <- list(type="Longitudinal",X=Longitudinal$X[id_wXLongitudinal,,drop=FALSE],
+                                     id=Longitudinal$id[id_wXLongitudinal],time=Longitudinal$time[id_wXLongitudinal],
+                              model=Longitudinal$model)
       }
 
       if (is.element("Factor",Inputs)==TRUE){
         id_wXFactor <- which(Factor$id==i)
-        Factor_courant <- list(type="Factor",X=Factor$X[id_wXFactor,,drop=FALSE], id=Factor$id[id_wXFactor])
+        Factor_current <- list(type="Factor",X=Factor$X[id_wXFactor,,drop=FALSE], id=Factor$id[id_wXFactor])
       }
 
-      if (is.element("Scalar",Inputs)==TRUE){
-        id_wXScalar <- which(Scalar$id==i)
-        Scalar_courant <- list(type="Scalar",X=Scalar$X[id_wXScalar,,drop=FALSE], id=Scalar$id[id_wXScalar])
+      if (is.element("Numeric",Inputs)==TRUE){
+        id_wXNumeric <- which(Numeric$id==i)
+        Numeric_current <- list(type="Numeric",X=Numeric$X[id_wXNumeric,,drop=FALSE], id=Numeric$id[id_wXNumeric])
       }
 
-      pred_courant <- tryCatch(pred.MMT(tree, Curve=Curve_courant,Scalar=Scalar_courant,Factor=Factor_courant),
+      pred_current <- tryCatch(pred.MMT(tree, Longitudinal=Longitudinal_current,Numeric=Numeric_current,Factor=Factor_current),
                                error = function(e) return(NA)) # handle permutation issue
 
-      if (is.na(pred_courant)){
+      if (is.na(pred_current)){
 
         xerror[which(OOB_IBS==i)] <- NA
 
@@ -97,11 +98,11 @@ OOB.tree <- function(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
 
         # CIF
         if (IBS.min == 0){
-          pi_t <- tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
+          pi_t <- tree$Y_pred[[pred_current]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
         }else{
-          pi_t <- tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
-          pi_s <- tree$Y_pred[[pred_courant]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
-          s_s <- 1 - sum(unlist(lapply(tree$Y_pred[[pred_courant]], FUN = function(x){
+          pi_t <- tree$Y_pred[[pred_current]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
+          pi_s <- tree$Y_pred[[pred_current]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
+          s_s <- 1 - sum(unlist(lapply(tree$Y_pred[[pred_current]], FUN = function(x){
             return(x$traj[sum(allTimes<IBS.min)])
           }))) # s(s)
           pi_t <- (pi_t - pi_s)/s_s # P(S<T<S+t|T>S)
@@ -126,31 +127,32 @@ OOB.tree <- function(tree, Curve = NULL, Scalar = NULL, Factor = NULL, Y,
 
   }
 
-  if (Y$type == "factor" || Y$type == "scalar"){
-    w_XCurve <- NULL
-    w_XScalar <- NULL
+  if (Y$type == "factor" || Y$type == "numeric"){
+    w_XLongitudinal <- NULL
+    w_XNumeric <- NULL
     w_XFactor <- NULL
     w_y <- NULL
 
-    if (is.element("Curve",Inputs)==TRUE) w_XCurve <- which(Curve$id%in%OOB)
-    if (is.element("Scalar",Inputs)==TRUE) w_XScalar <- which(Scalar$id%in%OOB)
+    if (is.element("Longitudinal",Inputs)==TRUE) w_XLongitudinal <- which(Longitudinal$id%in%OOB)
+    if (is.element("Numeric",Inputs)==TRUE) w_XNumeric <- which(Numeric$id%in%OOB)
     if (is.element("Factor",Inputs)==TRUE) w_XFactor <- which(Factor$id%in%OOB)
 
     w_y <- which(Y$id%in%OOB)
 
-    if (is.element("Curve",Inputs)==TRUE) Curve_courant <- list(type="Curve",X=Curve$X[w_XCurve,,drop=FALSE], id=Curve$id[w_XCurve],time=Curve$time[w_XCurve],
-                                                                model=Curve$model)
-    if (is.element("Scalar",Inputs)==TRUE) Scalar_courant  <- list(type="Scalar", X=Scalar$X[w_XScalar,, drop=FALSE], id=Scalar$id[w_XScalar])
-    if (is.element("Factor",Inputs)==TRUE) Factor_courant  <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
+    if (is.element("Longitudinal",Inputs)==TRUE) Longitudinal_current <- list(type="Longitudinal",X=Longitudinal$X[w_XLongitudinal,,drop=FALSE],
+                                                                              id=Longitudinal$id[w_XLongitudinal],time=Longitudinal$time[w_XLongitudinal],
+                                                                model=Longitudinal$model)
+    if (is.element("Numeric",Inputs)==TRUE) Numeric_current  <- list(type="Numeric", X=Numeric$X[w_XNumeric,, drop=FALSE], id=Numeric$id[w_XNumeric])
+    if (is.element("Factor",Inputs)==TRUE) Factor_current  <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
 
-    pred_courant <- pred.MMT(tree, Curve = Curve_courant, Scalar = Scalar_courant,
-                     Factor = Factor_courant)
+    pred_current <- pred.MMT(tree, Longitudinal = Longitudinal_current, Numeric = Numeric_current,
+                     Factor = Factor_current)
 
-    pred <- unlist(sapply(pred_courant, FUN = function(x) {
+    pred <- unlist(sapply(pred_current, FUN = function(x) {
       ifelse(!is.null(tree$Y_pred[[x]]), tree$Y_pred[[x]], NA)
     }))
 
-    if (Y$type=="scalar"){xerror <- (Y$Y[w_y]-pred)^2}
+    if (Y$type=="numeric"){xerror <- (Y$Y[w_y]-pred)^2}
     if (Y$type=="factor"){xerror <- 1*(pred!=Y$Y[w_y])}
 
   }

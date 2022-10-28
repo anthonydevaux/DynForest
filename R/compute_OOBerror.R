@@ -4,7 +4,6 @@
 #' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
-#' @param verbose A logical controlling the function progress. Default is \code{TRUE}
 #'
 #' @importFrom methods is
 #'
@@ -21,13 +20,11 @@
 #'    \tab \cr
 #'    \code{causes} \tab A numeric vector containing the causes indicator \cr
 #'    \tab \cr
-#'    \code{Inputs} \tab A list of 3 elements: \code{Curve}, \code{Scalar} and \code{Factor}. Each element contains the names of the predictors \cr
+#'    \code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
 #'    \tab \cr
-#'    \code{Curve.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
+#'    \code{Longitudinal.model} \tab A list of longitudinal markers containing the formula used for modeling in the random forest \cr
 #'    \tab \cr
 #'    \code{param} \tab A list containing the hyperparameters \cr
-#'    \tab \cr
-#'    \code{xerror} \tab A numeric vector containing the OOB error for each tree \cr
 #'    \tab \cr
 #'    \code{oob.err} \tab A numeric vector containing the OOB error for each subject \cr
 #'    \tab \cr
@@ -98,8 +95,8 @@ compute_OOBerror <- function(DynForest_obj,
   }
 
   rf <- DynForest_obj
-  Curve <- rf$data$Curve
-  Scalar <- rf$data$Scalar
+  Longitudinal <- rf$data$Longitudinal
+  Numeric <- rf$data$Numeric
   Factor <- rf$data$Factor
   Y <- rf$data$Y
   ntree <- ncol(rf$rf)
@@ -109,16 +106,15 @@ compute_OOBerror <- function(DynForest_obj,
     ncores <- parallel::detectCores()-1
   }
 
-  oob.err <- OOB.rfshape(rf, Curve = Curve, Scalar = Scalar, Factor = Factor, Y = Y,
+  # Internal function to compute the OOB error for each subject
+  oob.err <- OOB.rfshape(rf, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, Y = Y,
                          IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause,
                          ncores = ncores)
 
-  out <- list(data = rf$data,
-              rf = rf$rf, type = rf$type, times = rf$times, cause = rf$cause, causes = rf$causes,
-              Inputs = rf$Inputs, Curve.model = rf$Curve.model, param = rf$param,
-              comput.time = rf$comput.time,
-              oob.err = oob.err$err, oob.pred = oob.err$oob.pred,
-              IBS.range = c(IBS.min, IBS.max))
+  out <- DynForest_obj
+  out$oob.err <- oob.err$err
+  out$oob.pred <- oob.err$oob.pred
+  out$IBS.range <- c(IBS.min, IBS.max)
 
   class(out) <- c("DynForest")
 

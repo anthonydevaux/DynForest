@@ -10,12 +10,11 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, init = NULL){
+var_split <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, init = NULL){
 
   impur <- rep(0,ncol(X$X))
   toutes_imp <- list()
   split <- list()
-  centers <- list() # On va stocker les centres associés aux kmeans
   Pure <- FALSE
   model_param <- list()
   threshold <- variable_summary <- rep(NA, ncol(X$X))
@@ -29,7 +28,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
         split_courant <- list()
         impur_courant <- rep(NA,length(L))
         toutes_imp_courant <- list()
-        # Il faut maintenant regarder quelles sont les meilleures combinaisons ::
+        # Find best partition
         for (k in 1:length(L)){
 
           split_courant[[k]] <- rep(2,length(X$id))
@@ -40,7 +39,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
             next()
           }
 
-          # Il faut maintenant regarder la qualité du découpage ::
+          # Evaluate the partition
           impurete <- impurity_split(Y, split_courant[[k]])
           impur_courant[k] <- impurete$impur
           toutes_imp_courant[[k]] <- impurete$imp_list
@@ -63,13 +62,13 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
       }
     }
 
-    if (X$type=="Curve"){
+    if (X$type=="Longitudinal"){
 
       fixed_var <- all.vars(X$model[[i]]$fixed)
       random_var <- all.vars(X$model[[i]]$random)
       model_var <- unique(c(fixed_var,random_var))
 
-      # compute summaries from mixed model
+      # compute features from mixed model
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,, drop = FALSE])
       data_model <- data_model[,c("id", model_var)]
 
@@ -119,13 +118,13 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
 
       ###########################
 
-      # ici on peut envisager d'autres resumes a calculer
+      # Other features to compute?
 
       ###########################
 
-      data_summaries <- RE # on merge tous les resumes
+      data_summaries <- RE
 
-      mtry2 <- ncol(data_summaries) # nombre de resumes qu'on tire pour chaque variable
+      mtry2 <- ncol(data_summaries) # How many features do we draw?
       #var_mtry2 <- sample(1:ncol(data_summaries), mtry2)
       var_mtry2 <- seq(ncol(data_summaries))
 
@@ -133,7 +132,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
       split_sum <- impurete_imp_list_sum <- vector("list", length = length(var_mtry2))
       split_threholds_sum <- rep(NA, length(var_mtry2))
 
-      for (i_sum in var_mtry2){ # boucle sur les resumes tires
+      for (i_sum in var_mtry2){
 
         if (!all(is.na(data_summaries[,i_sum]))){
 
@@ -147,12 +146,12 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
             next()
           }
 
-          if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
+          if (nsplit_option == "quantile"){
             split_threholds <- unique(quantile(data_summaries[,i_sum], probs = seq(0,1,1/nsplit),
                                                na.rm = T)[-c(1,nsplit+1)])
           }
 
-          if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
+          if (nsplit_option == "sample"){
             split_threholds <- unique(sample(data_summaries[,i_sum], nsplit))
           }
 
@@ -175,7 +174,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
           impurete_nsplit <- rep(NA, length(split_threholds))
           split_nsplit <- impurete_imp_list_nsplit <- vector("list", length = length(split_threholds))
 
-          for (j in 1:length(split_threholds)){ # boucle sur les nsplit
+          for (j in 1:length(split_threholds)){
 
             split_nsplit[[j]] <- factor(ifelse(data_summaries[,i_sum]<=split_threholds[j],1,2))
 
@@ -227,17 +226,17 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
 
     }
 
-    if (X$type=="Scalar"){
+    if (X$type=="Numeric"){
       if (length(unique(X$X[,i]))>2){
 
         nsplit <- ifelse(length(unique(X$X[,i]))>10, 10, length(unique(X$X[,i])))
 
-        if (nsplit_option == "quantile"){ # nsplit sur les quantiles (hors min/max)
+        if (nsplit_option == "quantile"){
           split_threholds <- unique(quantile(X$X[,i], probs = seq(0,1,1/nsplit),
                                              na.rm = T)[-c(1,nsplit+1)])
         }
 
-        if (nsplit_option == "sample"){ # nsplit sur tirage aleatoire d'obversations
+        if (nsplit_option == "sample"){
           split_threholds <- unique(sample(X$X[,i], nsplit))
         }
 
@@ -254,7 +253,7 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
           impurete_nsplit <- rep(NA, length(split_threholds))
           split_nsplit <- impurete_imp_list_nsplit <- vector("list", length = length(split_threholds))
 
-          for (j in 1:length(split_threholds)){ # boucle sur les nsplit
+          for (j in 1:length(split_threholds)){
 
             split_nsplit[[j]] <- factor(ifelse(X$X[,i]<=split_threholds[j],1,2))
 
@@ -306,10 +305,10 @@ var_split_scalar <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, ini
   true_split <- which.min(impur)
   split <- split[[true_split]]
 
-  return(list(split=split, impurete=min(impur),impur_list = toutes_imp[[true_split]], variable=which.min(impur),
-              variable_summary=ifelse(X$type=="Curve", variable_summary[true_split], NA),
-              threshold=ifelse(X$type=="Curve"|X$type=="Scalar", threshold[true_split], NA),
-              model_param=ifelse(X$type=="Curve", list(model_param[[true_split]]), NA),
+  return(list(split=split, impur=min(impur),impur_list = toutes_imp[[true_split]], variable=which.min(impur),
+              variable_summary=ifelse(X$type=="Longitudinal", variable_summary[true_split], NA),
+              threshold=ifelse(X$type=="Longitudinal"|X$type=="Numeric", threshold[true_split], NA),
+              model_param=ifelse(X$type=="Longitudinal", list(model_param[[true_split]]), NA),
               init = init,
               Pure=Pure))
 }
