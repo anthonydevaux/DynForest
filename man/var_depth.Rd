@@ -59,7 +59,7 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      timeVar = "time", idVar = "id",
                      timeVarModel = timeVarModel, Y = Y,
                      ntree = 50, nodesize = 5, minsplit = 5,
-                     cause = 2, ncores = 2, seed = 1234)
+                     cause = 2, ncores = 1, seed = 1234)
 
 # Run var_depth function
 res_varDepth <- var_depth(res_dyn)

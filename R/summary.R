@@ -46,7 +46,7 @@
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
-#'                      cause = 2, ncores = 2, seed = 1234)
+#'                      cause = 2, ncores = 1, seed = 1234)
 #'
 #' # Compute OOB error
 #' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)

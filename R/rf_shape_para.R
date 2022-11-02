@@ -30,52 +30,52 @@ rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
     pbapply::pboptions(type="timer")
   }
 
-  cl <- parallel::makeCluster(ncores)
-  doParallel::registerDoParallel(cl)
+  if (ncores>1){
 
-  pck <- .packages()
-  dir0 <- find.package()
-  dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
-  parallel::clusterExport(cl,list("pck","dir"),envir=environment())
-  parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+    cl <- parallel::makeCluster(ncores)
+    doParallel::registerDoParallel(cl)
 
-  if (Y$type=="surv"){
-    trees <- pbsapply(1:ntree, FUN=function(i){
-      DynTree_surv(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, mtry = mtry,
-                   nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause,
-                   seed = seed*i)
-    },cl=cl)
+    pck <- .packages()
+    dir0 <- find.package()
+    dir <- sapply(1:length(pck),function(k){gsub(pck[k],"",dir0[k])})
+    parallel::clusterExport(cl,list("pck","dir"),envir=environment())
+    parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
+
+    if (Y$type=="surv"){
+      trees <- pbsapply(1:ntree, FUN=function(i){
+        DynTree_surv(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, mtry = mtry,
+                     nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause,
+                     seed = seed*i)
+      },cl=cl)
+    }
+    if (Y$type%in%c("factor","numeric")){
+      trees <- pbsapply(1:ntree, FUN=function(i){
+        DynTree(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, mtry = mtry,
+                nsplit_option = nsplit_option, nodesize = nodesize,
+                seed = seed*i)
+      },cl=cl)
+    }
+
+    parallel::stopCluster(cl)
+
+  }else{
+
+    if (Y$type=="surv"){
+      trees <- pbsapply(1:ntree, FUN=function(i){
+        DynTree_surv(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, mtry = mtry,
+                     nsplit_option = nsplit_option, nodesize = nodesize, minsplit = minsplit, cause = cause,
+                     seed = seed*i)
+      },cl=NULL)
+    }
+    if (Y$type%in%c("factor","numeric")){
+      trees <- pbsapply(1:ntree, FUN=function(i){
+        DynTree(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, mtry = mtry,
+                nsplit_option = nsplit_option, nodesize = nodesize,
+                seed = seed*i)
+      },cl=NULL)
+    }
+
   }
-  if (Y$type%in%c("factor","numeric")){
-    trees <- pbsapply(1:ntree, FUN=function(i){
-      DynTree(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, mtry = mtry,
-              nsplit_option = nsplit_option, nodesize = nodesize,
-              seed = seed*i)
-    },cl=cl)
-  }
-
-  parallel::stopCluster(cl)
-
-  # trees <- list()
-  #
-  # for (i in 1:ntree){
-  #   cat(paste0("Tree ",i,"\n"))
-  #
-  #   #browser(expr = {i == 2})
-  #
-  #   if (Y$type=="surv"){
-  #     trees[[i]] <- DynTree_surv(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
-  #                                mtry = mtry, nsplit_option = nsplit_option,
-  #                                nodesize = nodesize, minsplit = minsplit, cause = cause,
-  #                                seed = seed*i)
-  #   }
-  #   if (Y$type%in%c("factor","numeric")){
-  #     trees[[i]] <- DynTree(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
-  #                           mtry = mtry, nsplit_option = nsplit_option,
-  #                           nodesize = nodesize,
-  #                           seed = seed*i)
-  #   }
-  # }
 
   return(trees)
 }
