@@ -6,6 +6,8 @@
 [![CRAN
 status](https://www.r-pkg.org/badges/version-last-release/DynForest)](https://CRAN.R-project.org/package=DynForest)
 [![Downloads](https://cranlogs.r-pkg.org/badges/DynForest?color=blue)](https://www.r-pkg.org/pkg/DynForest)
+[![R build
+status](https://github.com/anthonydevaux/DynForest/workflows/R-CMD-check/badge.svg)](https://github.com/anthonydevaux/DynForest/actions)
 <!-- badges: end -->
 
 ## Description
