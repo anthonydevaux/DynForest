@@ -92,7 +92,7 @@ FUTUR IMPLEMENTATIONS:
 data(pbc2)
 
 # Sample 100 subjects
-set.seed(1234)
+set.seed(123)
 id <- unique(pbc2$id)
 id_sample <- sample(id, 100)
 id_row <- which(pbc2$id\%in\%id_sample)
