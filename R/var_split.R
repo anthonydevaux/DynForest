@@ -79,8 +79,6 @@ var_split <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, init = NUL
       # Mixed model with initial values for parameters ?
       if (!is.na(init[[colnames(X$X)[i]]][[1]])){
 
-        sink("file") # disable all outputs cat/print from hlme
-
         model_output <- tryCatch(
           hlme(fixed = X$model[[i]]$fixed,
                random = X$model[[i]]$random,
@@ -90,11 +88,7 @@ var_split <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, init = NUL
                verbose = FALSE),
           error = function(e){ return(NULL) })
 
-        sink()
-
         if (is.null(model_output)){ # can occurred with Cholesky matrix inversion
-
-          sink("file") # disable all outputs cat/print from hlme
 
           model_output <- hlme(fixed = X$model[[i]]$fixed,
                                random = X$model[[i]]$random,
@@ -102,21 +96,15 @@ var_split <- function(X ,Y, nsplit_option = "quantile", nodesize = 1, init = NUL
                                maxiter = 100,
                                verbose = FALSE)
 
-          sink()
-
         }
 
       }else{
-
-        sink("file") # disable all outputs cat/print from hlme
 
         model_output <- hlme(fixed = X$model[[i]]$fixed,
                              random = X$model[[i]]$random,
                              subject = "id", data = data_model,
                              maxiter = 100,
                              verbose = FALSE)
-
-        sink() # restore output messages
 
       }
 

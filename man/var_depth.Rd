@@ -25,6 +25,12 @@ Extract characteristics from the trees building process
 \donttest{
 data(pbc2)
 
+# Get Gaussian distribution for longitudinal predictors
+pbc2$serBilir <- log(pbc2$serBilir)
+pbc2$SGOT <- log(pbc2$SGOT)
+pbc2$albumin <- log(pbc2$albumin)
+pbc2$alkaline <- log(pbc2$alkaline)
+
 # Sample 100 subjects
 set.seed(1234)
 id <- unique(pbc2$id)
@@ -59,7 +65,7 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      timeVar = "time", idVar = "id",
                      timeVarModel = timeVarModel, Y = Y,
                      ntree = 50, nodesize = 5, minsplit = 5,
-                     cause = 2, ncores = 1, seed = 1234)
+                     cause = 2, ncores = 2, seed = 1234)
 
 # Run var_depth function
 res_varDepth <- var_depth(res_dyn)
