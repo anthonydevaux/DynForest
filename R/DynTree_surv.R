@@ -73,6 +73,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
 
     count_split <- 0
+
     for (i in 1:length(current_leaves)){
 
       V <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))
