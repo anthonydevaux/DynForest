@@ -71,7 +71,7 @@
 #' pbc2$alkaline <- log(pbc2$alkaline)
 #'
 #' # Sample 100 subjects
-#' set.seed(123)
+#' set.seed(1234)
 #' id <- unique(pbc2$id)
 #' id_sample <- sample(id, 100)
 #' id_row <- which(pbc2$id%in%id_sample)
