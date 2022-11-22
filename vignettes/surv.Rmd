@@ -273,9 +273,9 @@ knitr::include_graphics("Figures/DynForestR_mindepth.png")
 
 ## Guidelines to tune the hyperparameters
 
-The predictive performance of the random forest strongly depends on the hyperparameters `mtry`, `nodesize` and `minsplit`, and should therefore be chosen thoroughly. `nodesize` and `minsplit` hyperparameters control the tree depth. The trees need to be deep enough to ensure that the predictions are accurate. By default in `DynForest()` function, we fixed `nodesize` = 1 and `minsplit` = 2, being the minimum. However, with a large number of individuals, the tree depth could be slighty decreased by increasing these hyperparameters to reduce the computation time. 
+The predictive performance of the random forest strongly depends on the hyperparameters `mtry`, `nodesize` and `minsplit`, and should therefore be chosen thoroughly. `nodesize` and `minsplit` hyperparameters control the tree depth. The trees need to be deep enough to ensure that the predictions are accurate. By default in `DynForest()` function, we fixed `nodesize` = 1 and `minsplit` = 2, being the minimum. However, with a large number of individuals, the tree depth could be slightly decreased by increasing these hyperparameters to reduce the computation time. 
 
-`mtry` hyperparameter defines the number of predictors randomly drawn at each node. By default, we chose `mtry` equal to the square root of the number of predictors as usually recommanded [@bernard_influence_2009]. However, this hyperparameter should be carefully tuned with possible values between 1 and the number of predictors. Indeed, the predictive performance of the random forest is highly related to this hyperparameter.
+`mtry` hyperparameter defines the number of predictors randomly drawn at each node. By default, we chose `mtry` equal to the square root of the number of predictors as usually recommended [@bernard_influence_2009]. However, this hyperparameter should be carefully tuned with possible values between 1 and the number of predictors. Indeed, the predictive performance of the random forest is highly related to this hyperparameter.
 
 In the illustration, we tuned `mtry` for every possible values (1 to 7). The figure 5 displays the evolution of the OOB error according to `mtry` hyperparameter.
 

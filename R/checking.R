@@ -1,4 +1,4 @@
-#' Internal cheking function
+#' Internal checking function
 #'
 #' @param DynForest_obj A \code{DynForest} object resulting from \code{DynForest()} function
 #' @param timeData A data.frame containing the id and time measurements variables and the time-dependent predictors.

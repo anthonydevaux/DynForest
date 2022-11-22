@@ -2,7 +2,7 @@
 % Please edit documentation in R/checking.R
 \name{checking}
 \alias{checking}
-\title{Internal cheking function}
+\title{Internal checking function}
 \usage{
 checking(
   DynForest_obj = NULL,
@@ -40,6 +40,6 @@ checking(
 \item{minsplit}{(Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.}
 }
 \description{
-Internal cheking function
+Internal checking function
 }
 \keyword{internal}
