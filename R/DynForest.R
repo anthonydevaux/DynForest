@@ -164,6 +164,9 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
       Numeric <- NULL
     }
 
+  }else{
+    Numeric <- NULL
+    Factor <- NULL
   }
 
   Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))

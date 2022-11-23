@@ -90,7 +90,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
   Factor <- rf$data$Factor
   Y <- rf$data$Y
   ntree <- ncol(rf$rf)
-  Inputs <- names(rf$Inputs)
+  Inputs <- names(rf$Inputs[!sapply(rf$Inputs,is.null)])
 
   # ncores
   if (is.null(ncores)==TRUE){
