@@ -180,9 +180,16 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
             Y = Y$Y)
 
   if (Y$type=="surv"){
-    Y$Y <- survival::Surv(Y$Y[,2], factor(Y$Y[,3]))
-    Y$comp <- ifelse(length(unique(Y$Y[,2]))>2, TRUE, FALSE)
-    causes <- sort(unique(Y$Y[which(Y$Y[,2]!=0),2]))
+
+    causes <- sort(unique(Y$Y[which(Y$Y[,3]!=0),3]))
+
+    if (length(unique(Y$Y[,3]))>2){
+      Y$Y <- survival::Surv(Y$Y[,2], factor(Y$Y[,3]))
+      Y$comp <- TRUE
+    }else{
+      Y$Y <- survival::Surv(Y$Y[,2], Y$Y[,3])
+      Y$comp <- FALSE
+    }
   }else{
     Y$Y <- subset(Y$Y, select = -get(idVar), drop = TRUE)
   }

@@ -322,7 +322,10 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, mtry 
 
       V_split <- V_split[order(V_split$id_node),]
       V_split$depth <- floor(log(V_split$id_node, base = 2)) + 1 # depth level
-      rownames(V_split) <- seq(nrow(V_split))
+
+      if (nrow(V_split)>0){
+        rownames(V_split) <- seq(nrow(V_split))
+      }
 
       for (q in unique(id_leaf)){
         w <- which(id_leaf == q)
@@ -347,7 +350,10 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, mtry 
 
   V_split <- V_split[order(V_split$id_node),]
   V_split$depth <- floor(log(V_split$id_node, base = 2)) + 1 # depth level
-  rownames(V_split) <- seq(nrow(V_split))
+
+  if (nrow(V_split)>0){
+    rownames(V_split) <- seq(nrow(V_split))
+  }
 
   for (q in unique(id_leaf)){
 

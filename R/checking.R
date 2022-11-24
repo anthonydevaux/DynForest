@@ -105,5 +105,11 @@ checking <- function(DynForest_obj = NULL,
     }
   }
 
+  if (Y$type=="surv"){
+    if (!inherits(Y$Y[,3], "numeric")){
+      stop("The column in 'Y$Y' to provide the causes should be typed as numeric with 0 indicating no event!")
+    }
+  }
+
 }
 
