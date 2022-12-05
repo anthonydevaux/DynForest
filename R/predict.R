@@ -232,7 +232,8 @@ predict.DynForest <- function(object,
   for (t in 1:ncol(object$rf)){
 
     pred_leaf[t,] <- pred.MMT(object$rf[,t],
-                              Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor)
+                              Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
+                              timeVar = timeVar)
 
     if (object$type=="surv"){
 

@@ -9,6 +9,7 @@ DynTree(
   Longitudinal = NULL,
   Numeric = NULL,
   Factor = NULL,
+  timeVar = NULL,
   mtry = 1,
   nsplit_option = "quantile",
   nodesize = 1,
@@ -23,6 +24,8 @@ DynTree(
 \item{Numeric}{A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.}
 
 \item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
+
+\item{timeVar}{A character indicating the name of time variable}
 
 \item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is \code{NULL}.}
 

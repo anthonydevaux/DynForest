@@ -4,6 +4,7 @@
 #' @param Longitudinal A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
 #' @param Numeric A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param timeVar A character indicating the name of time variable
 #' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is `NULL`.
 #' @param nsplit_option A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
@@ -15,9 +16,9 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, mtry = 1,
-                    nsplit_option = "quantile", nodesize = 1,
-                    seed = 1234){
+DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
+                    timeVar = NULL, mtry = 1, nsplit_option = "quantile",
+                    nodesize = 1, seed = 1234){
 
   Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
 
@@ -148,6 +149,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, mtry 
           if (is.element("Factor",split.spaces)==TRUE){
 
             leaf_split_Factor <- var_split(X = Factor_current, Y = Y_current,
+                                           timeVar = timeVar,
                                            nodesize = nodesize)
 
             if (leaf_split_Factor$Pure==FALSE){
@@ -163,6 +165,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, mtry 
           if (is.element("Longitudinal",split.spaces)==TRUE){
 
             leaf_split_Longitudinal <- var_split(X = Longitudinal_current, Y = Y_current,
+                                                 timeVar = timeVar,
                                                  nsplit_option = nsplit_option,
                                                  nodesize = nodesize,
                                                  init = model_init[[current_leaves[i]]])
@@ -181,6 +184,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, mtry 
           if (is.element("Numeric",split.spaces)==TRUE){
 
             leaf_split_Numeric <- var_split(X = Numeric_current, Y = Y_current,
+                                            timeVar = timeVar,
                                             nsplit_option = nsplit_option,
                                             nodesize = nodesize)
 

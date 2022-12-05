@@ -97,6 +97,7 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
   Numeric <- rf$data$Numeric
   Factor <- rf$data$Factor
   Y <- rf$data$Y
+  timeVar <- rf$timeVar
   ntree <- ncol(rf$rf)
   Inputs <- names(rf$Inputs[!sapply(rf$Inputs,is.null)])
 
@@ -120,14 +121,14 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
 
   tree_oob_err <- pbsapply(1:ntree,
                            FUN=function(i){OOB.tree(rf$rf[,i], Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, Y = Y,
-                                                    IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
+                                                    timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
 
   parallel::stopCluster(cl)
 
   # tree_oob_err <- rep(NA, ntree)
   # for (i in 1:ntree){
   #   tree_oob_err[i] = OOB.tree(rf$rf[,i], Longitudinal=Longitudinal,Numeric=Numeric,Factor = Factor, Y=Y,
-  #                        IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
+  #                        timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
   # }
 
   #####################
@@ -198,11 +199,13 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
       return(OOB.tree(rf$rf[,k], Longitudinal = Longitudinal.perm,
                       Numeric = Numeric.perm,
                       Factor = Factor.perm, Y,
+                      timeVar = timeVar,
                       IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause))
 
       # res[k] <- OOB.tree(rf$rf[,k], Longitudinal = Longitudinal.perm,
       #                    Numeric = Numeric.perm,
       #                    Factor = Factor.perm, Y,
+      #                    timeVar = timeVar,
       #                    IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
 
     }

@@ -210,7 +210,8 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
 
   ######### DynTree #########
 
-  rf <-  rf_shape_para(Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, Y = Y,
+  rf <-  rf_shape_para(Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
+                       timeVar = timeVar, Y = Y,
                        mtry = mtry, ntree = ntree, ncores = ncores,
                        nsplit_option = nsplit_option,
                        nodesize = nodesize, minsplit = minsplit,
@@ -222,14 +223,14 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
 
   if (Y$type == "surv"){
     out <- list(data = list(Longitudinal = Longitudinal, Factor = Factor, Numeric = Numeric, Y = Y),
-                rf = rf$rf, type = rf$type, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
+                rf = rf$rf, type = rf$type, timeVar = timeVar, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
                 Inputs = list(Longitudinal = names(Longitudinal$X), Numeric = names(Numeric$X), Factor = names(Factor$X)),
                 Longitudinal.model = Longitudinal$model, param = list(mtry = mtry, nodesize = nodesize,
                                                                       minsplit = minsplit, ntree = ntree),
                 comput.time = Sys.time() - debut)
   }else{
     out <- list(data = list(Longitudinal = Longitudinal, Factor = Factor, Numeric = Numeric, Y = Y),
-                rf = rf$rf, type = rf$type, levels = Ylevels,
+                rf = rf$rf, type = rf$type, timeVar = timeVar, levels = Ylevels,
                 Inputs = list(Longitudinal = names(Longitudinal$X), Numeric = names(Numeric$X), Factor = names(Factor$X)),
                 Longitudinal.model = Longitudinal$model, param = list(mtry = mtry, nodesize = nodesize,
                                                                       minsplit = NULL, ntree = ntree),

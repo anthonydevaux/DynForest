@@ -89,6 +89,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
   Numeric <- rf$data$Numeric
   Factor <- rf$data$Factor
   Y <- rf$data$Y
+  timeVar <- rf$timeVar
   ntree <- ncol(rf$rf)
   Inputs <- names(rf$Inputs[!sapply(rf$Inputs,is.null)])
 
@@ -112,7 +113,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
 
   tree_oob_err <- pbsapply(1:ntree,
                      FUN=function(i){OOB.tree(rf$rf[,i], Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, Y = Y,
-                                              IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
+                                              timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)},cl=cl)
 
   parallel::stopCluster(cl)
 
@@ -159,7 +160,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
       for (k in 1:ntree){
 
         Longitudinal.err[k,p] <- OOB.tree(rf$rf[,k], Longitudinal = Longitudinal.perm, Numeric = Numeric, Factor = Factor, Y,
-                                   IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
+                                          timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
 
       }
       Longitudinal.perm$X[,p] <- Longitudinal$X[,p]
@@ -195,7 +196,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
       for (k in 1:ntree){
 
         Numeric.err[k,p] <- OOB.tree(rf$rf[,k], Longitudinal = Longitudinal, Numeric = Numeric.perm, Factor = Factor, Y,
-                                     IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
+                                     timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
 
       }
       Numeric.perm$X[,p] <- Numeric$X[,p]
@@ -230,7 +231,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
       for (k in 1:ntree){
 
         Factor.err[k,p] <- OOB.tree(rf$rf[,k], Longitudinal=Longitudinal, Numeric = Numeric, Factor=Factor.perm , Y,
-                                    IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
+                                    timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause)
 
       }
 

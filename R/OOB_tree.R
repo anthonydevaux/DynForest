@@ -5,6 +5,7 @@
 #' @param Numeric A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Y A list of output which should contain: \code{type} defines the nature of the outcome, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the Inputs.
+#' @param timeVar A character indicating the name of time variable
 #' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param cause (Only with competing events) Number indicates the event of interest.
@@ -15,7 +16,7 @@
 #'
 #' @keywords internal
 OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
-                     IBS.min = 0, IBS.max = NULL, cause = 1){
+                     timeVar = NULL, IBS.min = 0, IBS.max = NULL, cause = 1){
 
   Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
 
@@ -82,7 +83,9 @@ OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y
         Numeric_current <- list(type="Numeric",X=Numeric$X[id_wXNumeric,,drop=FALSE], id=Numeric$id[id_wXNumeric])
       }
 
-      pred_current <- tryCatch(pred.MMT(tree, Longitudinal=Longitudinal_current,Numeric=Numeric_current,Factor=Factor_current),
+      pred_current <- tryCatch(pred.MMT(tree, Longitudinal = Longitudinal_current,
+                                        Numeric = Numeric_current, Factor = Factor_current,
+                                        timeVar = timeVar),
                                error = function(e) return(NA)) # handle permutation issue
 
       if (is.na(pred_current)){
@@ -146,7 +149,7 @@ OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y
     if (is.element("Factor",Inputs)==TRUE) Factor_current  <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
 
     pred_current <- pred.MMT(tree, Longitudinal = Longitudinal_current, Numeric = Numeric_current,
-                     Factor = Factor_current)
+                     Factor = Factor_current, timeVar = timeVar)
 
     pred <- unlist(sapply(pred_current, FUN = function(x) {
       ifelse(!is.null(tree$Y_pred[[x]]), tree$Y_pred[[x]], NA)

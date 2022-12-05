@@ -10,6 +10,7 @@ OOB.tree(
   Numeric = NULL,
   Factor = NULL,
   Y,
+  timeVar = NULL,
   IBS.min = 0,
   IBS.max = NULL,
   cause = 1
@@ -25,6 +26,8 @@ OOB.tree(
 \item{Factor}{A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.}
 
 \item{Y}{A list of output which should contain: \code{type} defines the nature of the outcome, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the Inputs.}
+
+\item{timeVar}{A character indicating the name of time variable}
 
 \item{IBS.min}{(Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.}
 

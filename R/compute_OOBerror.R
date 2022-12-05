@@ -104,6 +104,7 @@ compute_OOBerror <- function(DynForest_obj,
   Longitudinal <- rf$data$Longitudinal
   Numeric <- rf$data$Numeric
   Factor <- rf$data$Factor
+  timeVar <- rf$timeVar
   Y <- rf$data$Y
   ntree <- ncol(rf$rf)
 
@@ -114,7 +115,7 @@ compute_OOBerror <- function(DynForest_obj,
 
   # Internal function to compute the OOB error for each subject
   oob.err <- OOB.rfshape(rf, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor, Y = Y,
-                         IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause,
+                         timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause,
                          ncores = ncores)
 
   out <- DynForest_obj

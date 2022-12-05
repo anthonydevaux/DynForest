@@ -4,6 +4,7 @@
 #' @param Longitudinal A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
 #' @param Numeric A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param timeVar A character indicating the name of time variable
 #' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error. Default is `NULL`.
 #' @param nsplit_option A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
@@ -17,9 +18,9 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, mtry = 1,
-                         nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
-                         seed = 1234){
+DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
+                         timeVar = NULL, mtry = 1, nsplit_option = "quantile",
+                         nodesize = 1, minsplit = 2, cause = 1, seed = 1234){
 
   Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
 
@@ -47,10 +48,13 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
   Y_pred <- list()
 
   # bootstrap inputs
-  if (!is.null("Longitudinal")) Longitudinal_boot <- list(type = Longitudinal$type,
-                                                          X = Longitudinal$X[wXLongitudinal,, drop=FALSE],
-                                                          id = Longitudinal$id[wXLongitudinal], time = Longitudinal$time[wXLongitudinal],
-                                                          model = Longitudinal$model)
+  if (!is.null("Longitudinal")){
+    Longitudinal_boot <- list(type = Longitudinal$type,
+                              X = Longitudinal$X[wXLongitudinal,, drop=FALSE],
+                              id = Longitudinal$id[wXLongitudinal],
+                              time = Longitudinal$time[wXLongitudinal],
+                              model = Longitudinal$model)
+  }
   if (!is.null("Numeric")) Numeric_boot <- list(type = Numeric$type,
                                                 X = Numeric$X[wXNumeric,, drop=FALSE],
                                                 id = Numeric$id[wXNumeric])
@@ -99,7 +103,10 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
         if (is.element("Longitudinal",split.spaces)==TRUE){
 
           tirageLongitudinal <- sample(1:ncol(Longitudinal$X),length(which(variables=="Longitudinal")))
-          Longitudinal_current <- list(type = Longitudinal_boot$type, X=Longitudinal_boot$X[wXLongitudinal,tirageLongitudinal, drop=FALSE], id=Longitudinal_boot$id[wXLongitudinal, drop=FALSE], time=Longitudinal_boot$time[wXLongitudinal, drop=FALSE],
+          Longitudinal_current <- list(type = Longitudinal_boot$type,
+                                       X=Longitudinal_boot$X[wXLongitudinal,tirageLongitudinal, drop=FALSE],
+                                       id=Longitudinal_boot$id[wXLongitudinal, drop=FALSE],
+                                       time=Longitudinal_boot$time[wXLongitudinal, drop=FALSE],
                                        model = Longitudinal_boot$model[tirageLongitudinal])
 
           current_node <- current_leaves[i]
@@ -139,6 +146,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           if (is.element("Factor",split.spaces)==TRUE){
 
             leaf_split_Factor <- var_split_surv(X = Factor_current, Y = Y_current,
+                                                timeVar = timeVar,
                                                 cause = cause, nodesize = nodesize)
 
             if (leaf_split_Factor$Pure==FALSE){
@@ -154,6 +162,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           if (is.element("Longitudinal",split.spaces)==TRUE){
 
             leaf_split_Longitudinal <- var_split_surv(X = Longitudinal_current, Y = Y_current,
+                                                      timeVar = timeVar,
                                                       nsplit_option = nsplit_option,
                                                       cause = cause, nodesize = nodesize,
                                                       init = model_init[[current_leaves[i]]])
@@ -172,6 +181,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           if (is.element("Numeric",split.spaces)==TRUE){
 
             leaf_split_Numeric <- var_split_surv(X = Numeric_current, Y = Y_current,
+                                                 timeVar = timeVar,
                                                  nsplit_option = nsplit_option,
                                                  cause = cause, nodesize = nodesize)
 

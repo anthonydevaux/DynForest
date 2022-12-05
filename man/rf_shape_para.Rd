@@ -8,6 +8,7 @@ rf_shape_para(
   Longitudinal = NULL,
   Numeric = NULL,
   Factor = NULL,
+  timeVar = NULL,
   Y,
   mtry,
   ntree,
@@ -26,6 +27,8 @@ rf_shape_para(
 \item{Numeric}{A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.}
 
 \item{Factor}{A list of categorical predictors which should contain: \code{X} a dataframe with as many columns as categorical predictors; \code{id} is the vector of the identifiers for each individual.}
+
+\item{timeVar}{A character indicating the name of time variable}
 
 \item{Y}{A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; \code{Y} is the outcome variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the inputs.}
 

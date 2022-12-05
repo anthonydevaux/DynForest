@@ -2,6 +2,7 @@
 #'
 #' @param X Input data
 #' @param Y Outcome data
+#' @param timeVar A character indicating the name of time variable
 #' @param nsplit_option A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".
 #' @param cause (Only with competing events) Number indicates the event of interest.
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
@@ -11,7 +12,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-var_split_surv <- function(X ,Y, nsplit_option = "quantile",
+var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                            cause = 1, nodesize = 1, init = NULL){
 
   impur <- rep(0,ncol(X$X))
@@ -72,6 +73,7 @@ var_split_surv <- function(X ,Y, nsplit_option = "quantile",
 
       # compute features from mixed model
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,, drop = FALSE])
+      colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
       data_model <- data_model[,c("id", model_var)]
 
       if (is.null(init[[colnames(X$X)[i]]][[1]])){

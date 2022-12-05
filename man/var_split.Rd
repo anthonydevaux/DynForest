@@ -4,12 +4,21 @@
 \alias{var_split}
 \title{Split function to build the two daughter nodes}
 \usage{
-var_split(X, Y, nsplit_option = "quantile", nodesize = 1, init = NULL)
+var_split(
+  X,
+  Y,
+  timeVar = NULL,
+  nsplit_option = "quantile",
+  nodesize = 1,
+  init = NULL
+)
 }
 \arguments{
 \item{X}{Input data}
 
 \item{Y}{Outcome data}
+
+\item{timeVar}{A character indicating the name of time variable}
 
 \item{nsplit_option}{A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".}
 

@@ -5,6 +5,7 @@
 #' @param Numeric A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Y A list of output which should contain: \code{type} defines the nature of the output, can be "\code{surv}", "\code{numeric}" or "\code{factor}"; \code{Y} is the output variable; \code{id} is the vector of the identifiers for each individuals, they should be the same as the identifiers of the Inputs.
+#' @param timeVar A character indicating the name of time variable
 #' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param cause (Only with competing events) Number indicates the event of interest.
@@ -17,7 +18,8 @@
 #'
 #' @keywords internal
 OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
-                        IBS.min = 0, IBS.max = NULL, cause = 1, ncores = NULL){
+                        timeVar = NULL, IBS.min = 0, IBS.max = NULL, cause = 1,
+                        ncores = NULL){
 
   comb <- function(x, ...) {
     mapply(rbind,x,...,SIMPLIFY=FALSE)
@@ -108,7 +110,9 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           oob <- setdiff(Y$id,BOOT)
           if (is.element(indiv, oob)== TRUE){
 
-            pred.node <- tryCatch(pred.MMT(rf$rf[,t],Longitudinal=Longitudinal_courant,Numeric=Numeric_courant,Factor=Factor_courant),
+            pred.node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
+                                           Numeric = Numeric_courant, Factor = Factor_courant,
+                                           timeVar = timeVar),
                                   error = function(e) return(NA))
 
             if (is.na(pred.node)){
@@ -197,7 +201,9 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
               Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
             }
 
-            pred.node <- tryCatch(pred.MMT(rf$rf[,t],Longitudinal=Longitudinal_courant,Numeric=Numeric_courant,Factor=Factor_courant),
+            pred.node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
+                                           Numeric = Numeric_courant, Factor = Factor_courant,
+                                           timeVar = timeVar),
                                   error = function(e) return(NA))
             pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred.node]]),
                                       rf$rf[,t]$Y_pred[[pred.node]], NA)
@@ -256,7 +262,9 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
               Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
             }
 
-            pred.node <- tryCatch(pred.MMT(rf$rf[,t],Longitudinal=Longitudinal_courant,Numeric=Numeric_courant,Factor=Factor_courant),
+            pred.node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
+                                           Numeric = Numeric_courant, Factor = Factor_courant,
+                                           timeVar = timeVar),
                                   error = function(e) return(NA))
             pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred.node]]),
                                       rf$rf[,t]$Y_pred[[pred.node]], NA)

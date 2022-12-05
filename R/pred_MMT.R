@@ -4,11 +4,13 @@
 #' @param Longitudinal A list of longitudinal predictors which should contain: \code{X} a dataframe with one row for repeated measurement and as many columns as markers; \code{id} is the vector of the identifiers for the repeated measurements contained in \code{X}; \code{time} is the vector of the measurement times contained in \code{X}.
 #' @param Numeric A list of numeric predictors which should contain: \code{X} a dataframe with as many columns as numeric predictors; \code{id} is the vector of the identifiers for each individual.
 #' @param Factor A list of factor predictors which should contain: \code{X} a dataframe with as many columns as factor predictors; \code{id} is the vector of the identifiers for each individual.
+#' @param timeVar A character indicating the name of time variable
 #'
 #' @import stringr
 #'
 #' @keywords internal
-pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL){
+pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
+                     timeVar = NULL){
 
   Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
 
@@ -43,7 +45,7 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL){
 
         data_model <- data.frame(id = as.numeric(X$id[wLongitudinal]), time = X$time[wLongitudinal],
                                  X$X[wLongitudinal, , drop = FALSE])
-
+        colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
         data_model <- data_model[,c("id",model_var)]
 
         RE <- predRE(tree$model_param[[current_node]][[1]],
