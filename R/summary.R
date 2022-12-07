@@ -77,14 +77,14 @@ summary.DynForest <- function(object, ...){
   }
 
   if (object$type=="factor"){
-    type <- "classification"
+    type <- "categorical"
     oob.type <- "Missclassification"
     split.rule <- "Minimize weighted within-group Shannon entropy"
     leaf.stat <- "Majority vote"
   }
 
   if (object$type=="numeric"){
-    type <- "regression"
+    type <- "continuous"
     oob.type <- "Mean square error"
     split.rule <- "Minimize weighted within-group variance"
     leaf.stat <- "Mean"
@@ -92,7 +92,7 @@ summary.DynForest <- function(object, ...){
 
   ##############################
 
-  cat(paste0("DynForest executed with ", type, " mode"),"\n")
+  cat(paste0("DynForest executed for ", type, " outcome"),"\n")
   cat(paste0("\t","Splitting rule: ", split.rule),"\n")
   cat(paste0("\t","Out-of-bag error type: ", oob.type),"\n")
   cat(paste0("\t","Leaf statistic: ", leaf.stat),"\n")
@@ -119,20 +119,20 @@ summary.DynForest <- function(object, ...){
 
   # DynForest summary
   cat("DynForest summary","\n")
-  cat(paste0("\t","Average depth by tree: ",
+  cat(paste0("\t","Average depth per tree: ",
              round(mean(apply(object$rf, 2, FUN = function(x){
                mean(x$V_split$depth[which(x$V_split$type=="Leaf")])}),
                na.rm = T),2)),"\n")
-  cat(paste0("\t","Average number of leaves by tree: ",
+  cat(paste0("\t","Average number of leaves per tree: ",
              round(mean(apply(object$rf, 2, FUN = function(x){
                length(x$V_split$type[which(x$V_split$type=="Leaf")])}),
                na.rm = T),2)),"\n")
-  cat(paste0("\t","Average number of subjects by leaf: ",
+  cat(paste0("\t","Average number of subjects per leaf: ",
              round(mean(apply(object$rf, 2, FUN = function(x){
                mean(x$V_split$N[which(x$V_split$type=="Leaf")])}),
                na.rm = T),2)),"\n")
   if (type%in%c("survival (competing risk)","survival")){
-    cat(paste0("\t","Average number of events of interest by leaf: ",
+    cat(paste0("\t","Average number of events of interest per leaf: ",
                round(mean(apply(object$rf, 2, FUN = function(x){
                  mean(x$V_split$Nevent[which(x$V_split$type=="Leaf")])}),
                  na.rm = T),2)),"\n")
