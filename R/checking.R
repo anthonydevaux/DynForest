@@ -107,6 +107,16 @@ checking <- function(DynForest_obj = NULL,
           stop("The column in 'Y$Y' to provide the causes should be typed as numeric with 0 indicating no event!")
         }
       }
+      if (!is.null(fixedData)){
+        if (length(fixedData[,idVar])!=length(unique(Y$Y[,idVar]))){
+          stop("'fixedData' and 'Y$Y' should contain the same subjects!")
+        }
+      }
+      if (!is.null(timeData)){
+        if (length(unique(timeData[,idVar]))!=length(unique(Y$Y[,idVar]))){
+          stop("'timeData' and 'Y$Y' should contain the same subjects!")
+        }
+      }
     }
   }
 
