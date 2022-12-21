@@ -227,14 +227,14 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                 Inputs = list(Longitudinal = names(Longitudinal$X), Numeric = names(Numeric$X), Factor = names(Factor$X)),
                 Longitudinal.model = Longitudinal$model, param = list(mtry = mtry, nodesize = nodesize,
                                                                       minsplit = minsplit, ntree = ntree),
-                comput.time = Sys.time() - debut)
+                ncores = ncores, comput.time = Sys.time() - debut)
   }else{
     out <- list(data = list(Longitudinal = Longitudinal, Factor = Factor, Numeric = Numeric, Y = Y),
                 rf = rf$rf, type = rf$type, timeVar = timeVar, levels = Ylevels,
                 Inputs = list(Longitudinal = names(Longitudinal$X), Numeric = names(Numeric$X), Factor = names(Factor$X)),
                 Longitudinal.model = Longitudinal$model, param = list(mtry = mtry, nodesize = nodesize,
                                                                       minsplit = NULL, ntree = ntree),
-                comput.time = Sys.time() - debut)
+                ncores = ncores, comput.time = Sys.time() - debut)
   }
 
   class(out) <- c("DynForest")

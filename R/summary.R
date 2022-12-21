@@ -149,7 +149,8 @@ summary.DynForest <- function(object, ...){
   cat("----------------","\n")
 
   # computation time
-  cat("Time to build the random forest \n")
+  cat("Computation time \n")
+  cat(paste0("\t","Number of cores used: ", object$ncores),"\n")
   cat("\t")
   print(object$comput.time)
   cat("----------------","\n")
