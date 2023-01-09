@@ -11,7 +11,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
-var_split <- function(X , Y, timeVar = NULL, nsplit_option = "quantile",
+var_split <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                       nodesize = 1, init = NULL){
 
   impur <- rep(0,ncol(X$X))

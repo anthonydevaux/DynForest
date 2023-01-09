@@ -141,5 +141,5 @@ Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022). Random survi
 \code{\link{summary.DynForest} \link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot.DynForest}}
 }
 \author{
-Anthony Devaux (\email{anthony.devaux@u-bordeaux.fr})
+Anthony Devaux (\email{anthony.devauxbarault@gmail.com})
 }

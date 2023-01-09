@@ -93,6 +93,3 @@ res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn,
                                ncores = 2)
 }
 }
-\author{
-Anthony Devaux (\email{anthony.devaux@u-bordeaux.fr})
-}

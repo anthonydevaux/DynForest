@@ -54,7 +54,7 @@
 #'    \code{comput.time} \tab Computation time \cr
 #' }
 #'
-#' @author Anthony Devaux (\email{anthony.devaux@@u-bordeaux.fr})
+#' @author Anthony Devaux (\email{anthony.devauxbarault@@gmail.com})
 #'
 #' @references Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022). Random survival forests for competing risks with multivariate longitudinal endogenous covariates. arXiv <doi: 10.48550/arXiv.2208.05801>
 #'
@@ -152,6 +152,18 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
       Factor <- list(type = "Factor",
                      X = subset(fixedData, select = names(var_fact[which(var_fact==T)])),
                      id = fixedData[,idVar])
+
+      num_cat <- apply(Factor$X, 2, FUN = function(x) {
+        return(length(unique(x)))
+      })
+
+      var_cat_over10 <- names(num_cat)[which(num_cat>10)]
+
+      if (length(var_cat_over10)>0){
+        stop("'DynForest' function cannot actually support more than 10 categories for factor predictors! Please fix the following factor predictors: ",
+             paste(var_cat_over10, collapse = " / "))
+      }
+
     }else{
       Factor <- NULL
     }

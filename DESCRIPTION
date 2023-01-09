@@ -2,7 +2,7 @@ Package: DynForest
 Title: Random Forest with Multivariate Longitudinal Predictors
 Version: 1.1.1
 Authors@R: 
-    person("Anthony", "Devaux", email = "anthony.devaux@u-bordeaux.fr", 
+    person("Anthony", "Devaux", email = "anthony.devauxbarault@gmail.com", 
     role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8862-4218"))
 Description: Based on random forest principle, 'DynForest' is able to include 

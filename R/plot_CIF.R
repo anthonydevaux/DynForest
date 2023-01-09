@@ -1,6 +1,6 @@
 #' Plot the individual Cumulative Incidence Function (CIF) for the interest cause
 #'
-#' @param DynForestPred_obj An DynForestPred object from \code{predict()} function
+#' @param DynForestPred_obj A DynForestPred object from \code{predict()} function
 #' @param id Identifiers for the selected subjects
 #'
 #' @import ggplot2

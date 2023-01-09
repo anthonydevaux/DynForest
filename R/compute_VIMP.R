@@ -18,7 +18,6 @@
 #'    \code{IBS.range} \tab A vector containing the IBS min and max \cr
 #' }
 #'
-#' @author Anthony Devaux (\email{anthony.devaux@@u-bordeaux.fr})
 #' @export
 #'
 #' @examples

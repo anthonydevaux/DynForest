@@ -7,7 +7,7 @@
 plot_CIF(DynForestPred_obj, id = NULL)
 }
 \arguments{
-\item{DynForestPred_obj}{An DynForestPred object from \code{predict()} function}
+\item{DynForestPred_obj}{A DynForestPred object from \code{predict()} function}
 
 \item{id}{Identifiers for the selected subjects}
 }

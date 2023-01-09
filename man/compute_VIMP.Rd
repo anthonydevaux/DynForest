@@ -87,6 +87,3 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2)
 }
 }
-\author{
-Anthony Devaux (\email{anthony.devaux@u-bordeaux.fr})
-}

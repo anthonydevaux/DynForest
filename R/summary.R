@@ -5,8 +5,6 @@
 #'
 #' @return Return some information about the random forest
 #'
-#' @author Anthony Devaux (\email{anthony.devaux@@u-bordeaux.fr})
-#'
 #' @examples
 #' \donttest{
 #' data(pbc2)
