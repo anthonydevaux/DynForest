@@ -4,6 +4,7 @@
 * Fixed an issue with single event in survival mode (thanks to Dr. Labruère Chazal)
 * Fixed bug with time variable name in formula (thanks to Dr. Labruère Chazal)
 * Added `getTree()` function to extract split information from a tree specified by user
+* Added `plot_nodeCIF()` function to plot estimated CIF for given tree nodes
 
 # DynForest 1.1.0
 

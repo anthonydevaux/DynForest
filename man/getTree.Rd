@@ -4,12 +4,12 @@
 \alias{getTree}
 \title{Extract some information about the split for a tree by user}
 \usage{
-getTree(DynForest_obj, tree_id)
+getTree(DynForest_obj, tree)
 }
 \arguments{
 \item{DynForest_obj}{\code{DynForest} object containing the dynamic random forest used on train data}
 
-\item{tree_id}{Integer indicating the tree identifier}
+\item{tree}{Integer indicating the tree identifier}
 }
 \value{
 A table sorted by the node/leaf identifier with each row representing a node/leaf. Each column provides information about the splits:\tabular{ll}{
@@ -78,7 +78,7 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      cause = 2, ncores = 2, seed = 1234)
 
 # Extract split information from tree 4
-res_tree4 <- getTree(DynForest_obj = res_dyn, tree_id = 4)
+res_tree4 <- getTree(DynForest_obj = res_dyn, tree = 4)
 }
 }
 \seealso{

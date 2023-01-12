@@ -2,9 +2,14 @@ Package: DynForest
 Title: Random Forest with Multivariate Longitudinal Predictors
 Version: 1.1.1
 Authors@R: 
+    c(
     person("Anthony", "Devaux", email = "anthony.devauxbarault@gmail.com", 
-    role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-8862-4218"))
+    role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8862-4218")),
+    person("Robin", "Genuer", email = "robin.genuer@u-bordeaux.fr", 
+    role = c("aut"), comment = c(ORCID = "0000-0002-0981-3943")),
+    person("Cécile", "Proust-Lima", email = "cecile.proust-lima@u-bordeaux.fr", 
+    role = c("aut"), comment = c(ORCID = "0000-0002-9884-955X"))
+    )
 Description: Based on random forest principle, 'DynForest' is able to include 
     multiple longitudinal predictors to provide individual predictions. 
     Longitudinal predictors are modeled through the random forest. The 
