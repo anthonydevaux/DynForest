@@ -1,13 +1,11 @@
-#' Plot the estimated Cumulative Incidence Functions (CIF) for given tree nodes
+#' Extract nodes identifiers for a given tree
 #'
 #' @param DynForest_obj A DynForest object from \code{DynForest()} function
 #' @param tree Integer indicating the tree identifier
-#' @param nodes Identifiers for the selected nodes. Default is set to \code{NULL} displaying all tree nodes.
 #'
-#' @import ggplot2
 #' @importFrom methods is
 #'
-#' @return Display the estimated CIF for given tree nodes
+#' @return Extract nodes identifiers for a given tree
 #'
 #' @examples
 #' \donttest{
@@ -56,11 +54,11 @@
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Display CIF for nodes 40 and 41 from tree 1
-#' plot_nodeCIF(DynForest_obj = res_dyn, tree = 1, nodes = c(40,41))
+#' # Extract nodes identifiers for a given tree
+#' getTreeNodes(DynForest_obj = res_dyn, tree = 1)
 #' }
 #' @export
-plot_nodeCIF <- function(DynForest_obj, tree = NULL, nodes = NULL){
+getTreeNodes <- function(DynForest_obj, tree = NULL){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForestPred' class!")
@@ -74,51 +72,8 @@ plot_nodeCIF <- function(DynForest_obj, tree = NULL, nodes = NULL){
     stop(paste0("'tree' should be chosen between 1 and ", DynForest_obj$param$ntree, "!"))
   }
 
-  if (all(!is.null(nodes))){
-    if (!all(inherits(nodes, "numeric"))){
-      stop("'nodes' should be a numeric object containing the tree identifier!")
-    }
-    if (any(nodes>length(DynForest_obj$rf[,tree]$Y_pred))){
-      stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
-    }
-    if (any(sapply(nodes, FUN = function(x) is.null(DynForest_obj$rf[,tree]$Y_pred[[x]])))){
-      stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
-    }
-  }else{
-    nodes <- getTreeNodes(DynForest_obj = DynForest_obj,
-                          tree = tree)
-  }
+  tree_split <- getTree(DynForest_obj = DynForest_obj, tree = tree)
+  nodes_id <- tree_split$id_node[which(tree_split$type=="Leaf")]
 
-  # data transformation for ggplot2
-  CIFs_nodes_list <- lapply(nodes, FUN = function(x){
-
-    CIFs_node <- DynForest_obj$rf[,tree]$Y_pred[[x]]
-
-    CIFs_node_list <- lapply(names(CIFs_node), FUN = function(y){
-
-      CIF_node_cause <- CIFs_node[[y]]
-
-      out <- data.frame(Node = rep(x, nrow(CIF_node_cause)),
-                        Cause = rep(y, nrow(CIF_node_cause)),
-                        Time = CIF_node_cause$times,
-                        CIF = CIF_node_cause$traj)
-
-      return(out)
-
-    })
-
-    return(do.call(rbind, CIFs_node_list))
-
-  })
-
-  data.CIF.plot <- do.call(rbind, CIFs_nodes_list)
-
-  g <- ggplot(data.CIF.plot, aes_string(x = "Time", y = "CIF")) +
-    geom_step(aes(group = Cause, color = Cause)) +
-    facet_wrap(~ Node) +
-    ylim(0,1) +
-    theme_bw()
-
-  print(g)
-
+  return(nodes_id)
 }

@@ -8,7 +8,9 @@ Authors@R:
     person("Robin", "Genuer", email = "robin.genuer@u-bordeaux.fr", 
     role = c("aut"), comment = c(ORCID = "0000-0002-0981-3943")),
     person("Cécile", "Proust-Lima", email = "cecile.proust-lima@u-bordeaux.fr", 
-    role = c("aut"), comment = c(ORCID = "0000-0002-9884-955X"))
+    role = c("aut"), comment = c(ORCID = "0000-0002-9884-955X")),
+    person("Louis", "Capitaine",
+    role = c("aut"), comment = c(ORCID = "0000-0001-6800-2342"))
     )
 Description: Based on random forest principle, 'DynForest' is able to include 
     multiple longitudinal predictors to provide individual predictions. 

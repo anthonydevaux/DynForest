@@ -31,8 +31,9 @@
 #'
 #' FUTUR IMPLEMENTATIONS:
 #' - Continuous longitudinal outcome
+#' - Functional data analysis
 #'
-#' @return DynForest function return a list with the following elements:\tabular{ll}{
+#' @return DynForest function returns a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
 #'    \code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr

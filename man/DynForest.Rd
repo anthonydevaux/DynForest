@@ -54,7 +54,7 @@ DynForest(
 \item{verbose}{A logical controlling the function progress. Default is \code{TRUE}}
 }
 \value{
-DynForest function return a list with the following elements:\tabular{ll}{
+DynForest function returns a list with the following elements:\tabular{ll}{
 \code{data} \tab A list containing the data used to grow the trees \cr
 \tab \cr
 \code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
@@ -85,6 +85,7 @@ The function currently supports survival (competing or single event), continuous
 FUTUR IMPLEMENTATIONS:
 \itemize{
 \item Continuous longitudinal outcome
+\item Functional data analysis
 }
 }
 \examples{
