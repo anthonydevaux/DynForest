@@ -1,21 +1,19 @@
 citHeader("To cite DynForest in publications use:")
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype  = "Article",
   title    = "Random survival forests with multivariate longitudinal endogenous covariates",
   author   = c(person("Anthony Devaux"), person("Catherine Helmer"), person("Robin Genuer"), person("C\\'ecile Proust-Lima")),
-  journal  = "arXiv preprint arXiv:2208.05801",
+  journal  = "arXiv",
   year     = "2022",
-  url      = "https://arxiv.org/abs/2208.05801",
-  textVersion = "Devaux A, Helmer C, Genuer R, Proust-Lima C (2022). Random survival forests with multivariate longitudinal endogenous covariates. arXiv preprint arXiv:2208.05801."
+  url      = "https://arxiv.org/abs/2208.05801"
 )
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype  = "Article",
   title    = "Random Forests for time-fixed and time-dependent predictors: The DynForest R package",
   author   = c(person("Anthony Devaux"), person("C\\'ecile Proust-Lima"), person("Robin Genuer")),
-  journal  = "arXiv preprint arXiv:2302.02670",
+  journal  = "arXiv",
   year     = "2023",
-  url      = "https://arxiv.org/abs/2302.02670",
-  textVersion = "Devaux A, Proust-Lima C, Genuer R (2023). Random Forests for time-fixed and time-dependent predictors: The DynForest R package. arXiv preprint arXiv:2302.02670."
+  url      = "https://arxiv.org/abs/2302.02670"
 )

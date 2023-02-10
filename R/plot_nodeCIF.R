@@ -114,7 +114,7 @@ plot_nodeCIF <- function(DynForest_obj, tree = NULL, nodes = NULL){
   data.CIF.plot <- do.call(rbind, CIFs_nodes_list)
 
   g <- ggplot(data.CIF.plot, aes_string(x = "Time", y = "CIF")) +
-    geom_step(aes(group = Cause, color = Cause)) +
+    geom_step(aes_string(group = "Cause", color = "Cause")) +
     facet_wrap(~ Node) +
     ylim(0,1) +
     theme_bw()
