@@ -1,6 +1,6 @@
 Package: DynForest
 Title: Random Forest with Multivariate Longitudinal Predictors
-Version: 1.1.1
+Version: 1.1.2
 Authors@R: 
     c(
     person("Anthony", "Devaux", email = "anthony.devauxbarault@gmail.com", 

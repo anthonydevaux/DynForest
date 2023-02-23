@@ -17,6 +17,7 @@ checking <- function(DynForest_obj = NULL,
                      idVar, timeVar, timeVarModel,
                      Y, ntree = 200, mtry = 1, nodesize = 1, minsplit = 2){
 
+  # global argument checking
   if (!inherits(idVar, "character")){
     stop("'idVar' should be a character object!")
   }
@@ -33,18 +34,19 @@ checking <- function(DynForest_obj = NULL,
     }
   }
 
+  # timeData checking
   if (!is.null(timeData)){
     if (!inherits(timeData, "data.frame")){
       stop("'timeData' should be a data.frame object!")
     }
 
     if (!any(colnames(timeData)==idVar)){
-      stop("'idVar' variable should be contained in timeData!")
+      stop("'idVar' variable should be contained in 'timeData'!")
     }
 
     if (!is.null(timeVar)){
       if (!any(colnames(timeData)==timeVar)){
-        stop("'timeVar' variable should be contained in timeData!")
+        stop("'timeVar' variable should be contained in 'timeData'!")
       }
     }
 
@@ -66,29 +68,38 @@ checking <- function(DynForest_obj = NULL,
 
     }
 
+    if (!inherits(timeData[,idVar], c("numeric","integer"))){
+      stop(paste0(idVar, " variable should be a numeric or integer object in 'timeData'!"))
+    }
 
     if (!inherits(timeData[,timeVar], c("numeric","integer"))){
-      stop("Only continuous time-dependent predictors are allowed in timeData!")
+      stop(paste0(timeVar, " variable should be a numeric or integer object in 'timeData'!"))
     }
 
     if (!all(sapply(subset(timeData, select = -c(get(idVar), get(timeVar))),
                     class)%in%c("numeric","integer"))){
-      stop("Only continuous time-dependent predictors are allowed in timeData!")
+      stop("Only continuous time-dependent predictors are allowed in 'timeData'!")
     }
 
   }
 
+  # fixedData checking
   if (!is.null(fixedData)){
     if (!inherits(fixedData, "data.frame")){
       stop("'fixedData' should be a data.frame object!")
     }
 
     if (!any(colnames(fixedData)==idVar)){
-      stop("'idVar' variable should be contained in fixedData!")
+      stop("'idVar' variable should be contained in 'fixedData'!")
+    }
+
+    if (!inherits(fixedData[,idVar], c("numeric","integer"))){
+      stop(paste0(idVar, " variable should be a numeric or integer object in 'fixedData'!"))
     }
 
   }
 
+  # Y checking
   if (is.null(DynForest_obj)){
     if (is.null(Y)){
       stop("'Y' is missing!")
@@ -101,6 +112,9 @@ checking <- function(DynForest_obj = NULL,
       }
       if (!any(colnames(Y$Y)==idVar)){
         stop("'idVar' variable should be contained in Y!")
+      }
+      if (!inherits(Y$Y[,idVar], c("numeric","integer"))){
+        stop(paste0(idVar, " variable should be a numeric or integer object in 'Y$Y'!"))
       }
       if (Y$type=="surv"){
         if (!inherits(Y$Y[,3], "numeric")){
@@ -118,6 +132,13 @@ checking <- function(DynForest_obj = NULL,
         }
       }
     }
+  }
+
+  # mtry checking
+  mtry_max <- ifelse(!is.null(timeData), ncol(timeData)-2, 0) +
+    ifelse(!is.null(fixedData), ncol(fixedData)-1, 0)
+  if (mtry_max<mtry){
+    stop(paste0("'mtry' argument cannot be higher than the maximum allowed (", mtry_max, ")!"))
   }
 
 }

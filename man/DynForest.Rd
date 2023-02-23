@@ -136,7 +136,10 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 }
 }
 \references{
-Devaux A., Helmer C., Dufouil C., Genuer R., Proust-Lima C. (2022). Random survival forests for competing risks with multivariate longitudinal endogenous covariates. arXiv <doi: 10.48550/arXiv.2208.05801>
+\itemize{
+\item Devaux A., Helmer C., Genuer R., Proust-Lima C. (2022). Random survival forests for competing risks with multivariate longitudinal endogenous covariates. arXiv \url{doi:10.48550/arXiv.2208.05801}
+\item Devaux A., Proust-Lima C., Genuer R. (2023). Random Forests for time-fixed and time-dependent predictors: The DynForest R package. arXiv \url{doi:10.48550/arXiv.2302.02670}
+}
 }
 \seealso{
 \code{\link{summary.DynForest} \link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot.DynForest}}

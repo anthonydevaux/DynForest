@@ -209,8 +209,14 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
                                       rf$rf[,t]$Y_pred[[pred.node]], NA)
           }
         }
-        oob.pred <- mean(pred_courant, na.rm = T)
-        err <- (oob.pred-Y$Y[w_y])^2
+        if (all(is.na(pred_courant))){
+          oob.pred <- NA
+          err <- NA
+        }else{
+          oob.pred <- mean(pred_courant, na.rm = T)
+          err <- (oob.pred-Y$Y[w_y])^2
+        }
+
         return(list(err = err, oob.pred = oob.pred))
       }
 
@@ -235,9 +241,9 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
                        #,.packages = c("pec", "prodlim")
     ) %dopar%
       {
-        # browser()
-        # res.oob <- list()
-        # for (i in 1:length(Y$id)){
+      #res.oob <- list()
+      #for (i in 1:length(Y$id)){
+
         indiv <- Y$id[i]
         w_y <- which(Y$id==indiv)
         pred_courant <- rep(NA, ncol(rf$rf))
@@ -272,11 +278,17 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           }
         }
 
-        oob.pred <- names(which.max(table(pred_courant)))
-        err <- 1*(oob.pred!=Y$Y[w_y])
+        if (all(is.na(pred_courant))){
+          oob.pred <- NA
+          err <- NA
+        }else{
+          oob.pred <- names(which.max(table(pred_courant)))
+          err <- 1*(oob.pred!=Y$Y[w_y])
+        }
         return(list(err = err, oob.pred = oob.pred))
         #res.oob[[i]] <- c(err, oob.pred)
       }
+
     parallel::stopCluster(cl)
 
     return(list(err = as.vector(res.oob$err), oob.pred = res.oob$oob.pred[,1]))

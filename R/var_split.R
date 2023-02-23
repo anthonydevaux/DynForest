@@ -127,9 +127,8 @@ var_split <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                                stderr = tail(model_output$best, n = 1),
                                idea0 = model_output$idea0)
 
-      #RE <- predRE(model_param[[i]], X$model[[i]], data_model)$bi
-      RE <- model_output$predRE[order(match(model_output$predRE$id, Y$id)), -1]
-      rownames(RE) <- unique(Y$id)
+      # Random-effect dataframe with NA for subjects where RE cannot be computed
+      RE <- merge(unique(Y$id), model_output$predRE, all.x = T, by.x = "x", by.y = "id")[,-1]
 
       ###########################
 
@@ -151,7 +150,8 @@ var_split <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
         if (!all(is.na(data_summaries[,i_sum]))){
 
-          nsplit <- ifelse(length(unique(data_summaries[,i_sum]))>10, 10, length(unique(data_summaries[,i_sum])))
+          nsplit <- ifelse(length(unique(na.omit(data_summaries[,i_sum])))>10,
+                                  10, length(unique(na.omit(data_summaries[,i_sum]))))
 
           if (nsplit==1) {
             impurete_sum[i_sum] <- NA

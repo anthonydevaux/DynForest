@@ -103,6 +103,8 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       if (!is.null("Numeric")) wXNumeric <- which(Numeric_boot$id%in%unique(Y_boot$id[w]))
       if (!is.null("Factor")) wXFactor <- which(Factor_boot$id%in%unique(Y_boot$id[w]))
 
+      Y_current <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w])
+
       if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[current_leaves[i]]] >0){
 
         # mtry des variables de chaque espace
@@ -135,8 +137,6 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
           tirageFactor <- sample(1:ncol(Factor$X),length(which(variables=="Factor")))
           Factor_current <- list(type = Factor_boot$type, X=Factor_boot$X[wXFactor,tirageFactor, drop=FALSE], id=Factor_boot$id[wXFactor, drop=FALSE])
         }
-
-        Y_current <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w])
 
         F_SPLIT <- data.frame(TYPE = character(), Impurity = numeric(), stringsAsFactors = FALSE)
         num_split <- 0
@@ -331,7 +331,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         rownames(V_split) <- seq(nrow(V_split))
       }
 
-      for (q in unique(id_leaf)){
+      for (q in unique(na.omit(id_leaf))){
         w <- which(id_leaf == q)
 
         if (Y$type=="numeric"){
@@ -359,7 +359,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
     rownames(V_split) <- seq(nrow(V_split))
   }
 
-  for (q in unique(id_leaf)){
+  for (q in unique(na.omit(id_leaf))){
 
     w <- which(id_leaf == q)
 
