@@ -124,20 +124,20 @@ summary(res_dyn)
 #> ---------------- 
 #> ---------------- 
 #> DynForest summary 
-#>  Average depth per tree: 6.03 
-#>  Average number of leaves per tree: 20.26 
-#>  Average number of subjects per leaf: 9.73 
-#>  Average number of events of interest per leaf: 4.36 
+#>  Average depth per tree: 5.94 
+#>  Average number of leaves per tree: 20.44 
+#>  Average number of subjects per leaf: 9.67 
+#>  Average number of events of interest per leaf: 4.34 
 #> ---------------- 
 #> Out-of-bag error based on Integrated Brier Score 
 #>  Out-of-bag error: Not computed! 
 #> ---------------- 
 #> Computation time 
 #>  Number of cores used: 2 
-#>  Time difference of 6.390933 mins
+#>  Time difference of 7.538741 mins
 #> ----------------
 ```
 
 ## Acknowledgements
 
-We thank Dr. Louis Capitaine for FrechForest R code used in DynForest.
+We thank Dr. Louis Capitaine for FrechForest R code used in `DynForest`.

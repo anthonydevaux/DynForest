@@ -103,4 +103,4 @@ summary(res_dyn)
 
 ## Acknowledgements
 
-We thank Dr. Louis Capitaine for FrechForest R code used in DynForest.
+We thank Dr. Louis Capitaine for FrechForest R code used in `DynForest`.
