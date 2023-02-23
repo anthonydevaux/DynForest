@@ -56,8 +56,8 @@
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Display CIF for nodes 224 and 225 from tree 1
-#' plot_nodeCIF(DynForest_obj = res_dyn, tree = 1, nodes = c(224,225))
+#' # Display CIF for all nodes from tree 1
+#' plot_nodeCIF(DynForest_obj = res_dyn, tree = 1, nodes = NULL)
 #' }
 #' @export
 plot_nodeCIF <- function(DynForest_obj, tree = NULL, nodes = NULL){
