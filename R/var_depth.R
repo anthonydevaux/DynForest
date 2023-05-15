@@ -63,9 +63,7 @@
 #'
 #' # Run var_depth function
 #' res_varDepth <- var_depth(res_dyn)
-#'
 #' }
-#'
 #' @export
 var_depth <- function(DynForest_obj){
 

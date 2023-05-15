@@ -69,9 +69,7 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 
 # Run var_depth function
 res_varDepth <- var_depth(res_dyn)
-
 }
-
 }
 \seealso{
 \code{\link{DynForest}}

@@ -94,26 +94,27 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
         if (is.null(model_output)){ # can occurred with Cholesky matrix inversion
 
-          model_output <- hlme(fixed = X$model[[i]]$fixed,
-                               random = X$model[[i]]$random,
-                               subject = "id", data = data_model,
-                               maxiter = 100,
-                               verbose = FALSE)
+          model_output <- tryCatch(hlme(fixed = X$model[[i]]$fixed,
+                                        random = X$model[[i]]$random,
+                                        subject = "id", data = data_model,
+                                        maxiter = 100,
+                                        verbose = FALSE),
+                                   error = function(e){ return(NULL) })
 
         }
 
       }else{
 
-        model_output <- hlme(fixed = X$model[[i]]$fixed,
-                             random = X$model[[i]]$random,
-                             subject = "id", data = data_model,
-                             maxiter = 100,
-                             verbose = FALSE)
+        model_output <- tryCatch(hlme(fixed = X$model[[i]]$fixed,
+                                      random = X$model[[i]]$random,
+                                      subject = "id", data = data_model,
+                                      maxiter = 100,
+                                      verbose = FALSE),
+                                 error = function(e){ return(NULL) })
 
       }
 
-      if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04){ # convergence issue
-
+      if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04 | is.null(model_output)){ # convergence issue
         impur[i] <- Inf
         split[[i]] <- Inf
         next()
