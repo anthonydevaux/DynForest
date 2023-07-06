@@ -30,6 +30,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   hist_nodes <- list()
   model_param <- list()
   model_init <- list()
+  conv_issue <- list()
   set.seed(seed) # set seed for bootstrap
   id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
   boot <- id_boot
@@ -173,6 +174,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                data.frame(TYPE = "Longitudinal", Impurity = leaf_split_Longitudinal$impur,
                                           stringsAsFactors = FALSE),
                                all = T)
+              conv_issue[[current_node]] <- leaf_split_Longitudinal$conv_issue
               num_split <- num_split +1
             }
           }
@@ -363,7 +365,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
       return(list(leaves = id_leaf, idY = Y_boot$id, Ytype = Y_boot$type,
                   V_split = V_split, hist_nodes = hist_nodes,
-                  Y_pred = Y_pred, Y = Y, boot = boot,
+                  Y_pred = Y_pred, Y = Y, boot = boot, conv_issue = conv_issue,
                   model_param = model_param))
     }
   }
@@ -409,6 +411,6 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   }
 
   return(list(leaves = id_leaf, idY=Y_boot$id, Ytype = Y_boot$type, V_split = V_split,
-              hist_nodes = hist_nodes, Y_pred= Y_pred, Y = Y, boot = boot,
+              hist_nodes = hist_nodes, Y_pred= Y_pred, Y = Y, boot = boot, conv_issue = conv_issue,
               model_param = model_param))
 }

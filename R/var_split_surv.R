@@ -22,6 +22,7 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
   model_param <- list()
   threshold <- variable_summary <- rep(NA, ncol(X$X))
   impurete <- NULL
+  conv_issue <- NULL
 
   for (i in 1:ncol(X$X)){
 
@@ -117,8 +118,8 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04 | is.null(model_output)){ # convergence issue
         impur[i] <- Inf
         split[[i]] <- Inf
+        conv_issue <- c(conv_issue, colnames(X$X)[i])
         next()
-
       }
 
       init[[colnames(X$X)[i]]] <- model_output$best
@@ -319,6 +320,7 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
               variable_summary=ifelse(X$type=="Longitudinal", variable_summary[true_split], NA),
               threshold=ifelse(X$type=="Longitudinal"|X$type=="Numeric", threshold[true_split], NA),
               model_param=ifelse(X$type=="Longitudinal", list(model_param[[true_split]]), NA),
+              conv_issue=conv_issue,
               init = init,
               Pure=Pure))
 }
