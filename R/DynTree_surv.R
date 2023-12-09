@@ -174,6 +174,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                data.frame(TYPE = "Longitudinal", Impurity = leaf_split_Longitudinal$impur,
                                           stringsAsFactors = FALSE),
                                all = T)
+
               conv_issue[[current_node]] <- leaf_split_Longitudinal$conv_issue
               num_split <- num_split +1
             }

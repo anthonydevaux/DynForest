@@ -7,6 +7,7 @@
 #' @param seed Seed to replicate results
 #'
 #' @importFrom methods is
+#' @import doRNG
 #'
 #' @return \code{compute_VIMP()} function returns a list with the following elements:\tabular{ll}{
 #'    \code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
@@ -68,10 +69,10 @@
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Compute VIMP statistic
-#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2)
+#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2, seed = 1234)
 #' }
 compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
-                         ncores = NULL, seed = round(runif(1,0,10000))){
+                         ncores = NULL, seed = 1234){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
@@ -147,10 +148,8 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
     Importance.Longitudinal <- foreach::foreach(p=1:ncol(Longitudinal$X),
-                                         .combine = "c") %dopar% {
+                                         .combine = "c", .options.RNG = seed) %dorng% {
     # for (p in 1:ncol(Longitudinal$X)){
-
-    set.seed(seed+p) # set seed for permutation
 
     Longitudinal.perm$X[,p] <- sample(x = na.omit(Longitudinal$X[,p]),
                                       size = length(Longitudinal$X[,p]),
@@ -185,9 +184,8 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
     Importance.Numeric <- foreach::foreach(p=1:ncol(Numeric$X),
-                                          .combine = "c") %dopar% {
+                                          .combine = "c", .options.RNG = seed) %dorng% {
 
-    set.seed(seed+p) # set seed for permutation
 
     Numeric.perm$X[,p] <- sample(Numeric$X[,p])
 
@@ -219,9 +217,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
     Importance.Factor <- foreach::foreach(p=1:ncol(Factor$X),
-                                          .combine = "c") %dopar% {
-
-    set.seed(seed+p) # set seed for permutation
+                                          .combine = "c", .options.RNG = seed) %dorng% {
 
     Factor.perm$X[,p] <- sample(Factor$X[,p])
 

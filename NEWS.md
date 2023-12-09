@@ -1,6 +1,10 @@
-# DynForest 1.1.2 (Beta version)
+# DynForest 1.1.2
 
-# DynForest 1.1.1 (CRAN version)
+-   Added `conv_issue` return object for each tree providing information regarding convergence of the longitudinal data
+-   Added S3 method `print()` for class `DynForest`, `DynForestVIMP`, `DynForestgVIMP` and `DynForestVarDepth`
+-   Added S3 method `plot()` to replace `plot_nodeCIF()` and `plot_CIF()`
+
+# DynForest 1.1.1
 
 -   Fixed bugs with `Inputs` object in `compute_VIMP()` and `compute_gVIMP()` functions (thanks to ChenXinaha GitHub user)
 -   Fixed an issue with single event in survival mode (thanks to Dr. Labruère Chazal)

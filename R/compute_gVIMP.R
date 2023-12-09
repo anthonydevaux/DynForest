@@ -8,9 +8,12 @@
 #' @param seed Seed to replicate results
 #'
 #' @importFrom methods is
+#' @import doRNG
 #'
 #' @return \code{compute_gVIMP()} function returns a list with the following elements:\tabular{ll}{
 #'    \code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
+#'    \tab \cr
+#'    \code{group} \tab A list of each group defined in \code{group} argument \cr
 #'    \tab \cr
 #'    \code{gVIMP} \tab A numeric vector containing the gVIMP for each group defined in \code{group} argument \cr
 #'    \tab \cr
@@ -72,10 +75,10 @@
 #' res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn,
 #'                                group = list(group1 = c("serBilir","SGOT"),
 #'                                             group2 = c("albumin","alkaline")),
-#'                                ncores = 2)
+#'                                ncores = 2, seed = 1234)
 #' }
 compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
-                          group = NULL, ncores = NULL, seed = round(runif(1,0,10000))){
+                          group = NULL, ncores = NULL, seed = 1234){
 
   if (!methods::is(DynForest_obj,"DynForest")){
     stop("'DynForest_obj' should be a 'DynForest' class!")
@@ -190,7 +193,7 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     parallel::clusterEvalQ(cl,sapply(1:length(pck),function(k){require(pck[k],lib.loc=dir[k],character.only=TRUE)}))
 
     res <- foreach::foreach(k=1:ntree,
-                            .combine = "c") %dopar% {
+                            .combine = "c", .options.RNG = seed) %dorng% {
 
       # res <- vector("numeric", ntree)
       # for (k in 1:ntree){
@@ -216,6 +219,7 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
   }
 
   out <- list(Inputs = DynForest_obj$Inputs,
+              group = group,
               gVIMP = gVIMP,
               tree_oob_err = tree_oob_err,
               IBS.range = c(IBS.min, IBS.max))

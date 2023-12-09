@@ -10,7 +10,7 @@ compute_gVIMP(
   IBS.max = NULL,
   group = NULL,
   ncores = NULL,
-  seed = round(runif(1, 0, 10000))
+  seed = 1234
 )
 }
 \arguments{
@@ -29,6 +29,8 @@ compute_gVIMP(
 \value{
 \code{compute_gVIMP()} function returns a list with the following elements:\tabular{ll}{
 \code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
+\tab \cr
+\code{group} \tab A list of each group defined in \code{group} argument \cr
 \tab \cr
 \code{gVIMP} \tab A numeric vector containing the gVIMP for each group defined in \code{group} argument \cr
 \tab \cr
@@ -90,6 +92,6 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn,
                                group = list(group1 = c("serBilir","SGOT"),
                                             group2 = c("albumin","alkaline")),
-                               ncores = 2)
+                               ncores = 2, seed = 1234)
 }
 }

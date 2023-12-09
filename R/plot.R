@@ -1,11 +1,15 @@
-#' Plot results about the most predictive variables used in DynForest
+#' Plot function in DynForest
 #'
-#' This function displays a plot of the most predictive variables with the minimal depth (for class \code{DynForestVarDepth}), the variable importance (for class \code{DynForestVIMP}) or the grouped variable importance (for class \code{DynForestgVIMP}).
+#' This function displays a plot of CIF for a given node and tree (for class \code{DynForest}), the most predictive variables with the minimal depth (for class \code{DynForestVarDepth}), the variable importance (for class \code{DynForestVIMP}) or the grouped variable importance (for class \code{DynForestgVIMP}).
 #'
-#' @param x Object inheriting from classes \code{DynForestVarDepth}, \code{DynForestVIMP} or \code{DynForestgVIMP}, to respectively plot the minimal depth, the variable importance or grouped variable importance.
-#' @param plot_level For \code{DynForestVarDepth} object, compute the statistic at predictor (\code{plot_level}="predictor") or feature (\code{plot_level}="feature") level
-#' @param PCT For \code{DynForestVIMP} or \code{DynForestgVIMP} object, display VIMP statistic in percentage. Default value is FALSE.
-#' @param ordering For \code{DynForestVIMP} object, order predictors according to VIMP value. Default value is TRUE.
+#' @param x Object inheriting from classes \code{DynForest}, \code{DynForestVarDepth}, \code{DynForestVIMP} or \code{DynForestgVIMP}, to respectively plot the CIF, the minimal depth, the variable importance or grouped variable importance.
+#' @param tree For \code{DynForest} class, integer indicating the tree identifier
+#' @param nodes For \code{DynForest} class, identifiers for the selected nodes
+#' @param id For \code{DynForest} and \code{DynForestPred} classes, identifier for a given subject
+#' @param max_tree For \code{DynForest} class, integer indicating the number of tree to display while using \code{id} argument
+#' @param plot_level For \code{DynForestVarDepth} class, compute the statistic at predictor (\code{plot_level}="predictor") or feature (\code{plot_level}="feature") level
+#' @param PCT For \code{DynForestVIMP} or \code{DynForestgVIMP} class, display VIMP statistic in percentage. Default value is FALSE.
+#' @param ordering For \code{DynForestVIMP} class, order predictors according to VIMP value. Default value is TRUE.
 #' @param ... Optional parameters to be passed to the low level function
 #'
 #' @import ggplot2
@@ -68,6 +72,9 @@
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
+#' # Plot minimal depth
+#' plot(x = res_dyn, tree = 1, nodes = c(17,32))
+#'
 #' # Run var_depth function
 #' res_varDepth <- var_depth(res_dyn)
 #'
@@ -89,8 +96,149 @@
 #' # Plot gVIMP
 #' plot(x = res_dyn_gVIMP, PCT = TRUE)
 #'
+#' # Sample 5 subjects to predict the event
+#' set.seed(123)
+#' id_pred <- sample(id, 5)
+#'
+#' # Create predictors objects
+#' pbc2_pred <- pbc2[which(pbc2$id%in%id_pred),]
+#' timeData_pred <- pbc2_pred[,c("id", "time", "serBilir", "SGOT", "albumin", "alkaline")]
+#' fixedData_pred <- unique(pbc2_pred[,c("id","age","drug","sex")])
+#'
+#' # Predict the CIF function for the new subjects with landmark time at 4 years
+#' pred_dyn <- predict(object = res_dyn,
+#'                     timeData = timeData_pred, fixedData = fixedData_pred,
+#'                     idVar = "id", timeVar = "time",
+#'                     t0 = 4)
+#'
+#' # Display CIF for subjects 26 and 110
+#' plot(x = pred_dyn, id = c(26, 110))
+#'
 #' }
 #'
+#' @rdname plot.DynForest
+#' @export
+plot.DynForest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = NULL, ...){
+
+  if (!methods::is(x,"DynForest")){
+    stop("'DynForest_obj' should be a 'DynForest' class!")
+  }
+
+  if (!is.null(tree)){
+
+    if (!inherits(tree, "numeric")){
+      stop("'tree' should be a numeric object containing the tree identifier!")
+    }
+
+    if (!any(tree==seq(x$param$ntree))){
+      stop(paste0("'tree' should be chosen between 1 and ", x$param$ntree, "!"))
+    }
+
+    if (all(!is.null(nodes))){
+      if (!all(inherits(nodes, "numeric"))){
+        stop("'nodes' should be a numeric object containing the tree identifier!")
+      }
+      if (any(nodes>length(x$rf[,tree]$Y_pred))){
+        stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
+      }
+      if (any(sapply(nodes, FUN = function(node) is.null(x$rf[,tree]$Y_pred[[node]])))){
+        stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
+      }
+    }else{
+      nodes <- getTreeNodes(DynForest_obj = x, tree = tree)
+    }
+
+    # data transformation for ggplot2
+    CIFs_nodes_list <- lapply(nodes, FUN = function(node){
+
+      CIFs_node <- x$rf[,tree]$Y_pred[[node]]
+
+      CIFs_node_list <- lapply(names(CIFs_node), FUN = function(y){
+
+        CIF_node_cause <- CIFs_node[[y]]
+
+        out <- data.frame(Node = rep(node, nrow(CIF_node_cause)),
+                          Cause = rep(y, nrow(CIF_node_cause)),
+                          Time = CIF_node_cause$times,
+                          CIF = CIF_node_cause$traj)
+
+        return(out)
+
+      })
+
+      return(do.call(rbind, CIFs_node_list))
+
+    })
+
+    data.CIF.plot <- do.call(rbind, CIFs_nodes_list)
+
+    g <- ggplot(data.CIF.plot, aes_string(x = "Time", y = "CIF")) +
+      geom_step(aes_string(group = "Cause", color = "Cause")) +
+      facet_wrap(~ Node) +
+      ylim(0,1) +
+      theme_bw()
+
+    return(print(g))
+
+  }
+
+  if (!is.null(id)){
+
+    nodes <- apply(x$rf, 2, FUN = function(y){
+      leaf_tree <- y$leaves[which(y$idY==id)]
+    })
+
+    data.CIF.plot <- NULL
+
+    for (tree_id in seq(length(nodes))){
+
+      if (length(nodes[[tree_id]])>0){
+        tree_node <- nodes[[tree_id]]
+      }else{
+        next()
+      }
+
+      CIFs_node <- x$rf[,tree_id]$Y_pred[[tree_node]]
+
+      CIFs_node_list <- lapply(names(CIFs_node), FUN = function(y){
+
+        CIF_node_cause <- CIFs_node[[y]]
+
+        out <- data.frame(Tree = rep(tree_id, nrow(CIF_node_cause)),
+                          Node = rep(tree_node, nrow(CIF_node_cause)),
+                          Cause = rep(y, nrow(CIF_node_cause)),
+                          Time = CIF_node_cause$times,
+                          CIF = CIF_node_cause$traj)
+
+        return(out)
+
+      })
+
+      data.CIF.plot <- rbind(data.CIF.plot, do.call(rbind, CIFs_node_list))
+
+    }
+
+    data.CIF.plot$Tree_Node <- paste0("Tree ", data.CIF.plot$Tree, " / Node ", data.CIF.plot$Node)
+    data.CIF.plot$Tree_Node <- factor(data.CIF.plot$Tree_Node, levels = unique(data.CIF.plot$Tree_Node))
+
+    if (!is.null(max_tree)){
+      max_tree_id <- unique(data.CIF.plot$Tree)[seq(max_tree)]
+      data.CIF.plot <- data.CIF.plot[which(data.CIF.plot$Tree%in%max_tree_id),]
+    }
+
+    g <- ggplot(data.CIF.plot, aes_string(x = "Time", y = "CIF")) +
+      geom_step(aes_string(group = "Cause", color = "Cause")) +
+      facet_wrap(~ Tree_Node) +
+      ylim(0,1) +
+      theme_bw()
+
+    return(print(g))
+
+  }
+
+}
+
+
 #' @name plot.DynForest
 #' @export
 plot.DynForestVarDepth <- function(x, plot_level = c("predictor","feature"), ...){
@@ -210,5 +358,41 @@ plot.DynForestgVIMP <- function(x, PCT = FALSE, ...){
     theme_bw()
 
   return(print(g))
+
+}
+
+#' @rdname plot.DynForest
+#' @export
+plot.DynForestPred <- function(x, id = NULL, ...){
+
+  if (!methods::is(x,"DynForestPred")){
+    stop("'x' should be a 'DynForestPred' class!")
+  }
+
+  if (is.null(id)){
+    stop("'id' cannot be NULL!")
+  }
+
+  if (!all(id%in%rownames(x$pred_indiv))){
+    stop("Predictions are not available for some subjects. Please verify the subjects identifiers!")
+  }
+
+  data.CIF <- x$pred_indiv
+  data.CIF <- data.CIF[which(rownames(data.CIF)%in%id),, drop = FALSE]
+
+  times <- x$times
+  n.times <- length(times)
+
+  data.CIF.plot <- data.frame(id = as.factor(rep(id, each = n.times)),
+                              Time = rep(times, length(id)),
+                              CIF = c(t(data.CIF)))
+
+  g <- ggplot(data.CIF.plot, aes_string(x = "Time", y = "CIF")) +
+    geom_step(aes(group = id, color = id)) +
+    ylim(0,1) +
+    geom_vline(xintercept = x$t0, linetype = "dashed") +
+    theme_bw()
+
+  print(g)
 
 }

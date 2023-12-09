@@ -122,7 +122,7 @@ compute_OOBerror <- function(DynForest_obj,
   out$oob.pred <- oob.err$oob.pred
   out$IBS.range <- c(IBS.min, IBS.max)
 
-  class(out) <- c("DynForest")
+  class(out) <- c("DynForestOOB")
 
   return(out)
 

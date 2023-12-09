@@ -9,7 +9,7 @@ compute_VIMP(
   IBS.min = 0,
   IBS.max = NULL,
   ncores = NULL,
-  seed = round(runif(1, 0, 10000))
+  seed = 1234
 )
 }
 \arguments{
@@ -84,6 +84,6 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
                      cause = 2, ncores = 2, seed = 1234)
 
 # Compute VIMP statistic
-res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2)
+res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2, seed = 1234)
 }
 }

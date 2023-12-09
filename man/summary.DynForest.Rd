@@ -2,12 +2,15 @@
 % Please edit documentation in R/summary.R
 \name{summary.DynForest}
 \alias{summary.DynForest}
+\alias{summary.DynForestOOB}
 \title{Display the summary of DynForest}
 \usage{
 \method{summary}{DynForest}(object, ...)
+
+\method{summary}{DynForestOOB}(object, ...)
 }
 \arguments{
-\item{object}{\code{DynForest} or \code{DynForest_OOB} object}
+\item{object}{\code{DynForest} or \code{DynForestOOB} object}
 
 \item{...}{Optional parameters to be passed to the low level function}
 }
