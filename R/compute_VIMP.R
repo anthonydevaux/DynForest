@@ -69,7 +69,8 @@
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Compute VIMP statistic
-#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2, seed = 1234)
+#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2)
+#'
 #' }
 compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
                          ncores = NULL, seed = 1234){

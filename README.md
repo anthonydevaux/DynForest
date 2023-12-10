@@ -18,10 +18,10 @@ the random forest. `DynForest` currently supports continuous,
 categorical and survival outcome. The methodology is fully described for
 a survival outcome in the paper:
 
-> Devaux A., Helmer C., Genuer R. and Proust-Lima C. (2022). Random
+> Devaux A., Helmer C., Genuer R. and Proust-Lima C. (2023). Random
 > survival forests with multivariate longitudinal endogenous covariates.
-> *arXiv*. [\<doi:
-> 10.48550/arXiv.2208.05801\>](https://doi.org/10.48550/arXiv.2208.05801)
+> *Statistical Methods in Medical Research*.
+> [\<doi:10.1177/09622802231206477\>](https://doi.org/10.1177/09622802231206477)
 
 `DynForest` user guide is also available in the paper:
 
@@ -129,15 +129,8 @@ summary(res_dyn)
 #>  Average number of subjects per leaf: 9.67 
 #>  Average number of events of interest per leaf: 4.34 
 #> ---------------- 
-#> Out-of-bag error based on Integrated Brier Score 
-#>  Out-of-bag error: Not computed! 
-#> ---------------- 
 #> Computation time 
 #>  Number of cores used: 2 
-#>  Time difference of 7.538741 mins
+#>  Time difference of 8.185554 mins
 #> ----------------
 ```
-
-## Acknowledgements
-
-We thank Dr. Louis Capitaine for FrechForest R code used in `DynForest`.

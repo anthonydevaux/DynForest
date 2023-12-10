@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 `DynForest` is a R package aiming to predict an outcome using multivariate longitudinal predictors. The method is based on random forest principle where the longitudinal predictors are modeled through the random forest. `DynForest` currently supports continuous, categorical and survival outcome. The methodology is fully described for a survival outcome in the paper:
 
-> Devaux A., Helmer C., Genuer R. and Proust-Lima C. (2022). Random survival forests with multivariate longitudinal endogenous covariates. _arXiv_. [<doi: 10.48550/arXiv.2208.05801>](https://doi.org/10.48550/arXiv.2208.05801)
+> Devaux A., Helmer C., Genuer R. and Proust-Lima C. (2023). Random survival forests with multivariate longitudinal endogenous covariates. _Statistical Methods in Medical Research_. [<doi:10.1177/09622802231206477>](https://doi.org/10.1177/09622802231206477)
 
 `DynForest` user guide is also available in the paper: 
 
@@ -100,7 +100,3 @@ res_dyn <- DynForest(timeData = timeData, fixedData = fixedData,
 ```{r}
 summary(res_dyn)
 ```
-
-## Acknowledgements
-
-We thank Dr. Louis Capitaine for FrechForest R code used in `DynForest`.
