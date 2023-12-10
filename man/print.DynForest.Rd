@@ -75,7 +75,7 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 # Print function
 print(res_dyn)
 
-Compute VIMP statistic
+# Compute VIMP statistic
 res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2, seed = 1234)
 
 # Print function

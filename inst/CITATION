@@ -4,9 +4,9 @@ bibentry(
   bibtype  = "Article",
   title    = "Random survival forests with multivariate longitudinal endogenous covariates",
   author   = c(person("Anthony Devaux"), person("Catherine Helmer"), person("Robin Genuer"), person("C\\'ecile Proust-Lima")),
-  journal  = "arXiv",
-  year     = "2022",
-  url      = "https://arxiv.org/abs/2208.05801"
+  journal  = "Statistical Methods in Medical Research",
+  year     = "2023",
+  url      = "https://doi.org/10.1177/09622802231206477"
 )
 
 bibentry(
