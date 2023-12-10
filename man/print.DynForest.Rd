@@ -100,5 +100,5 @@ print(res_varDepth)
 
 }
 \seealso{
-\code{\link{DynForest} \link{var_depth} \link{compute_VIMP} \link{compute_gVIMP}} \link{compute_OOBerror}}
+\code{\link{DynForest} \link{var_depth} \link{compute_VIMP} \link{compute_gVIMP} \link{compute_OOBerror}}
 }

@@ -6,7 +6,7 @@
 #' @param ... Optional parameters to be passed to the low level function
 #'
 #'
-#' @seealso \code{\link{DynForest} \link{var_depth} \link{compute_VIMP} \link{compute_gVIMP}} \link{compute_OOBerror}}
+#' @seealso \code{\link{DynForest} \link{var_depth} \link{compute_VIMP} \link{compute_gVIMP} \link{compute_OOBerror}}
 #'
 #'
 #' @examples
