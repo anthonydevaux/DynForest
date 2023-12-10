@@ -20,7 +20,7 @@ Description: Based on random forest principle, 'DynForest' is able to include
     <doi: 10.1177/09622802231206477>.
 Imports: DescTools, cmprsk, doParallel, doRNG, foreach, ggplot2, lcmm, methods, 
     pbapply, pec, prodlim, stringr, survival, zoo
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.3.0)
 License: LGPL (>= 3)
 LazyData: true
 Encoding: UTF-8
