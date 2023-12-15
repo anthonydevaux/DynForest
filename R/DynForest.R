@@ -58,7 +58,7 @@
 #' @author Anthony Devaux (\email{anthony.devauxbarault@@gmail.com})
 #'
 #' @references
-#' - Devaux A., Helmer C., Genuer R., Proust-Lima C. (2023). Random survival forests with multivariate longitudinal endogenous covariates. SMMR <https://doi.org/10.1177/09622802231206477>
+#' - Devaux A., Helmer C., Genuer R., Proust-Lima C. (2023). Random survival forests with multivariate longitudinal endogenous covariates. SMMR <doi:10.1177/09622802231206477>
 #' - Devaux A., Proust-Lima C., Genuer R. (2023). Random Forests for time-fixed and time-dependent predictors: The DynForest R package. arXiv <doi:10.48550/arXiv.2302.02670>
 #'
 #' @seealso \code{\link{summary.DynForest} \link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot.DynForest}}

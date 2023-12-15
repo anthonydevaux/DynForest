@@ -137,7 +137,7 @@ res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
 }
 \references{
 \itemize{
-\item Devaux A., Helmer C., Genuer R., Proust-Lima C. (2023). Random survival forests with multivariate longitudinal endogenous covariates. SMMR \url{https://doi.org/10.1177/09622802231206477}
+\item Devaux A., Helmer C., Genuer R., Proust-Lima C. (2023). Random survival forests with multivariate longitudinal endogenous covariates. SMMR \url{doi:10.1177/09622802231206477}
 \item Devaux A., Proust-Lima C., Genuer R. (2023). Random Forests for time-fixed and time-dependent predictors: The DynForest R package. arXiv \url{doi:10.48550/arXiv.2302.02670}
 }
 }
