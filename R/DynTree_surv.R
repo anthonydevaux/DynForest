@@ -22,7 +22,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                          timeVar = NULL, mtry = 1, nsplit_option = "quantile",
                          nodesize = 1, minsplit = 2, cause = 1, seed = 1234){
 
-  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
+  Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
 
   V_split <- data.frame(type = character(), id_node = integer(), var_split = integer(),
                         feature = integer(), threshold = numeric(), N = integer(),
@@ -42,30 +42,30 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   wY <- NULL
 
   wY <- which(Y$id%in%id_boot)
-  if (!is.null("Longitudinal")) wXLongitudinal <- which(Longitudinal$id%in%id_boot)
-  if (!is.null("Numeric")) wXNumeric <- which(Numeric$id%in%id_boot)
-  if (!is.null("Factor")) wXFactor <- which(Factor$id%in%id_boot)
+  if (!is.null(Longitudinal)) wXLongitudinal <- which(Longitudinal$id%in%id_boot)
+  if (!is.null(Numeric)) wXNumeric <- which(Numeric$id%in%id_boot)
+  if (!is.null(Factor)) wXFactor <- which(Factor$id%in%id_boot)
 
   Y_pred <- list()
 
   # bootstrap inputs
-  if (!is.null("Longitudinal")){
+  if (!is.null(Longitudinal)){
     Longitudinal_boot <- list(type = Longitudinal$type,
                               X = Longitudinal$X[wXLongitudinal,, drop=FALSE],
                               id = Longitudinal$id[wXLongitudinal],
                               time = Longitudinal$time[wXLongitudinal],
                               model = Longitudinal$model)
   }
-  if (!is.null("Numeric")) Numeric_boot <- list(type = Numeric$type,
+  if (!is.null(Numeric)) Numeric_boot <- list(type = Numeric$type,
                                                 X = Numeric$X[wXNumeric,, drop=FALSE],
                                                 id = Numeric$id[wXNumeric])
-  if (!is.null("Factor")) Factor_boot <- list(type = Factor$type,
+  if (!is.null(Factor)) Factor_boot <- list(type = Factor$type,
                                               X = Factor$X[wXFactor,, drop=FALSE],
                                               id = Factor$id[wXFactor])
   # bootstrap output
   Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY], comp=Y$comp)
 
-  imp_nodes <- list()
+  imp_nodes <- vector("list", length(unique(Y_boot$id))/2-1)
   imp_nodes[[1]] <- Inf
   impur <- Inf
 
@@ -76,10 +76,12 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   final_leaves <- NULL
 
   for (p in 1:(length(unique(Y_boot$id))/2-1)){
+  #imp_nodes <- lapply(1:(length(unique(Y_boot$id))/2-1), function(p) {
 
     count_split <- 0
 
     for (i in 1:length(current_leaves)){
+    #lapply(1:length(current_leaves), function(i) {
 
       V <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))
 
@@ -88,22 +90,28 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       variables <- sample(V,mtry)
       split.spaces <- unique(variables)
 
+      isLongitudinal <- is.element("Longitudinal", split.spaces)
+      isNumeric <- is.element("Numeric", split.spaces)
+      isFactor <- is.element("Factor",split.spaces)
+
       w <- which(id_leaf==current_leaves[i])
       wXLongitudinal <- NULL
       wXNumeric <- NULL
       wXFactor <- NULL
 
-      if (!is.null("Longitudinal")) wXLongitudinal <- which(Longitudinal_boot$id%in%unique(Y_boot$id[w]))
-      if (!is.null("Numeric")) wXNumeric <- which(Numeric_boot$id%in%unique(Y_boot$id[w]))
-      if (!is.null("Factor")) wXFactor <- which(Factor_boot$id%in%unique(Y_boot$id[w]))
+      unique_Y_boot_id_w <- unique(Y_boot$id[w])
+
+      if (!is.null(Longitudinal)) wXLongitudinal <- which(Longitudinal_boot$id%in%unique_Y_boot_id_w)
+      if (!is.null(Numeric)) wXNumeric <- which(Numeric_boot$id%in%unique_Y_boot_id_w)
+      if (!is.null(Factor)) wXFactor <- which(Factor_boot$id%in%unique_Y_boot_id_w)
 
       Y_current <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w], comp=Y$comp)
 
-      if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[current_leaves[i]]] >0){
+      if (length(unique_Y_boot_id_w)>1 & imp_nodes[[current_leaves[i]]] >0){
 
         # Drawn mtry predictors
 
-        if (is.element("Longitudinal",split.spaces)==TRUE){
+        if (isLongitudinal){
 
           tirageLongitudinal <- sample(1:ncol(Longitudinal$X),length(which(variables=="Longitudinal")))
           Longitudinal_current <- list(type = Longitudinal_boot$type,
@@ -123,13 +131,13 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
         }
 
-        if (is.element("Numeric",split.spaces)==TRUE){
+        if (isNumeric){
 
           tirageNumeric <- sample(1:ncol(Numeric$X),length(which(variables=="Numeric")))
           Numeric_current <- list(type = Numeric_boot$type, X=Numeric_boot$X[wXNumeric,tirageNumeric, drop=FALSE], id=Numeric_boot$id[wXNumeric, drop=FALSE])
         }
 
-        if (is.element("Factor",split.spaces)==TRUE){
+        if (isFactor){
 
           tirageFactor <- sample(1:ncol(Factor$X),length(which(variables=="Factor")))
           Factor_current <- list(type = Factor_boot$type, X=Factor_boot$X[wXFactor,tirageFactor, drop=FALSE], id=Factor_boot$id[wXFactor, drop=FALSE])
@@ -151,10 +159,9 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                                 cause = cause, nodesize = nodesize)
 
             if (leaf_split_Factor$Pure==FALSE){
-              F_SPLIT <- merge(F_SPLIT,
+              F_SPLIT <- rbind(F_SPLIT,
                                data.frame(TYPE = "Factor", Impurity = leaf_split_Factor$impur,
-                                          stringsAsFactors = FALSE),
-                               all = T)
+                                          stringsAsFactors = FALSE))
               num_split <- num_split +1
             }
           }
@@ -170,10 +177,9 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
             if (leaf_split_Longitudinal$Pure==FALSE){
               model_init[[current_leaves[i]]] <- leaf_split_Longitudinal$init # update initial values at current node
-              F_SPLIT <- merge(F_SPLIT,
+              F_SPLIT <- rbind(F_SPLIT,
                                data.frame(TYPE = "Longitudinal", Impurity = leaf_split_Longitudinal$impur,
-                                          stringsAsFactors = FALSE),
-                               all = T)
+                                          stringsAsFactors = FALSE))
 
               conv_issue[[current_node]] <- leaf_split_Longitudinal$conv_issue
               num_split <- num_split +1
@@ -189,10 +195,9 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                                  cause = cause, nodesize = nodesize)
 
             if (leaf_split_Numeric$Pure==FALSE){
-              F_SPLIT <- merge(F_SPLIT,
+              F_SPLIT <- rbind(F_SPLIT,
                                data.frame(TYPE = "Numeric", Impurity = leaf_split_Numeric$impur,
-                                          stringsAsFactors = FALSE),
-                               all = T)
+                                          stringsAsFactors = FALSE))
               num_split <- num_split +1
             }
 
@@ -209,7 +214,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                      feature = NA, threshold = NA, N = length(Y_current$id),
                                      Nevent = Nevent, stringsAsFactors = FALSE)
 
-          V_split <- merge(V_split, V_split_node, all = T)
+          V_split <- rbind(V_split, V_split_node)
 
           next()
         }

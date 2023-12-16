@@ -25,7 +25,7 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
     mapply(rbind,x,...,SIMPLIFY=FALSE)
   }
 
-  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
+  Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
 
   err <- rep(NA,length(unique(Y$id)))
 

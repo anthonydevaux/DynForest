@@ -187,7 +187,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
     Factor <- NULL
   }
 
-  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
+  Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
   for (k in 1:length(Inputs)){
     str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
   }

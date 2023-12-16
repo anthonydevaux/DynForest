@@ -14,22 +14,22 @@
 var_split <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                       nodesize = 1, init = NULL){
 
-  impur <- rep(0,ncol(X$X))
-  toutes_imp <- list()
-  split <- list()
+  X_ncol <- ncol(X$X)
+  impur <- rep(0,X_ncol)
+  toutes_imp <- split <- vector("list", X_ncol)
   Pure <- FALSE
   model_param <- list()
-  threshold <- variable_summary <- rep(NA, ncol(X$X))
+  threshold <- variable_summary <- rep(NA, X_ncol)
   impurete <- NULL
 
-  for (i in 1:ncol(X$X)){
+  for (i in 1:X_ncol){
 
     if (X$type=="Factor"){
       if (length(unique(X$X[,i]))>1){
         L <- Fact.partitions(X$X[,i],X$id)
-        split_courant <- list()
-        impur_courant <- rep(NA,length(L))
-        toutes_imp_courant <- list()
+        split_courant <- toutes_imp_courant <- vector("list", length(L))
+        impur_courant <- rep(NA, length(L))
+
         # Find best partition
         for (k in 1:length(L)){
 

@@ -10,14 +10,11 @@ Fact.partitions <- function(Factor, id){
 
   U <- unique(Factor)
   P <- Part.facts[[length(U)]]
-  L <- list()
-  for (k in 1:nrow(P)){
-    w <- which(P[k,]==0)
-    U_courant <- U[w]
-    W <- NULL
-    for (m in U_courant){
-      W <- c(W,which(Factor==m))
-    }
+  L <- vector("list", nrow(P))
+
+  for (k in seq_len(nrow(P))){
+    U_courant <- U[which(P[k,]==0)]
+    W <- unlist(lapply(U_courant, function(m) which(Factor==m)))
     L[[k]] <- id[W]
   }
   return(L)

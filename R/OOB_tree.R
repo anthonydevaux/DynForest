@@ -18,7 +18,7 @@
 OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
                      timeVar = NULL, IBS.min = 0, IBS.max = NULL, cause = 1){
 
-  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
+  Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
 
   BOOT <- tree$boot
   OOB <- setdiff(unique(Y$id), BOOT)

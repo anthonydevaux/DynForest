@@ -15,23 +15,24 @@
 var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                            cause = 1, nodesize = 1, init = NULL){
 
-  impur <- rep(0,ncol(X$X))
-  toutes_imp <- list()
-  split <- list()
+  X_ncol <- ncol(X$X)
+  impur <- rep(0, X_ncol)
+  toutes_imp <- split <- vector("list", X_ncol)
   Pure <- FALSE
   model_param <- list()
-  threshold <- variable_summary <- rep(NA, ncol(X$X))
+  threshold <- variable_summary <- rep(NA, X_ncol)
   impurete <- NULL
   conv_issue <- NULL
 
-  for (i in 1:ncol(X$X)){
+  for (i in 1:X_ncol){
 
     if (X$type=="Factor"){
       if (length(unique(X$X[,i]))>1){
+
         L <- Fact.partitions(X$X[,i],X$id)
-        split_courant <- list()
-        impur_courant <- rep(NA,length(L))
-        toutes_imp_courant <- list()
+        split_courant <- toutes_imp_courant <- vector("list", length(L))
+        impur_courant <- rep(NA, length(L))
+
         # Find best partition
         for (k in 1:length(L)){
 
@@ -68,6 +69,8 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
     if (X$type=="Longitudinal"){
 
+      colnames_X_i <- colnames(X$X)[i]
+
       fixed_var <- all.vars(X$model[[i]]$fixed)
       random_var <- all.vars(X$model[[i]]$random)
       model_var <- unique(c(fixed_var,random_var))
@@ -77,18 +80,18 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
       data_model <- data_model[,c("id", model_var)]
 
-      if (is.null(init[[colnames(X$X)[i]]][[1]])){
-        init[[colnames(X$X)[i]]][[1]] <- NA
+      if (is.null(init[[colnames_X_i]][[1]])){
+        init[[colnames_X_i]][[1]] <- NA
       }
 
       # Mixed model with initial values for parameters ?
-      if (!is.na(init[[colnames(X$X)[i]]][[1]])){
+      if (!is.na(init[[colnames_X_i]][[1]])){
 
         model_output <- tryCatch(
           hlme(fixed = X$model[[i]]$fixed,
                random = X$model[[i]]$random,
                subject = "id", data = data_model,
-               B = init[[colnames(X$X)[i]]],
+               B = init[[colnames_X_i]],
                maxiter = 100,
                verbose = FALSE),
           error = function(e){ return(NULL) })
@@ -118,11 +121,11 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04 | is.null(model_output)){ # convergence issue
         impur[i] <- Inf
         split[[i]] <- Inf
-        conv_issue <- c(conv_issue, colnames(X$X)[i])
+        conv_issue <- c(conv_issue, colnames_X_i)
         next()
       }
 
-      init[[colnames(X$X)[i]]] <- model_output$best
+      init[[colnames_X_i]] <- model_output$best
 
       model_param[[i]] <- list(beta = model_output$best[(model_output$N[1]+1):model_output$N[2]],
                                varcov = model_output$best[(model_output$N[1]+model_output$N[2]+1):
@@ -146,7 +149,7 @@ var_split_surv <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       var_mtry2 <- seq(ncol(data_summaries))
 
       impurete_sum <- rep(NA, length(var_mtry2))
-      split_sum <- list()
+      split_sum <- vector("list", length(var_mtry2))
       split_threholds_sum <- rep(NA, length(var_mtry2))
 
       for (i_sum in var_mtry2){

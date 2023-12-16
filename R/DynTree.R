@@ -20,7 +20,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                     timeVar = NULL, mtry = 1, nsplit_option = "quantile",
                     nodesize = 1, seed = 1234){
 
-  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
+  Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
 
   V_split <- data.frame(type = character(), id_node = integer(), var_split = integer(),
                         feature = integer(), threshold = numeric(), N = integer(),
@@ -45,29 +45,29 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   }
 
   wY <- which(Y$id%in%id_boot)
-  if (!is.null("Longitudinal")) wXLongitudinal <- which(Longitudinal$id%in%id_boot)
-  if (!is.null("Numeric")) wXNumeric <- which(Numeric$id%in%id_boot)
-  if (!is.null("Factor")) wXFactor <- which(Factor$id%in%id_boot)
+  if (!is.null(Longitudinal)) wXLongitudinal <- which(Longitudinal$id%in%id_boot)
+  if (!is.null(Numeric)) wXNumeric <- which(Numeric$id%in%id_boot)
+  if (!is.null(Factor)) wXFactor <- which(Factor$id%in%id_boot)
 
   Y_pred <- list()
 
   # bootstrap inputs
-  if (!is.null("Longitudinal")) Longitudinal_boot <- list(type=Longitudinal$type,
+  if (!is.null(Longitudinal)) Longitudinal_boot <- list(type=Longitudinal$type,
                                                           X=Longitudinal$X[wXLongitudinal,, drop=FALSE],
                                                           id= Longitudinal$id[wXLongitudinal], time = Longitudinal$time[wXLongitudinal],
                                                           model=Longitudinal$model)
-  if (!is.null("Numeric")) Numeric_boot <- list(type=Numeric$type,
+  if (!is.null(Numeric)) Numeric_boot <- list(type=Numeric$type,
                                                 X=Numeric$X[wXNumeric,, drop=FALSE],
                                                 id= Numeric$id[wXNumeric])
-  if (!is.null("Factor")) Factor_boot <- list(type=Factor$type,
+  if (!is.null(Factor)) Factor_boot <- list(type=Factor$type,
                                               X=Factor$X[wXFactor,, drop=FALSE],
                                               id= Factor$id[wXFactor])
   # bootstrap output
   Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY])
 
   # impur
-  imp_nodes <- list()
-  imp_nodes[[1]] = Inf
+  imp_nodes <- vector("list", length(unique(Y_boot$id))/2-1)
+  imp_nodes[[1]] <- Inf
   impur <- impurity(Y)
   imp_nodes[[1]] <- impur
   hist_imp_nodes <- as.matrix(cbind(1, impur,length(unique(Y$id))))
@@ -99,13 +99,15 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       wXNumeric <- NULL
       wXFactor <- NULL
 
-      if (!is.null("Longitudinal")) wXLongitudinal <- which(Longitudinal_boot$id%in%unique(Y_boot$id[w]))
-      if (!is.null("Numeric")) wXNumeric <- which(Numeric_boot$id%in%unique(Y_boot$id[w]))
-      if (!is.null("Factor")) wXFactor <- which(Factor_boot$id%in%unique(Y_boot$id[w]))
+      unique_Y_boot_id_w <- unique(Y_boot$id[w])
+
+      if (!is.null(Longitudinal)) wXLongitudinal <- which(Longitudinal_boot$id%in%unique_Y_boot_id_w)
+      if (!is.null(Numeric)) wXNumeric <- which(Numeric_boot$id%in%unique_Y_boot_id_w)
+      if (!is.null(Factor)) wXFactor <- which(Factor_boot$id%in%unique_Y_boot_id_w)
 
       Y_current <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w])
 
-      if (length(unique(Y_boot$id[w]))>1 & imp_nodes[[current_leaves[i]]] >0){
+      if (length(unique_Y_boot_id_w)>1 & imp_nodes[[current_leaves[i]]] >0){
 
         # mtry des variables de chaque espace
 

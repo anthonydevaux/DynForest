@@ -13,20 +13,16 @@ getParamMM <- function(current_node, markers, params){
   params[[starting_node]] <- rep(list(NA), length(markers))
   names(params[[starting_node]]) <- markers
 
-  while (current_node>1 & length(markers)>0){ # get initial values from upper nodes
+  while (current_node > 1 & length(markers) > 0) { # get initial values from upper nodes
+    current_node <- current_node %/% 2
 
-    current_node <- current_node%/%2
+    current_node_marker_indices <- match(names(params[[current_node]]), markers, nomatch = 0)
+    current_node_marker <- names(params[[current_node]])[current_node_marker_indices > 0]
 
-    current_node_marker <-
-      names(params[[current_node]])[which(names(params[[current_node]])%in%markers)]
-
-    if (length(current_node_marker)>0){
-
+    if (length(current_node_marker) > 0) {
       params[[starting_node]][current_node_marker] <- params[[current_node]][current_node_marker]
-      markers <- markers[-which(markers%in%current_node_marker)]
-
+      markers <- setdiff(markers, current_node_marker)
     }
-
   }
 
   return(params)

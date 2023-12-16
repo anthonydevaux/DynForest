@@ -12,7 +12,7 @@
 pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
                      timeVar = NULL){
 
-  Inputs <- read.Xarg(c(Longitudinal,Numeric,Factor))
+  Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
 
   id.pred <- unique(get(Inputs[1])$id)
 
