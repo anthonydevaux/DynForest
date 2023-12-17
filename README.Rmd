@@ -31,7 +31,7 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-`DynForest` package version 1.1.1 could be install from the [CRAN](https://cran.r-project.org/package=DynForest) with:
+`DynForest` package version 1.1.2 could be install from the [CRAN](https://cran.r-project.org/package=DynForest) with:
 
 ```{r, eval = FALSE}
 install.packages("DynForest")

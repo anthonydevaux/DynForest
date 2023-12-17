@@ -32,7 +32,7 @@ a survival outcome in the paper:
 
 ## Installation
 
-`DynForest` package version 1.1.1 could be install from the
+`DynForest` package version 1.1.2 could be install from the
 [CRAN](https://cran.r-project.org/package=DynForest) with:
 
 ``` r
@@ -124,13 +124,13 @@ summary(res_dyn)
 #> ---------------- 
 #> ---------------- 
 #> DynForest summary 
-#>  Average depth per tree: 5.94 
-#>  Average number of leaves per tree: 20.44 
-#>  Average number of subjects per leaf: 9.67 
+#>  Average depth per tree: 5.95 
+#>  Average number of leaves per tree: 20.38 
+#>  Average number of subjects per leaf: 9.69 
 #>  Average number of events of interest per leaf: 4.34 
 #> ---------------- 
 #> Computation time 
 #>  Number of cores used: 2 
-#>  Time difference of 8.185554 mins
+#>  Time difference of 9.072034 mins
 #> ----------------
 ```

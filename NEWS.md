@@ -1,4 +1,8 @@
-# DynForest 1.1.2
+# DynForest 1.1.3 (Development version)
+
+-   Improved `DynForest()` computation time function with survival outcome
+
+# DynForest 1.1.2 (CRAN version)
 
 -   Added `conv_issue` return object for each tree providing information regarding convergence of the longitudinal data
 -   Added S3 method `print()` for class `DynForest`, `DynForestVIMP`, `DynForestgVIMP` and `DynForestVarDepth`

@@ -73,7 +73,7 @@
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Plot minimal depth
-#' plot(x = res_dyn, tree = 1, nodes = c(17,32))
+#' plot(x = res_dyn, tree = 1, nodes = c(18,19))
 #'
 #' # Run var_depth function
 #' res_varDepth <- var_depth(res_dyn)
