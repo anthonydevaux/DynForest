@@ -77,8 +77,10 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
     for (current_node in current_nodes){
 
+      current_node_chr <- as.character(current_node)
+
       # mtry predictors
-      set.seed(seed+p*current_node)
+      set.seed(seed+p*which(current_node==current_nodes))
       mtry_pred <- sample(type_pred, mtry)
       mtry_type_pred <- unique(mtry_pred)
 
@@ -118,7 +120,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
             model_init <- getParamMM(current_node = current_node, markers = colnames(Longitudinal_current$X),
                                      params = model_init)
           }else{
-            model_init[[current_node]] <- lapply(Longitudinal$model, FUN = function(x) x$init.param)
+            model_init[[current_node_chr]] <- lapply(Longitudinal$model, FUN = function(x) x$init.param)
           }
 
         }
@@ -138,9 +140,8 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         # Try best split on mtry predictors
         if (is.element("Factor", mtry_type_pred)){
 
-          leaf_split_Factor <- var_split_surv(X = Factor_current, Y = Y_current,
-                                              timeVar = timeVar,
-                                              cause = cause, nodesize = nodesize)
+          leaf_split_Factor <- var_split_factor(X = Factor_current, Y = Y_current,
+                                                cause = cause, nodesize = nodesize)
 
           if (leaf_split_Factor$Pure==FALSE){
             F_SPLIT <- rbind(F_SPLIT,
@@ -151,28 +152,27 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
         if (is.element("Longitudinal", mtry_type_pred)){
 
-          leaf_split_Longitudinal <- var_split_surv(X = Longitudinal_current, Y = Y_current,
+          leaf_split_Longitudinal <- var_split_long(X = Longitudinal_current, Y = Y_current,
                                                     timeVar = timeVar,
                                                     nsplit_option = nsplit_option,
                                                     cause = cause, nodesize = nodesize,
-                                                    init = model_init[[current_node]])
+                                                    init = model_init[[current_node_chr]])
 
           if (leaf_split_Longitudinal$Pure==FALSE){
-            model_init[[current_node]] <- leaf_split_Longitudinal$init # update initial values at current node
+            model_init[[current_node_chr]] <- leaf_split_Longitudinal$init # update initial values at current node
             F_SPLIT <- rbind(F_SPLIT,
                              data.frame(TYPE = "Longitudinal", Impurity = leaf_split_Longitudinal$impur,
                                         stringsAsFactors = FALSE))
 
-            conv_issue[[current_node]] <- leaf_split_Longitudinal$conv_issue
+            conv_issue[[current_node_chr]] <- leaf_split_Longitudinal$conv_issue
           }
         }
 
         if (is.element("Numeric", mtry_type_pred)){
 
-          leaf_split_Numeric <- var_split_surv(X = Numeric_current, Y = Y_current,
-                                               timeVar = timeVar,
-                                               nsplit_option = nsplit_option,
-                                               cause = cause, nodesize = nodesize)
+          leaf_split_Numeric <- var_split_num(X = Numeric_current, Y = Y_current,
+                                              nsplit_option = nsplit_option,
+                                              cause = cause, nodesize = nodesize)
 
           if (leaf_split_Numeric$Pure==FALSE){
             F_SPLIT <- rbind(F_SPLIT,
@@ -219,7 +219,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                     threshold = leaf_split$threshold, N = N_current,
                                     Nevent = Nevent_current, stringsAsFactors = FALSE))
 
-        model_param[[current_node]] <- leaf_split$model_param
+        model_param[[current_node_chr]] <- leaf_split$model_param
 
         w_left <- which(X_boot$id%in%left_id)
         wY_left <- which(Y_boot$id%in%left_id)
@@ -257,8 +257,8 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
           meanFd <- mean(X_boot$X[w_right, best_pred])
         }
 
-        hist_nodes[[2*current_node]] <- meanFg
-        hist_nodes[[2*current_node+1]] <- meanFd
+        hist_nodes[[as.character(2*current_node)]] <- meanFg
+        hist_nodes[[as.character(2*current_node+1)]] <- meanFd
 
       }else{
 
@@ -286,39 +286,36 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
     rownames(V_split) <- seq(nrow(V_split))
   }
 
-  for (q in unique(na.omit(id_leaves))){
+  for (q in sort(unique(na.omit(id_nodes)))){
 
-    w <- which(id_leaves == q)
+    w <- which(id_nodes == q)
 
     datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
     fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
                    type = "risk")
 
     if (is.null(fit$cuminc)){
-      pred <- list()
-      current.cause <- as.character(unique(sort(datasurv$event))[-1])
 
-      if (length(current.cause)==0){
-        current.cause <- "1"
-      }
-
-      pred[[current.cause]] <- data.frame(times=fit$time, traj=1-fit$surv) # 1-KM
-
-      if (is.null(pred[[as.character(cause)]])){
+      if (all(unique(datasurv$event)==0)){ # case with no event
         pred[[as.character(cause)]] <- data.frame(times=fit$time, traj = 0) # no event => no risk
+      }else{ # case with event no matter which one
+        u_current_causes <- unique(datasurv$event)
+        current_cause <- u_current_causes[u_current_causes!=0] # keep leaf cause
+        pred <- list(data.frame(times=fit$time, traj=1-fit$surv)) # 1-KM
+        names(pred) <- as.character(current_cause)
       }
 
     }else{
       pred <- lapply(fit$cuminc, FUN = function(x) return(data.frame(times=fit$time, traj=x))) # CIF Aalen-Johansen
     }
 
-    Y_pred[[q]] <- lapply(pred, function(x){
+    Y_pred[[as.character(q)]] <- lapply(pred, function(x){
       combine_times(pred = x, newtimes = unique(Y$Y[,1]), type = "risk")
     })
 
   }
 
-  return(list(leaves = id_leaves, idY = Y_boot$id, Ytype = Y_boot$type, V_split = V_split,
+  return(list(leaves = id_nodes, idY = Y_boot$id, Ytype = Y_boot$type, V_split = V_split,
               hist_nodes = hist_nodes, Y_pred = Y_pred, Y = Y, boot = id_boot, conv_issue = conv_issue,
               model_param = model_param))
 

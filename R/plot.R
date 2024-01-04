@@ -138,10 +138,10 @@ plot.DynForest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = N
       if (!all(inherits(nodes, "numeric"))){
         stop("'nodes' should be a numeric object containing the tree identifier!")
       }
-      if (any(nodes>length(x$rf[,tree]$Y_pred))){
+      if (!all(nodes%in%names(x$rf[,tree]$Y_pred))){
         stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
       }
-      if (any(sapply(nodes, FUN = function(node) is.null(x$rf[,tree]$Y_pred[[node]])))){
+      if (any(sapply(nodes, FUN = function(node) is.null(x$rf[,tree]$Y_pred[[as.character(node)]])))){
         stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
       }
     }else{
@@ -151,7 +151,7 @@ plot.DynForest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = N
     # data transformation for ggplot2
     CIFs_nodes_list <- lapply(nodes, FUN = function(node){
 
-      CIFs_node <- x$rf[,tree]$Y_pred[[node]]
+      CIFs_node <- x$rf[,tree]$Y_pred[[as.character(node)]]
 
       CIFs_node_list <- lapply(names(CIFs_node), FUN = function(y){
 
@@ -198,7 +198,7 @@ plot.DynForest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = N
         next()
       }
 
-      CIFs_node <- x$rf[,tree_id]$Y_pred[[tree_node]]
+      CIFs_node <- x$rf[,tree_id]$Y_pred[[as.character(tree_node)]]
 
       CIFs_node_list <- lapply(names(CIFs_node), FUN = function(y){
 
