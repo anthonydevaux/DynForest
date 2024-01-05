@@ -47,7 +47,7 @@ Development version of `DynForest` is also available from
 devtools::install_github("anthonydevaux/DynForest")
 ```
 
-## Quick example
+## Quick example with survival outcome
 
 ### Manage data
 
@@ -98,7 +98,7 @@ res_dyn <- DynForest(timeData = timeData, fixedData = fixedData,
                      timeVar = "time", idVar = "id",
                      timeVarModel = timeVarModel, Y = Y,
                      ntree = 50, nodesize = 5, minsplit = 5,
-                     cause = 2, ncores = 2, seed = 1234)
+                     cause = 2, ncores = 15, seed = 1234)
 ```
 
 ### Get summary
@@ -124,13 +124,13 @@ summary(res_dyn)
 #> ---------------- 
 #> ---------------- 
 #> DynForest summary 
-#>  Average depth per tree: 5.95 
-#>  Average number of leaves per tree: 20.38 
-#>  Average number of subjects per leaf: 9.69 
+#>  Average depth per tree: 5.94 
+#>  Average number of leaves per tree: 20.44 
+#>  Average number of subjects per leaf: 9.67 
 #>  Average number of events of interest per leaf: 4.34 
 #> ---------------- 
 #> Computation time 
-#>  Number of cores used: 2 
-#>  Time difference of 9.072034 mins
+#>  Number of cores used: 15 
+#>  Time difference of 1.04619 mins
 #> ----------------
 ```

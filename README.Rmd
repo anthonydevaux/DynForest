@@ -44,7 +44,7 @@ Development version of `DynForest` is also available from [GitHub](https://githu
 devtools::install_github("anthonydevaux/DynForest")
 ```
 
-## Quick example
+## Quick example with survival outcome
 
 ### Manage data
 
@@ -92,7 +92,7 @@ res_dyn <- DynForest(timeData = timeData, fixedData = fixedData,
                      timeVar = "time", idVar = "id",
                      timeVarModel = timeVarModel, Y = Y,
                      ntree = 50, nodesize = 5, minsplit = 5,
-                     cause = 2, ncores = 2, seed = 1234)
+                     cause = 2, ncores = 15, seed = 1234)
 ```
 
 ### Get summary

@@ -22,7 +22,7 @@
 #'    \tab \cr
 #'    With \code{DynForestVIMP} \tab the VIMP for each predictor \cr
 #'    \tab \cr
-#'    With \code{DynForestVarDepth} \tab the grouped-VIMP for each given group \cr
+#'    With \code{DynForestgVIMP} \tab the grouped-VIMP for each given group \cr
 #' }
 #'
 #' @examples
@@ -72,8 +72,8 @@
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Plot minimal depth
-#' plot(x = res_dyn, tree = 1, nodes = c(18,19))
+#' # Plot estimated CIF at nodes 17 and 32
+#' plot(x = res_dyn, tree = 1, nodes = c(17,32))
 #'
 #' # Run var_depth function
 #' res_varDepth <- var_depth(res_dyn)
@@ -111,7 +111,7 @@
 #'                     idVar = "id", timeVar = "time",
 #'                     t0 = 4)
 #'
-#' # Display CIF for subjects 26 and 110
+#' # Plot predicted CIF for subjects 26 and 110
 #' plot(x = pred_dyn, id = c(26, 110))
 #'
 #' }
