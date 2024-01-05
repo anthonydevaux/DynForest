@@ -16,7 +16,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                            cause = 1, nodesize = 1, init = NULL){
 
   X_ncol <- ncol(X$X)
-  split_var <- vector("list", X_ncol)
+  all_imp_var <- split_var <- vector("list", X_ncol)
   impur_var <- rep(Inf, X_ncol)
   Pure <- FALSE
   model_param <- list()
@@ -103,6 +103,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
     mtry_sum <- seq(ncol(data_summaries))
 
     impur_sum <- rep(Inf, mtry2)
+    all_imp_sum <- lapply(seq(mtry2), FUN = function(x) list(Inf, Inf))
     split_sum <- vector("list", mtry2)
     split_sum_threholds <- rep(NA, mtry2)
 
@@ -145,12 +146,16 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
               if ((length(unique(split))>1)&(all(table(split)>=nodesize))){
                 # Evaluate the partition
-                impur <- impurity_split(Y, split, cause = cause)$impur
+                impur_res <- impurity_split(Y, split, cause = cause)
+
+                impur <- impur_res$impur
+                imp_list <- impur_res$imp_list
               }else{
                 impur <- Inf
+                imp_list <- list(Inf, Inf)
               }
 
-              return(list(split = split, impur = impur))
+              return(list(split = split, impur = impur, imp_list = imp_list))
 
             })
 
@@ -160,6 +165,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
               best_part_sum_nsplit <- which.min(partition_sum_impur)
               split_sum[[i_sum]] <- split_sum_list[[best_part_sum_nsplit]]$split
               impur_sum[i_sum] <- split_sum_list[[best_part_sum_nsplit]]$impur
+              all_imp_sum[[i_sum]] <- split_sum_list[[best_part_sum_nsplit]]$imp_list
               split_sum_threholds[i_sum] <- split_threholds[best_part_sum_nsplit]
             }
           }
@@ -172,6 +178,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       var_sum[i] <- mtry_sum[best_part_sum]
       split_var[[i]] <- split_sum[[best_part_sum]]
       impur_var[i] <- impur_sum[best_part_sum]
+      all_imp_var[[i]] <- all_imp_sum[[best_part_sum]]
       threshold_var[i] <- split_sum_threholds[best_part_sum]
     }
 
@@ -183,8 +190,8 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
   var_split <- which.min(impur_var)
 
-  return(list(split = split_var[[var_split]], impur = min(impur_var), variable = var_split,
-              variable_summary = var_sum[var_split], threshold = threshold_var[var_split],
+  return(list(split = split_var[[var_split]], impur = min(impur_var), impur_list = all_imp_var[[var_split]],
+              variable = var_split, variable_summary = var_sum[var_split], threshold = threshold_var[var_split],
               model_param = list(model_param[[var_split]]), conv_issue = conv_issue,
               init = init, Pure = Pure))
 }

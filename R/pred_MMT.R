@@ -18,7 +18,7 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
   pred <- rep(NA,length(id.pred))
 
-  for (i in 1:length(id.pred)){
+  pred <- sapply(seq_along(id.pred), FUN = function(i){
 
     if (is.element("Longitudinal",Inputs)==TRUE) wLongitudinal <- which(Longitudinal$id==id.pred[i])
     if (is.element("Numeric",Inputs)==TRUE) wNumeric <- which(Numeric$id==id.pred[i])
@@ -34,8 +34,8 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
       var.split.sum <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),4]))
       threshold <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),5]))
 
-      meanG <- tree$hist_nodes[[2*current_node]]
-      meanD <- tree$hist_nodes[[2*current_node+1]]
+      meanG <- tree$hist_nodes[[as.character(2*current_node)]]
+      meanD <- tree$hist_nodes[[as.character(2*current_node+1)]]
 
       if (type=="longitudinal"){
 
@@ -48,7 +48,7 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
         colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
         data_model <- data_model[,c("id",model_var)]
 
-        RE <- predRE(tree$model_param[[current_node]][[1]],
+        RE <- predRE(tree$model_param[[as.character(current_node)]][[1]],
                      X$model[[var.split]], data_model)$bi
 
         ######################
@@ -96,8 +96,10 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
     }
 
-    pred[i] <- current_node
+    return(current_node)
 
-  }
+  })
+
   return(pred)
+
 }

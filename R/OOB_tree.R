@@ -88,7 +88,9 @@ OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y
                                         timeVar = timeVar),
                                error = function(e) return(NA)) # handle permutation issue
 
-      if (is.na(pred_current)){
+      pred_current_chr <- as.character(pred_current)
+
+      if (is.na(pred_current_chr)){
 
         xerror[which(OOB_IBS==i)] <- NA
 
@@ -101,11 +103,11 @@ OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y
 
         # CIF
         if (IBS.min == 0){
-          pi_t <- tree$Y_pred[[pred_current]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
+          pi_t <- tree$Y_pred[[pred_current_chr]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
         }else{
-          pi_t <- tree$Y_pred[[pred_current]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
-          pi_s <- tree$Y_pred[[pred_current]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
-          s_s <- 1 - sum(unlist(lapply(tree$Y_pred[[pred_current]], FUN = function(x){
+          pi_t <- tree$Y_pred[[pred_current_chr]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
+          pi_s <- tree$Y_pred[[pred_current_chr]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
+          s_s <- 1 - sum(unlist(lapply(tree$Y_pred[[pred_current_chr]], FUN = function(x){
             return(x$traj[sum(allTimes<IBS.min)])
           }))) # s(s)
           pi_t <- (pi_t - pi_s)/s_s # P(S<T<S+t|T>S)
@@ -151,7 +153,9 @@ OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y
     pred_current <- pred.MMT(tree, Longitudinal = Longitudinal_current, Numeric = Numeric_current,
                      Factor = Factor_current, timeVar = timeVar)
 
-    pred <- unlist(sapply(pred_current, FUN = function(x) {
+    pred_current_chr <- as.character(pred_current)
+
+    pred <- unlist(sapply(pred_current_chr, FUN = function(x) {
       ifelse(!is.null(tree$Y_pred[[x]]), tree$Y_pred[[x]], NA)
     }))
 

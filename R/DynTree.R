@@ -21,22 +21,15 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                     nodesize = 1, seed = 1234){
 
   Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
+  type_pred <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))
 
   V_split <- data.frame(type = character(), id_node = integer(), var_split = integer(),
                         feature = integer(), threshold = numeric(), N = integer(),
                         stringsAsFactors = FALSE)
-  hist_nodes <- list()
-  model_param <- list()
-  model_init <- list()
-  set.seed(seed) # set seed for bootstrap
-  id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
-  boot <- id_boot
-  num_split <- 1
 
-  wXLongitudinal <- NULL
-  wXNumeric <- NULL
-  wXFactor <- NULL
-  wY <- NULL
+  # Bootstrap sample
+  set.seed(seed)
+  id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
 
   if (Y$type=="factor"){
     Ylevels <- unique(Y$Y)
@@ -44,61 +37,61 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
     Ylevels <- NULL
   }
 
+  # Longitudinal bootstrap data
+  if (!is.null(Longitudinal)){
+    wXLongitudinal <- which(Longitudinal$id%in%id_boot)
+    Longitudinal_boot <- list(type = Longitudinal$type,
+                              X = Longitudinal$X[wXLongitudinal,, drop=FALSE],
+                              id = Longitudinal$id[wXLongitudinal],
+                              time = Longitudinal$time[wXLongitudinal],
+                              model = Longitudinal$model)
+  }
+
+  # Numeric bootstrap data
+  if (!is.null(Numeric)){
+    wXNumeric <- which(Numeric$id%in%id_boot)
+    Numeric_boot <- list(type = Numeric$type,
+                         X = Numeric$X[wXNumeric,, drop=FALSE],
+                         id = Numeric$id[wXNumeric])
+  }
+
+  # Factor bootstrap data
+  if (!is.null(Factor)){
+    wXFactor <- which(Factor$id%in%id_boot)
+    Factor_boot <- list(type = Factor$type,
+                        X = Factor$X[wXFactor,, drop=FALSE],
+                        id = Factor$id[wXFactor])
+  }
+
+  # Outcome bootstrap data
   wY <- which(Y$id%in%id_boot)
-  if (!is.null(Longitudinal)) wXLongitudinal <- which(Longitudinal$id%in%id_boot)
-  if (!is.null(Numeric)) wXNumeric <- which(Numeric$id%in%id_boot)
-  if (!is.null(Factor)) wXFactor <- which(Factor$id%in%id_boot)
-
-  Y_pred <- list()
-
-  # bootstrap inputs
-  if (!is.null(Longitudinal)) Longitudinal_boot <- list(type=Longitudinal$type,
-                                                          X=Longitudinal$X[wXLongitudinal,, drop=FALSE],
-                                                          id= Longitudinal$id[wXLongitudinal], time = Longitudinal$time[wXLongitudinal],
-                                                          model=Longitudinal$model)
-  if (!is.null(Numeric)) Numeric_boot <- list(type=Numeric$type,
-                                                X=Numeric$X[wXNumeric,, drop=FALSE],
-                                                id= Numeric$id[wXNumeric])
-  if (!is.null(Factor)) Factor_boot <- list(type=Factor$type,
-                                              X=Factor$X[wXFactor,, drop=FALSE],
-                                              id= Factor$id[wXFactor])
-  # bootstrap output
   Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY])
 
-  # impur
-  imp_nodes <- vector("list", length(unique(Y_boot$id))/2-1)
-  imp_nodes[[1]] <- Inf
-  impur <- impurity(Y)
-  imp_nodes[[1]] <- impur
-  hist_imp_nodes <- as.matrix(cbind(1, impur,length(unique(Y$id))))
+  # Initialize the tree
+  id_nodes <- rep(1,length(Y_boot$id)) # nodes
+  id_leaves <- NULL
+  current_nodes <- 1
+  Y_pred <- hist_nodes <- imp_nodes <- list()
+  imp_nodes[["1"]] <- impurity(Y)
+  hist_imp_nodes <- as.matrix(cbind(1, imp_nodes[["1"]], length(unique(Y$id))))
 
-  # root node 1
-  id_leaf <- rep(1,length(Y_boot$id))
-  id_leaf_prime <- id_leaf
-  current_leaves <- unique(id_leaf)
-  final_leaves <- NULL
 
-  for (p in 1:(length(unique(Y_boot$id))/2-1)){
+  # Initialize mixed models lists
+  model_init <- model_param <- conv_issue <- list()
 
-    count_split <- 0
+  for (p in seq_along(unique(Y_boot$id)/2-1)){
 
-    for (i in 1:length(current_leaves)){
+    for (current_node in current_nodes){
 
-      # List inputs
-      V <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))
+      current_node_chr <- as.character(current_node)
 
-      set.seed(seed+p*i)
-      # mtry des espaces
-      variables <- sample(V,mtry) # Maintenant on sait combien on doit en tirer dans chaque espace
-      # On ne va regarder que les espaces tirés :
-      split.spaces <- unique(variables)
+      # mtry predictors
+      set.seed(seed+p*which(current_node==current_nodes))
+      mtry_pred <- sample(type_pred, mtry)
+      mtry_type_pred <- unique(mtry_pred)
 
-      # variables <- sample(c(1:dim(X_boot$X[,,drop=FALSE])[2]),mtry)
-      w <- which(id_leaf==current_leaves[i])
-      wXLongitudinal <- NULL
-      wXNumeric <- NULL
-      wXFactor <- NULL
-
+      # Id data at current node
+      w <- which(id_nodes==current_node)
       unique_Y_boot_id_w <- unique(Y_boot$id[w])
 
       if (!is.null(Longitudinal)) wXLongitudinal <- which(Longitudinal_boot$id%in%unique_Y_boot_id_w)
@@ -106,277 +99,221 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       if (!is.null(Factor)) wXFactor <- which(Factor_boot$id%in%unique_Y_boot_id_w)
 
       Y_current <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w])
+      N_current <- length(Y_current$id)
 
-      if (length(unique_Y_boot_id_w)>1 & imp_nodes[[current_leaves[i]]] >0){
+      F_SPLIT <- data.frame(TYPE = character(), Impurity = numeric(), stringsAsFactors = FALSE)
+      leaf_flag <- FALSE
 
-        # mtry des variables de chaque espace
+      isLongitudinal <- is.element("Longitudinal", mtry_type_pred)
+      isNumeric <- is.element("Numeric", mtry_type_pred)
+      isFactor <- is.element("Factor", mtry_type_pred)
 
-        if (is.element("Longitudinal",split.spaces)==TRUE){
+      # Node can be split?
+      if (N_current >= nodesize*2 & imp_nodes[[current_node_chr]]>0){
 
-          tirageLongitudinal <- sample(1:ncol(Longitudinal$X),length(which(variables=="Longitudinal")))
-          Longitudinal_current <- list(type = Longitudinal_boot$type, X=Longitudinal_boot$X[wXLongitudinal,tirageLongitudinal, drop=FALSE], id=Longitudinal_boot$id[wXLongitudinal, drop=FALSE], time=Longitudinal_boot$time[wXLongitudinal, drop=FALSE],
+        # Data at current node with mtry predictors
+        if (isLongitudinal){
+
+          tirageLongitudinal <- sample(1:ncol(Longitudinal$X),length(which(mtry_pred=="Longitudinal")))
+          Longitudinal_current <- list(type = Longitudinal_boot$type,
+                                       X=Longitudinal_boot$X[wXLongitudinal,tirageLongitudinal, drop=FALSE],
+                                       id=Longitudinal_boot$id[wXLongitudinal, drop=FALSE],
+                                       time=Longitudinal_boot$time[wXLongitudinal, drop=FALSE],
                                        model = Longitudinal_boot$model[tirageLongitudinal])
-
-          current_node <- current_leaves[i]
 
           if (current_node > 1){
             model_init <- getParamMM(current_node = current_node, markers = colnames(Longitudinal_current$X),
                                      params = model_init)
           }else{
-            model_init[[current_node]] <- lapply(Longitudinal$model, FUN = function(x) x$init.param)
+            model_init[[current_node_chr]] <- lapply(Longitudinal$model, FUN = function(x) x$init.param)
           }
 
         }
 
-        if (is.element("Numeric",split.spaces)==TRUE){
-
-          tirageNumeric <- sample(1:ncol(Numeric$X),length(which(variables=="Numeric")))
-          Numeric_current <- list(type = Numeric_boot$type, X=Numeric_boot$X[wXNumeric,tirageNumeric, drop=FALSE], id=Numeric_boot$id[wXNumeric, drop=FALSE])
+        if (isNumeric){
+          tirageNumeric <- sample(1:ncol(Numeric$X),length(which(mtry_pred=="Numeric")))
+          Numeric_current <- list(type = Numeric_boot$type, X=Numeric_boot$X[wXNumeric,tirageNumeric, drop=FALSE],
+                                  id=Numeric_boot$id[wXNumeric, drop=FALSE])
         }
 
-        if (is.element("Factor",split.spaces)==TRUE){
-
-          tirageFactor <- sample(1:ncol(Factor$X),length(which(variables=="Factor")))
-          Factor_current <- list(type = Factor_boot$type, X=Factor_boot$X[wXFactor,tirageFactor, drop=FALSE], id=Factor_boot$id[wXFactor, drop=FALSE])
+        if (isFactor){
+          tirageFactor <- sample(1:ncol(Factor$X),length(which(mtry_pred=="Factor")))
+          Factor_current <- list(type = Factor_boot$type, X=Factor_boot$X[wXFactor,tirageFactor, drop=FALSE],
+                                 id=Factor_boot$id[wXFactor, drop=FALSE])
         }
 
-        F_SPLIT <- data.frame(TYPE = character(), Impurity = numeric(), stringsAsFactors = FALSE)
-        num_split <- 0
+        # Try best split on mtry predictors
+        if (is.element("Factor", mtry_type_pred)){
 
-        N_current <- length(Y_current$id)
+          leaf_split_Factor <- var_split_factor(X = Factor_current, Y = Y_current,
+                                                nodesize = nodesize)
 
-        if (N_current >= nodesize*2){
+          if (leaf_split_Factor$Pure==FALSE){
+            F_SPLIT <- rbind(F_SPLIT,
+                             data.frame(TYPE = "Factor", Impurity = leaf_split_Factor$impur,
+                                        stringsAsFactors = FALSE))
+          }
+        }
 
-          # Try best split on mtry factor predictors
-          if (is.element("Factor",split.spaces)==TRUE){
+        if (is.element("Longitudinal", mtry_type_pred)){
 
-            leaf_split_Factor <- var_split(X = Factor_current, Y = Y_current,
-                                           timeVar = timeVar,
-                                           nodesize = nodesize)
+          leaf_split_Longitudinal <- var_split_long(X = Longitudinal_current, Y = Y_current,
+                                                    timeVar = timeVar,
+                                                    nsplit_option = nsplit_option,
+                                                    nodesize = nodesize,
+                                                    init = model_init[[current_node_chr]])
 
-            if (leaf_split_Factor$Pure==FALSE){
-              F_SPLIT <- merge(F_SPLIT,
-                               data.frame(TYPE = "Factor", Impurity = leaf_split_Factor$impur,
-                                          stringsAsFactors = FALSE),
-                               all = T)
-              num_split <- num_split +1
-            }
+          if (leaf_split_Longitudinal$Pure==FALSE){
+            model_init[[current_node_chr]] <- leaf_split_Longitudinal$init # update initial values at current node
+            F_SPLIT <- rbind(F_SPLIT,
+                             data.frame(TYPE = "Longitudinal", Impurity = leaf_split_Longitudinal$impur,
+                                        stringsAsFactors = FALSE))
+
+            conv_issue[[current_node_chr]] <- leaf_split_Longitudinal$conv_issue
+          }
+        }
+
+        if (is.element("Numeric", mtry_type_pred)){
+
+          leaf_split_Numeric <- var_split_num(X = Numeric_current, Y = Y_current,
+                                              nsplit_option = nsplit_option,
+                                              nodesize = nodesize)
+
+          if (leaf_split_Numeric$Pure==FALSE){
+            F_SPLIT <- rbind(F_SPLIT,
+                             data.frame(TYPE = "Numeric", Impurity = leaf_split_Numeric$impur,
+                                        stringsAsFactors = FALSE))
           }
 
-          # Try best split on mtry Longitudinal predictors
-          if (is.element("Longitudinal",split.spaces)==TRUE){
 
-            leaf_split_Longitudinal <- var_split(X = Longitudinal_current, Y = Y_current,
-                                                 timeVar = timeVar,
-                                                 nsplit_option = nsplit_option,
-                                                 nodesize = nodesize,
-                                                 init = model_init[[current_leaves[i]]])
+        }
 
-            if (leaf_split_Longitudinal$Pure==FALSE){
-              model_init[[current_leaves[i]]] <- leaf_split_Longitudinal$init # update initial values at current node
-              F_SPLIT <- merge(F_SPLIT,
-                               data.frame(TYPE = "Longitudinal", Impurity = leaf_split_Longitudinal$impur,
-                                          stringsAsFactors = FALSE),
-                               all = T)
-              num_split <- num_split +1
-            }
-          }
+      }else{
+        leaf_flag <- TRUE
+      }
 
-          # Try best split on mtry Numeric predictors
-          if (is.element("Numeric",split.spaces)==TRUE){
+      if (nrow(F_SPLIT)>0){
 
-            leaf_split_Numeric <- var_split(X = Numeric_current, Y = Y_current,
-                                            timeVar = timeVar,
-                                            nsplit_option = nsplit_option,
-                                            nodesize = nodesize)
+        best_split_type <- F_SPLIT$TYPE[which.min(F_SPLIT$Impurity)]
+        X_boot <- get(paste0(best_split_type, "_current"))
 
-            if (leaf_split_Numeric$Pure==FALSE){
-              F_SPLIT <- merge(F_SPLIT,
-                               data.frame(TYPE = "Numeric", Impurity = leaf_split_Numeric$impur,
-                                          stringsAsFactors = FALSE),
-                               all = T)
-              num_split <- num_split +1
-            }
+        # Get best partition
+        leaf_split <- get(paste0("leaf_split_", best_split_type))
+        best_pred <- get(paste0("tirage", best_split_type))[leaf_split$variable]
 
+        left_id <- unique(Y_current$id)[which(leaf_split$split==1)]
+        right_id <- unique(Y_current$id)[which(leaf_split$split==2)]
 
-          }
+        length_left <- length(left_id)
+        length_right <- length(right_id)
 
+        if (length_left<nodesize | length_right<nodesize){
+          leaf_flag <- TRUE
+        }
+
+      }else{
+        leaf_flag <- TRUE
+      }
+
+      if (!leaf_flag){
+
+        imp_nodes[[as.character(2*current_node)]] <- leaf_split$impur_list[[1]]
+        imp_nodes[[as.character(2*current_node+1)]] <- leaf_split$impur_list[[2]]
+
+        hist_imp_nodes <- rbind(hist_imp_nodes,
+                                c(2*current_node, imp_nodes[[as.character(2*current_node)]], length(which(leaf_split$split==1))))
+        hist_imp_nodes <- rbind(hist_imp_nodes,
+                                c(2*current_node+1, imp_nodes[[as.character(2*current_node+1)]], length(which(leaf_split$split==2))))
+
+        # add node split to V_split
+        V_split <- rbind(V_split,
+                         data.frame(type = best_split_type, id_node = current_node,
+                                    var_split = best_pred, feature = leaf_split$variable_summary,
+                                    threshold = leaf_split$threshold, N = N_current,
+                                    stringsAsFactors = FALSE))
+
+        model_param[[current_node_chr]] <- leaf_split$model_param
+
+        w_left <- which(X_boot$id%in%left_id)
+        wY_left <- which(Y_boot$id%in%left_id)
+
+        w_right <- which(X_boot$id%in%right_id)
+        wY_right <- which(Y_boot$id%in%right_id)
+
+        # Check for missing split
+        if (anyNA(leaf_split$split)){
+          na_id <- unique(Y_current$id)[which(is.na(leaf_split$split))]
         }else{
-          final_leaves <- c(final_leaves, current_leaves[i])
-
-          # add leafs to V_split
-          V_split_node <- data.frame(type = "Leaf", id_node = current_leaves[i], var_split = NA,
-                                     feature = NA, threshold = NA, N = length(Y_current$id),
-                                     stringsAsFactors = FALSE)
-
-          V_split <- merge(V_split, V_split_node, all = T)
-
-          next()
+          na_id <- NULL
         }
 
-        if (num_split>0){
-
-          TYPE <- F_SPLIT[which.min(F_SPLIT[,2]),1]
-          X <- get(TYPE)
-          X_boot <- get(paste(TYPE,"_boot",sep=""))
-
-          # on retrouve la repartition des individus OOB sur la variable qui minimise l'impur
-
-          leaf_split <- get(paste("leaf_split_",TYPE, sep=""))
-
-          # on recupere la variable sur laquelle on a split
-
-          vsplit_space <- get(paste("tirage",TYPE, sep=""))[leaf_split$variable]
-
-          #if (imp_apres_split<imp_avant_split){
-
-          gauche_id <- unique(Y_current$id)[which(leaf_split$split==1)]
-          droit_id <- unique(Y_current$id)[which(leaf_split$split==2)]
-
-          if (sum(is.na(leaf_split$split)) > 0){
-            na_id <- unique(Y_current$id)[which(is.na(leaf_split$split))]
-          }else{
-            na_id <- NULL
-          }
-
-          LN <- length(gauche_id)
-          RN <- length(droit_id)
-
-          if (LN>=nodesize & RN>=nodesize){
-            imp_nodes[[2*current_leaves[i]]] <- leaf_split$impur_list[[1]]
-            imp_nodes[[2*current_leaves[i]+1]] <- leaf_split$impur_list[[2]]
-
-            hist_imp_nodes <- rbind(hist_imp_nodes, c(2*current_leaves[i],imp_nodes[[2*current_leaves[i]]], length(which(leaf_split$split==1))))
-            hist_imp_nodes <- rbind(hist_imp_nodes, c(2*current_leaves[i]+1,imp_nodes[[2*current_leaves[i]+1]], length(which(leaf_split$split==2))))
-
-          }else{
-            final_leaves <- c(final_leaves, current_leaves[i])
-
-            # add leafs to V_split
-            V_split_node <- data.frame(type = "Leaf", id_node = current_leaves[i], var_split = NA,
-                                       feature = NA, threshold = NA, N = length(Y_current$id),
-                                       stringsAsFactors = FALSE)
-
-            V_split <- merge(V_split, V_split_node, all = T)
-
-            next()
-          }
-
-          # add node split to V_split
-          V_split_node <- data.frame(type = TYPE, id_node = current_leaves[i],
-                                     var_split = vsplit_space, feature = leaf_split$variable_summary,
-                                     threshold = leaf_split$threshold, N = length(Y_current$id),
-                                     stringsAsFactors = FALSE)
-
-          V_split <- merge(V_split, V_split_node, all = T)
-
-          model_param[[current_leaves[i]]] <- leaf_split$model_param
-
-          w_gauche <- which(X_boot$id%in%gauche_id)
-          wY_gauche <- which(Y_boot$id%in%gauche_id)
-
-          w_droit <- which(X_boot$id%in%droit_id)
-          wY_droit <- which(Y_boot$id%in%droit_id)
-
-          if (!is.null(na_id)){
-            wY_na <- which(Y_boot$id%in%na_id)
-            id_leaf_prime[wY_na] <- NA
-          }
-
-          id_leaf_prime[wY_gauche] <- 2*(current_leaves[i])
-          id_leaf_prime[wY_droit] <- 2*(current_leaves[i])+1
-
-          if (X$type=="Longitudinal"){
-            meanFg <- NA
-            meanFd <- NA
-          }
-
-          if (X$type=="Factor"){
-            meanFg <- unique(X_boot$X[w_gauche, vsplit_space])
-            meanFd <- unique(X_boot$X[w_droit,vsplit_space])
-          }
-
-          if (X$type=="Numeric"){
-            meanFg <- mean(X_boot$X[w_gauche,vsplit_space])
-            meanFd <- mean(X_boot$X[w_droit,vsplit_space])
-          }
-
-
-          hist_nodes[[2*(current_leaves[i])]] <- meanFg
-          hist_nodes[[2*(current_leaves[i])+1]] <- meanFd
-          count_split <- count_split+1
-
+        if (!is.null(na_id)){
+          wY_na <- which(Y_boot$id%in%na_id)
+          id_nodes[wY_na] <- NA
         }
+
+        id_nodes[wY_left] <- 2*current_node
+        id_nodes[wY_right] <- 2*current_node+1
+
+        if (best_split_type=="Longitudinal"){
+          meanFg <- NA
+          meanFd <- NA
+        }
+
+        if (best_split_type=="Factor"){
+          meanFg <- unique(X_boot$X[w_left, best_pred])
+          meanFd <- unique(X_boot$X[w_right, best_pred])
+        }
+
+        if (best_split_type=="Numeric"){
+          meanFg <- mean(X_boot$X[w_left, best_pred])
+          meanFd <- mean(X_boot$X[w_right, best_pred])
+        }
+
+        hist_nodes[[as.character(2*current_node)]] <- meanFg
+        hist_nodes[[as.character(2*current_node+1)]] <- meanFd
       }else{
 
-        final_leaves <- c(final_leaves, current_leaves[i])
+        id_leaves <- c(id_leaves, current_node)
 
-        # add leafs to V_split
-        V_split_node <- data.frame(type = "Leaf", id_node = current_leaves[i], var_split = NA,
-                                   feature = NA, threshold = NA, N = length(Y_current$id),
-                                   stringsAsFactors = FALSE)
-
-        V_split <- merge(V_split, V_split_node, all = T)
+        V_split <- rbind(V_split,
+                         data.frame(type = "Leaf", id_node = current_node, var_split = NA,
+                                    feature = NA, threshold = NA, N = N_current,
+                                    stringsAsFactors = FALSE))
 
       }
+
     }
 
-    id_leaf <- id_leaf_prime
-    current_leaves <- setdiff(unique(na.omit(id_leaf_prime)), final_leaves)
+    current_nodes <- setdiff(unique(na.omit(id_nodes)), id_leaves)
 
-    if (count_split == 0){
-
-      V_split <- V_split[order(V_split$id_node),]
-      V_split$depth <- floor(log(V_split$id_node, base = 2)) + 1 # depth level
-
-      if (nrow(V_split)>0){
-        rownames(V_split) <- seq(nrow(V_split))
-      }
-
-      for (q in unique(na.omit(id_leaf))){
-        w <- which(id_leaf == q)
-
-        if (Y$type=="numeric"){
-          Y_pred[[q]]<- mean(Y_boot$Y[w])
-        }
-
-        if (Y$type=="factor"){
-          # cannot handle ties with which.max
-          Y_pred[[q]] <- sample(names(which(table(Y_boot$Y[w])==max(table(Y_boot$Y[w])))), 1)
-        }
-
-      }
-
-      return(list(leaves = id_leaf, idY = Y_boot$id, Ytype = Y_boot$type,
-                  V_split = V_split, hist_nodes = hist_nodes,
-                  Y_pred = Y_pred, Y = Y, boot = boot,
-                  Ylevels = Ylevels, model_param = model_param))
-    }
   }
 
+  # depth level
   V_split <- V_split[order(V_split$id_node),]
-  V_split$depth <- floor(log(V_split$id_node, base = 2)) + 1 # depth level
+  V_split$depth <- floor(log(V_split$id_node, base = 2)) + 1
 
+  # Get prediction for each leaf
   if (nrow(V_split)>0){
     rownames(V_split) <- seq(nrow(V_split))
   }
 
-  for (q in unique(na.omit(id_leaf))){
+  for (q in sort(unique(na.omit(id_nodes)))){
 
-    w <- which(id_leaf == q)
+    w <- which(id_nodes == q)
 
     if (Y$type=="numeric"){
-      Y_pred[[q]]<- mean(Y_boot$Y[w])
+      Y_pred[[as.character(q)]]<- mean(Y_boot$Y[w])
     }
 
     if (Y$type=="factor"){
       # cannot handle ties with which.max
-      Y_pred[[q]] <- sample(names(which(table(Y_boot$Y[w])==max(table(Y_boot$Y[w])))), 1)
+      Y_pred[[as.character(q)]] <- sample(names(which(table(Y_boot$Y[w])==max(table(Y_boot$Y[w])))), 1)
     }
 
   }
 
-  return(list(leaves = id_leaf, idY = Y_boot$id, Ytype = Y_boot$type, V_split = V_split,
-              hist_nodes = hist_nodes, Y_pred = Y_pred, Y = Y, boot = boot,
-              Ylevels = Ylevels, model_param = model_param))
+  return(list(leaves = id_nodes, idY = Y_boot$id, Ytype = Y_boot$type, V_split = V_split,
+              hist_nodes = hist_nodes, Y_pred = Y_pred, Y = Y, boot = id_boot, conv_issue = conv_issue,
+              model_param = model_param))
 }

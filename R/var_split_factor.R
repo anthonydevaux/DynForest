@@ -9,7 +9,7 @@
 var_split_factor <- function(X, Y, cause = 1, nodesize = 1){
 
   X_ncol <- ncol(X$X)
-  split_var <- vector("list", X_ncol)
+  all_imp_var <- split_var <- vector("list", X_ncol)
   impur_var <- rep(Inf, X_ncol)
   Pure <- FALSE
 
@@ -27,12 +27,16 @@ var_split_factor <- function(X, Y, cause = 1, nodesize = 1){
 
         if ((length(unique(split))>1)&(all(table(split)>=nodesize))){
           # Evaluate the partition
-          impur <- impurity_split(Y, split, cause = cause)$impur
+          impur_res <- impurity_split(Y, split, cause = cause)
+
+          impur <- impur_res$impur
+          imp_list <- impur_res$imp_list
         }else{
           impur <- Inf
+          imp_list <- list(Inf, Inf)
         }
 
-        return(list(split = split, impur = impur))
+        return(list(split = split, impur = impur, imp_list = imp_list))
 
       })
 
@@ -42,6 +46,7 @@ var_split_factor <- function(X, Y, cause = 1, nodesize = 1){
         best_part <- which.min(partition_impur)
         split_var[[i]] <- split_list[[best_part]]$split
         impur_var[i] <- split_list[[best_part]]$impur
+        all_imp_var[[i]] <- split_list[[best_part]]$imp_list
       }
     }
   }
@@ -52,7 +57,7 @@ var_split_factor <- function(X, Y, cause = 1, nodesize = 1){
 
   var_split <- which.min(impur_var)
 
-  return(list(split = split_var[[var_split]], impur = min(impur_var),
+  return(list(split = split_var[[var_split]], impur = min(impur_var), impur_list = all_imp_var[[var_split]],
               variable = var_split, variable_summary = NA, threshold = NA,
               Pure = Pure))
 }

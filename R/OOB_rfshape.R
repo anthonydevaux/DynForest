@@ -110,21 +110,23 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           oob <- setdiff(Y$id,BOOT)
           if (is.element(indiv, oob)== TRUE){
 
-            pred.node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
+            pred_node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
                                            Numeric = Numeric_courant, Factor = Factor_courant,
                                            timeVar = timeVar),
                                   error = function(e) return(NA))
 
-            if (is.na(pred.node)){
+            pred_node_chr <- as.character(pred_node)
+
+            if (is.na(pred_node_chr)){
               pred.mat[t,] <- NA
             }else{
               if (IBS.min == 0){
-                pi_t <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
+                pi_t <- rf$rf[,t]$Y_pred[[pred_node_chr]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)]
                 pred.mat[t,] <- pi_t
               }else{
-                pi_t <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
-                pi_s <- rf$rf[,t]$Y_pred[[pred.node]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
-                s_s <- 1 - sum(unlist(lapply(rf$rf[,t]$Y_pred[[pred.node]], FUN = function(x){
+                pi_t <- rf$rf[,t]$Y_pred[[pred_node_chr]][[as.character(cause)]]$traj[which(allTimes%in%allTimes_IBS)] # pi(t)
+                pi_s <- rf$rf[,t]$Y_pred[[pred_node_chr]][[as.character(cause)]]$traj[sum(allTimes<IBS.min)] # pi(s)
+                s_s <- 1 - sum(unlist(lapply(rf$rf[,t]$Y_pred[[pred_node_chr]], FUN = function(x){
                   return(x$traj[sum(allTimes<IBS.min)])
                 }))) # s(s)
                 pred.mat[t,] <- (pi_t - pi_s)/s_s # P(S<T<S+t|T>S)
@@ -201,12 +203,15 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
               Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
             }
 
-            pred.node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
+            pred_node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
                                            Numeric = Numeric_courant, Factor = Factor_courant,
                                            timeVar = timeVar),
                                   error = function(e) return(NA))
-            pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred.node]]),
-                                      rf$rf[,t]$Y_pred[[pred.node]], NA)
+
+            pred_node_chr <- as.character(pred_node)
+
+            pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred_node_chr]]),
+                                      rf$rf[,t]$Y_pred[[pred_node_chr]], NA)
           }
         }
         if (all(is.na(pred_courant))){
@@ -268,12 +273,15 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
               Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
             }
 
-            pred.node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
+            pred_node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
                                            Numeric = Numeric_courant, Factor = Factor_courant,
                                            timeVar = timeVar),
                                   error = function(e) return(NA))
-            pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred.node]]),
-                                      rf$rf[,t]$Y_pred[[pred.node]], NA)
+
+            pred_node_chr <- as.character(pred_node)
+
+            pred_courant[t] <- ifelse(!is.null(rf$rf[,t]$Y_pred[[pred_node_chr]]),
+                                      rf$rf[,t]$Y_pred[[pred_node_chr]], NA)
 
           }
         }
