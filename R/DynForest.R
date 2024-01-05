@@ -134,7 +134,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
 
   # Inputs
   if (!is.null(timeData)){
-    timeData <- timeData[order(timeData[,idVar], timeData[,timeVar]),]
+    timeData <- timeData[order(timeData[,idVar], timeData[,timeVar]), c(idVar, timeVar, names(timeVarModel))]
     Longitudinal <- list(type = "Longitudinal",
                          X = subset(timeData, select = -c(get(idVar), get(timeVar))),
                          id = timeData[,idVar],

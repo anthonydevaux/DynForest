@@ -163,10 +163,10 @@ predict.DynForest <- function(object,
   # Inputs
   if (!is.null(timeData)){
     Longitudinal <- list(type = "Longitudinal",
-                  X = subset(timeData, select = -c(get(idVar), get(timeVar))),
-                  id = timeData[,idVar],
-                  time = timeData[,timeVar],
-                  model = object$Longitudinal.model)
+                         X = subset(timeData, select = -c(get(idVar), get(timeVar))),
+                         id = timeData[,idVar],
+                         time = timeData[,timeVar],
+                         model = object$Longitudinal.model)
   }else{
     Longitudinal <- NULL
   }
@@ -189,8 +189,8 @@ predict.DynForest <- function(object,
 
     if (length(var_num[which(var_num==T)])>0){
       Numeric <- list(type = "Numeric",
-                     X = subset(fixedData, select = names(var_num[which(var_num==T)])),
-                     id = fixedData[,idVar])
+                      X = subset(fixedData, select = names(var_num[which(var_num==T)])),
+                      id = fixedData[,idVar])
     }else{
       Numeric <- NULL
     }
