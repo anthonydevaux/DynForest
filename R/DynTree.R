@@ -261,13 +261,13 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         }
 
         if (best_split_type=="Factor"){
-          meanFg <- unique(X_boot$X[w_left, best_pred])
-          meanFd <- unique(X_boot$X[w_right, best_pred])
+          meanFg <- unique(X_boot$X[w_left, leaf_split$variable])
+          meanFd <- unique(X_boot$X[w_right, leaf_split$variable])
         }
 
         if (best_split_type=="Numeric"){
-          meanFg <- mean(X_boot$X[w_left, best_pred])
-          meanFd <- mean(X_boot$X[w_right, best_pred])
+          meanFg <- mean(X_boot$X[w_left, leaf_split$variable])
+          meanFd <- mean(X_boot$X[w_right, leaf_split$variable])
         }
 
         hist_nodes[[as.character(2*current_node)]] <- meanFg
