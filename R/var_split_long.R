@@ -74,7 +74,12 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
     }
 
-    if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04 | is.null(model_output)){ # convergence issue
+    if (is.null(model_output)){ # hlme error
+      conv_issue <- c(conv_issue, colnames_X_i)
+      next()
+    }
+
+    if (model_output$gconv[1]>1e-04 | model_output$gconv[2]>1e-04){ # convergence issue
       conv_issue <- c(conv_issue, colnames_X_i)
       next()
     }
