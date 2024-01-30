@@ -117,7 +117,7 @@ checking <- function(DynForest_obj = NULL,
         stop(paste0(idVar, " variable should be a numeric or integer object in 'Y$Y'!"))
       }
       if (Y$type=="surv"){
-        if (!inherits(Y$Y[,3], "numeric")){
+        if (!inherits(Y$Y[,3], c("numeric","integer"))){
           stop("The column in 'Y$Y' to provide the causes should be typed as numeric with 0 indicating no event!")
         }
       }
