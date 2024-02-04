@@ -97,6 +97,10 @@ checking <- function(DynForest_obj = NULL,
       stop(paste0(idVar, " variable should be a numeric or integer object in 'fixedData'!"))
     }
 
+    if (any(duplicated(fixedData[,idVar]))){
+      stop("Multiple rows have been found for same id in 'fixedData'!")
+    }
+
   }
 
   # Y checking
@@ -115,6 +119,9 @@ checking <- function(DynForest_obj = NULL,
       }
       if (!inherits(Y$Y[,idVar], c("numeric","integer"))){
         stop(paste0(idVar, " variable should be a numeric or integer object in 'Y$Y'!"))
+      }
+      if (any(duplicated(Y$Y[,idVar]))){
+        stop("Multiple rows have been found for same id in 'Y$Y'!")
       }
       if (Y$type=="surv"){
         if (!inherits(Y$Y[,3], c("numeric","integer"))){
