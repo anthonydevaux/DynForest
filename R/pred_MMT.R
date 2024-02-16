@@ -34,8 +34,8 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
       var.split.sum <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),4]))
       threshold <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),5]))
 
-      meanG <- tree$hist_nodes[[as.character(2*current_node)]]
-      meanD <- tree$hist_nodes[[as.character(2*current_node+1)]]
+      meanG <- tree$hist_nodes[[as.numeric(2*current_node)]]
+      meanD <- tree$hist_nodes[[as.numeric(2*current_node+1)]]
 
       if (type=="longitudinal"){
 
@@ -48,7 +48,7 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
         colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
         data_model <- data_model[,c("id",model_var)]
 
-        RE <- predRE(tree$model_param[[as.character(current_node)]][[1]],
+        RE <- predRE(tree$model_param[[as.numeric(current_node)]][[1]],
                      X$model[[var.split]], data_model)$bi
 
         ######################

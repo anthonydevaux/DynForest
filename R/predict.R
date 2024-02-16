@@ -195,6 +195,9 @@ predict.DynForest <- function(object,
       Numeric <- NULL
     }
 
+  }else{
+    Factor <- NULL
+    Numeric <- NULL
   }
 
   #####################
@@ -243,7 +246,7 @@ predict.DynForest <- function(object,
 
           i.leaf <- pred_leaf[t,][indiv]
 
-          pred_leaf_indiv <- object$rf[,t]$Y_pred[[as.character(i.leaf)]][[cause]]$traj[id.predTimes]
+          pred_leaf_indiv <- object$rf[,t]$Y_pred[[as.numeric(i.leaf)]][[cause]]$traj[id.predTimes]
 
           if (!is.null(pred_leaf_indiv)){
             pred[[cause]][[indiv]][t,] <- pred_leaf_indiv
@@ -261,7 +264,7 @@ predict.DynForest <- function(object,
 
         i.leaf <- pred_leaf[t,indiv]
 
-        pred_leaf_indiv <- object$rf[,t]$Y_pred[[as.character(i.leaf)]]
+        pred_leaf_indiv <- object$rf[,t]$Y_pred[[as.numeric(i.leaf)]]
 
         if (!is.null(pred_leaf_indiv)){
           pred[t,indiv] <- pred_leaf_indiv
