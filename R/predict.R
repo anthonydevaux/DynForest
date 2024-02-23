@@ -79,8 +79,9 @@
 #' @export
 predict.DynForest <- function(object,
                               timeData = NULL, fixedData = NULL,
-                              idVar, timeVar,
-                              t0 = NULL, ...){
+                              idVar, timeVar, t0 = NULL, ...){
+
+  Longitudinal <- Factor <- Numeric <- NULL
 
   if (!methods::is(object,"DynForest")){
     stop("'object' should be an object of 'DynForest' class!")
@@ -129,7 +130,7 @@ predict.DynForest <- function(object,
       timeData <- timeData[which(timeData[,idVar]%in%timeData_id_noNA),]
 
     }else{
-      stop("No subject has at least one measurement by marker !")
+      stop("One measurement or more is required for each marker by subject!")
     }
 
     Inputs <- c(Inputs, "timeData")
@@ -167,8 +168,6 @@ predict.DynForest <- function(object,
                          id = timeData[,idVar],
                          time = timeData[,timeVar],
                          model = object$Longitudinal.model)
-  }else{
-    Longitudinal <- NULL
   }
 
   if (!is.null(fixedData)){
@@ -183,16 +182,12 @@ predict.DynForest <- function(object,
       Factor <- list(type = "Factor",
                      X = subset(fixedData, select = names(var_fact[which(var_fact==T)])),
                      id = fixedData[,idVar])
-    }else{
-      Factor <- NULL
     }
 
     if (length(var_num[which(var_num==T)])>0){
       Numeric <- list(type = "Numeric",
                       X = subset(fixedData, select = names(var_num[which(var_num==T)])),
                       id = fixedData[,idVar])
-    }else{
-      Numeric <- NULL
     }
 
   }
