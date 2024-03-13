@@ -55,8 +55,8 @@ checking <- function(DynForest_obj = NULL,
         stop("'timeVarModel' should be a list object!")
       }
 
-      if (!all(colnames(timeData%in%names(timeVarModel)))){
-        stop("'timeVarModel' should contain the fixed and random formula for all time-dependent covariates in timeData!")
+      if (!all(colnames(timeData)[-which(colnames(timeData)%in%c(idVar, timeVar))]%in%names(timeVarModel))){
+        stop("'timeData' predictor names should be included in the list names of 'timeVarModel'!")
       }
     }else{
 
