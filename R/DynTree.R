@@ -109,7 +109,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       isFactor <- is.element("Factor", mtry_type_pred)
 
       # Node can be split?
-      if (N_current >= nodesize*2 & imp_nodes[[current_node_chr]]>0){
+      if (N_current >= nodesize*2 && imp_nodes[[current_node_chr]]>0){
 
         # Data at current node with mtry predictors
         if (isLongitudinal){
