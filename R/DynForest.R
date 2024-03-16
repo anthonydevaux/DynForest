@@ -130,7 +130,8 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
   # checking function
   checking(timeData = timeData, fixedData = fixedData,
            idVar = idVar, timeVar = timeVar, timeVarModel = timeVarModel, Y = Y,
-           ntree = ntree, mtry = mtry, nodesize = nodesize, minsplit = minsplit)
+           ntree = ntree, mtry = mtry, nodesize = nodesize, minsplit = minsplit,
+           cause = cause)
 
   # Inputs
   if (!is.null(timeData)){

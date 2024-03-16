@@ -10,12 +10,14 @@
 #' @param ntree Number of trees to grow. Default value set to 200.
 #' @param mtry Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error.
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
+#' @param cause (Only with competing events) Number indicates the event of interest.
 #'
 #' @keywords internal
 checking <- function(DynForest_obj = NULL,
                      timeData, fixedData,
                      idVar, timeVar, timeVarModel,
-                     Y, ntree = 200, mtry = 1, nodesize = 1, minsplit = 2){
+                     Y, ntree = 200, mtry = 1, nodesize = 1, minsplit = 2,
+                     cause = 1){
 
   # global argument checking
   if (!inherits(idVar, "character")){
@@ -126,6 +128,9 @@ checking <- function(DynForest_obj = NULL,
       if (Y$type=="surv"){
         if (!inherits(Y$Y[,3], c("numeric","integer"))){
           stop("The column in 'Y$Y' to provide the causes should be typed as numeric with 0 indicating no event!")
+        }
+        if (all(unique(Y$Y[,3])!=cause)){
+          stop("'cause' identifier is not included in 'Y$Y' event column!")
         }
       }
       if (!is.null(fixedData)){

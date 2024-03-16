@@ -15,7 +15,8 @@ checking(
   ntree = 200,
   mtry = 1,
   nodesize = 1,
-  minsplit = 2
+  minsplit = 2,
+  cause = 1
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ checking(
 \item{mtry}{Number of candidate variables randomly drawn at each node of the trees. This parameter should be tuned by minimizing the OOB error.}
 
 \item{minsplit}{(Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.}
+
+\item{cause}{(Only with competing events) Number indicates the event of interest.}
 }
 \description{
 Internal checking function
