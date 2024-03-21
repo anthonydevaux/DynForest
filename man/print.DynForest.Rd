@@ -6,6 +6,7 @@
 \alias{print.DynForestgVIMP}
 \alias{print.DynForestVarDepth}
 \alias{print.DynForestOOB}
+\alias{print.DynForestPred}
 \title{Print function}
 \usage{
 \method{print}{DynForest}(x, ...)
@@ -17,6 +18,8 @@
 \method{print}{DynForestVarDepth}(x, ...)
 
 \method{print}{DynForestOOB}(x, ...)
+
+\method{print}{DynForestPred}(x, ...)
 }
 \arguments{
 \item{x}{Object inheriting from classes \code{DynForest}, \code{DynForestVIMP} or \code{DynForestgVIMP}.}

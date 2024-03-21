@@ -117,7 +117,7 @@ print.DynForest <- function(x, ...){
                na.rm = T),2)),"\n")
   cat(paste0("\t","Average number of leaves per tree: ",
              round(mean(apply(x$rf, 2, FUN = function(x){
-               length(x$V_split$x[which(x$V_split$type=="Leaf")])}),
+               length(x$V_split$type[which(x$V_split$type=="Leaf")])}),
                na.rm = T),2)),"\n")
   cat(paste0("\t","Average number of subjects per leaf: ",
              round(mean(apply(x$rf, 2, FUN = function(x){
@@ -187,4 +187,16 @@ print.DynForestOOB <- function(x, ...){
   }
 
   return(mean(x$oob.err, na.rm = TRUE))
+}
+
+
+#' @rdname print.DynForest
+#' @export
+print.DynForestPred <- function(x, ...){
+
+  if (!methods::is(x,"DynForestPred")){
+    stop("'x' should be an object of 'DynForestPred' class!")
+  }
+
+  return(x$pred_indiv)
 }
