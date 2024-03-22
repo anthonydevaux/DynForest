@@ -1,4 +1,4 @@
-# DynForest 1.1.3 (Development version)
+# DynForest 1.1.3 (CRAN version)
 
 -   Improved `DynForest()` computation time function with survival outcome
 
