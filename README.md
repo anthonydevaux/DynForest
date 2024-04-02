@@ -32,7 +32,7 @@ a survival outcome in the paper:
 
 ## Installation
 
-`DynForest` package version 1.1.2 could be install from the
+`DynForest` package version 1.1.3 could be install from the
 [CRAN](https://cran.r-project.org/package=DynForest) with:
 
 ``` r
@@ -131,6 +131,6 @@ summary(res_dyn)
 #> ---------------- 
 #> Computation time 
 #>  Number of cores used: 15 
-#>  Time difference of 1.04619 mins
+#>  Time difference of 1.139766 mins
 #> ----------------
 ```
