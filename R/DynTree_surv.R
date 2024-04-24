@@ -21,7 +21,6 @@
 DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                          timeVar = NULL, mtry = 1, nsplit_option = "quantile",
                          nodesize = 1, minsplit = 2, cause = 1, seed = 1234){
-
   Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
   type_pred <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))
 
@@ -73,7 +72,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   # Initialize mixed models lists
   model_init <- model_param <- conv_issue <- list()
 
-  for (p in seq_along(unique(Y_boot$id)/2-1)){
+  for (p in seq_along(unique(Y_boot$id))){
 
     for (current_node in current_nodes){
 
@@ -96,7 +95,9 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       Nevent_current <- sum(Y_current$Y[,2]==cause)
       N_current <- length(Y_current$id)
 
-      F_SPLIT <- data.frame(TYPE = character(), Impurity = numeric(), stringsAsFactors = FALSE)
+      F_SPLIT <- data.frame(TYPE = character(), Impurity = numeric(), stringsAsFactors = FALSE) # stringsAsFactors false by default
+      # F_SPLIT <- matrix(NA, nrow = length(mtry_type_pred), ncol = 2)
+      # cpt_F_SPLIT <- 1
       leaf_flag <- FALSE
 
       isLongitudinal <- is.element("Longitudinal", mtry_type_pred)
@@ -147,6 +148,9 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
             F_SPLIT <- rbind(F_SPLIT,
                              data.frame(TYPE = "Factor", Impurity = leaf_split_Factor$impur,
                                         stringsAsFactors = FALSE))
+            F_SPLIT
+            # F_SPLIT[cpt_F_SPLIT, ] <- c("Factor", leaf_split_Factor$impur)
+            # cpt_F_SPLIT <- cpt_F_SPLIT + 1
           }
         }
 
@@ -158,11 +162,14 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                                     cause = cause, nodesize = nodesize,
                                                     init = model_init[[current_node_chr]])
 
-          if (leaf_split_Longitudinal$Pure==FALSE){
+          if (leaf_split_Longitudinal$Pure==FALSE){ # si le noeud n'est pas pur
             model_init[[current_node_chr]] <- leaf_split_Longitudinal$init # update initial values at current node
             F_SPLIT <- rbind(F_SPLIT,
                              data.frame(TYPE = "Longitudinal", Impurity = leaf_split_Longitudinal$impur,
-                                        stringsAsFactors = FALSE))
+                                        stringsAsFactors = FALSE)) # stocke pour chaque marqueur le type et l'impureté
+            # F_SPLIT[cpt_F_SPLIT, ] <- c("Longitudinal", leaf_split_Longitudinal$impur)
+            # cpt_F_SPLIT <- cpt_F_SPLIT + 1
+
 
             conv_issue[[current_node_chr]] <- leaf_split_Longitudinal$conv_issue
           }
@@ -178,6 +185,8 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
             F_SPLIT <- rbind(F_SPLIT,
                              data.frame(TYPE = "Numeric", Impurity = leaf_split_Numeric$impur,
                                         stringsAsFactors = FALSE))
+            # F_SPLIT[cpt_F_SPLIT, ] <- c("Numeric", leaf_split_Numeric$impur)
+            # cpt_F_SPLIT <- cpt_F_SPLIT + 1
           }
 
 
@@ -186,15 +195,18 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       }else{
         leaf_flag <- TRUE
       }
+      # F_SPLIT <- as.data.frame(F_SPLIT)
+      # colnames(F_SPLIT) = c("TYPE", "Impurity")
+      # F_SPLIT$Impurity <- as.numeric(F_SPLIT$Impurity)
 
-      if (nrow(F_SPLIT)>0){
-
+      if (nrow(F_SPLIT)>0){ # si plusieurs splits, on selectionne le meilleur
+      # if (!anyNA(F_SPLIT)){
         best_split_type <- F_SPLIT$TYPE[which.min(F_SPLIT$Impurity)]
-        X_boot <- get(paste0(best_split_type, "_current"))
+        X_boot <- get(paste0(best_split_type, "_current")) # on recupere les donnees du marqueur
 
         # Get best partition
-        leaf_split <- get(paste0("leaf_split_", best_split_type))
-        best_pred <- get(paste0("tirage", best_split_type))[leaf_split$variable]
+        leaf_split <- get(paste0("leaf_split_", best_split_type)) # best split infos
+        best_pred <- get(paste0("tirage", best_split_type))[leaf_split$variable] # extrait variable qui donne le meilleur split
 
         left_id <- unique(Y_current$id)[which(leaf_split$split==1)]
         right_id <- unique(Y_current$id)[which(leaf_split$split==2)]
@@ -202,15 +214,15 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         length_left <- length(left_id)
         length_right <- length(right_id)
 
-        if (length_left<nodesize | length_right<nodesize){
+        if (length_left<nodesize | length_right<nodesize){ # encore ce check?
           leaf_flag <- TRUE
         }
 
-      }else{
+      }else{ # si pas de split
         leaf_flag <- TRUE
       }
 
-      if (!leaf_flag){
+      if (!leaf_flag){ # si split ok on le sauvegarde
 
         # add node split to V_split
         V_split <- rbind(V_split,
@@ -219,12 +231,12 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                     threshold = leaf_split$threshold, N = N_current,
                                     Nevent = Nevent_current, stringsAsFactors = FALSE))
 
-        model_param[[current_node_chr]] <- leaf_split$model_param
+        model_param[[current_node_chr]] <- leaf_split$model_param # on met à jour les params du mixed model
 
-        w_left <- which(X_boot$id%in%left_id)
-        wY_left <- which(Y_boot$id%in%left_id)
+        w_left <- which(X_boot$id%in%left_id) # on sauvegarde les id dans le df des X des individus de l'ech bootstrap classés dans le noeud gauche
+        wY_left <- which(Y_boot$id%in%left_id) # et leur outcome
 
-        w_right <- which(X_boot$id%in%right_id)
+        w_right <- which(X_boot$id%in%right_id) # idem à droite
         wY_right <- which(Y_boot$id%in%right_id)
 
         # Check for missing split
@@ -240,7 +252,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         }
 
         id_nodes[wY_left] <- 2*current_node
-        id_nodes[wY_right] <- 2*current_node+1
+        id_nodes[wY_right] <- 2*current_node+1-
 
         if (best_split_type=="Longitudinal"){
           meanFg <- NA
@@ -248,12 +260,12 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         }
 
         if (best_split_type=="Factor"){
-          meanFg <- unique(X_boot$X[w_left, leaf_split$variable])
+          meanFg <- unique(X_boot$X[w_left, leaf_split$variable]) # on sauvegarde labels du X des noeuds gauche et droite
           meanFd <- unique(X_boot$X[w_right, leaf_split$variable])
         }
 
         if (best_split_type=="Numeric"){
-          meanFg <- mean(X_boot$X[w_left, leaf_split$variable])
+          meanFg <- mean(X_boot$X[w_left, leaf_split$variable]) # on sauvegarde la moyenne du X des noeuds gauche et droite
           meanFd <- mean(X_boot$X[w_right, leaf_split$variable])
         }
 
@@ -264,7 +276,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
         id_leaves <- c(id_leaves, current_node)
 
-        V_split <- rbind(V_split,
+        V_split <- rbind(V_split, # on sauvegarde la feuille
                          data.frame(type = "Leaf", id_node = current_node, var_split = NA,
                                     feature = NA, threshold = NA, N = N_current,
                                     Nevent = Nevent_current, stringsAsFactors = FALSE))
@@ -273,22 +285,24 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
     }
 
-    current_nodes <- setdiff(unique(na.omit(id_nodes)), id_leaves)
+    current_nodes <- setdiff(unique(na.omit(id_nodes)), id_leaves) # on a crée les noeuds fils (id_nodes) et s'ils sont des feuilles on les supprime de la liste
+    # liste qu'on reparcourt ensuite en allant une iteration plus loin
 
-  }
+  } # on sort de la boucle sur la profondeur de l'arbre
 
   # depth level
-  V_split <- V_split[order(V_split$id_node),]
-  V_split$depth <- floor(log(V_split$id_node, base = 2)) + 1
+  V_split <- V_split[order(V_split$id_node),] # on reordonne
+  V_split$depth <- floor(log(V_split$id_node, base = 2)) + 1 # ok logarithme binaire, ça resort la profondeur oui
 
   # Get prediction for each leaf
-  if (nrow(V_split)>0){
-    rownames(V_split) <- seq(nrow(V_split))
+  if (nrow(V_split)>0){ # si on a des splits
+    rownames(V_split) <- seq(nrow(V_split)) # on numerote les splits
   }
 
-  for (q in sort(unique(na.omit(id_nodes)))){
+  for (q in sort(unique(na.omit(id_nodes)))){ # on parcourt les noeuds de l'arbre
 
-    w <- which(id_nodes == q)
+    # id nodes contient, pour chaque Y le noeud dans lequel il termine (au fil de la construction de l'arbre)
+    w <- which(id_nodes == q) # on recupere les id des Y dans le noeud final courant (q)
 
     datasurv <- data.frame(time_event = Y_boot$Y[w][,1], event = Y_boot$Y[w][,2])
     fit <- prodlim(Hist(time_event, event)~1, data = datasurv,
