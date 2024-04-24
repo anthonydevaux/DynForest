@@ -252,7 +252,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         }
 
         id_nodes[wY_left] <- 2*current_node
-        id_nodes[wY_right] <- 2*current_node+1-
+        id_nodes[wY_right] <- 2*current_node+1
 
         if (best_split_type=="Longitudinal"){
           meanFg <- NA

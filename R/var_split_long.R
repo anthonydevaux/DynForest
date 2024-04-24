@@ -37,11 +37,14 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       dt_Lt_train <- split(data_model$time, data_model$id)
       dt_Ly_train <-split(data_model[,colnames_X_i], data_model$id)
 
+      current_warn <- getOption("warn")
+      options(warn = -1)
       model_output <- tryCatch(FPCA(dt_Ly_train,
                                     dt_Lt_train,
                                     # mettre nRegGrid en option possible de la FPCA
                                     list(FVEthreshold = PVEfpca, imputeScores = FALSE)),
                                error = function(e) return(NULL))
+      options(warn = current_warn)
 
       if (is.null(model_output)){ # hlme error
         conv_issue <- c(conv_issue, colnames_X_i)
