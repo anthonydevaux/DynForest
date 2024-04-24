@@ -33,7 +33,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
   if (Y$type=="factor"){
     Ylevels <- unique(Y$Y)
-  }else{
+  } else {
     Ylevels <- NULL
   }
 
@@ -79,7 +79,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   # Initialize mixed models lists
   model_init <- model_param <- conv_issue <- list()
 
-  for (p in seq_along(unique(Y_boot$id)/2-1)){
+  for (p in seq_along(unique(Y_boot$id))){
 
     for (current_node in current_nodes){
 
