@@ -39,6 +39,8 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
       if (type=="longitudinal"){
 
+        # ici rajouter un if pour savoir si mixed ou fpca et créer objets en fonction
+        # puis appeler predRE ou predScores en fonction
         fixed_var <- all.vars(X$model[[var.split]]$fixed)
         random_var <- all.vars(X$model[[var.split]]$random)
         model_var <- unique(c(fixed_var,random_var))

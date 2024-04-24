@@ -163,6 +163,7 @@ predict.DynForest <- function(object,
 
   # Inputs
   if (!is.null(timeData)){
+    # ICI RAJOUTER TEST POUR CONNAITRE LA NATURE DE LA MODELISATION EN LONGITUDINAL
     Longitudinal <- list(type = "Longitudinal",
                          X = subset(timeData, select = -c(get(idVar), get(timeVar))),
                          id = timeData[,idVar],
@@ -189,7 +190,6 @@ predict.DynForest <- function(object,
                       X = subset(fixedData, select = names(var_num[which(var_num==T)])),
                       id = fixedData[,idVar])
     }
-
   }
 
   #####################
