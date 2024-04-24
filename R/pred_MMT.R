@@ -39,19 +39,22 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
       if (type=="longitudinal"){
 
-        # ici rajouter un if pour savoir si mixed ou fpca et créer objets en fonction
-        # puis appeler predRE ou predScores en fonction
-        fixed_var <- all.vars(X$model[[var.split]]$fixed)
-        random_var <- all.vars(X$model[[var.split]]$random)
-        model_var <- unique(c(fixed_var,random_var))
+        if (names(X$model[[i]][1]) == "PVEfpca"){
+          # extraire les objets de la FPCA : mu, FPC et cov
+          # puis appeler predRE ou predScores en fonction
+        } else {
+          fixed_var <- all.vars(X$model[[var.split]]$fixed)
+          random_var <- all.vars(X$model[[var.split]]$random)
+          model_var <- unique(c(fixed_var,random_var))
 
-        data_model <- data.frame(id = as.numeric(X$id[wLongitudinal]), time = X$time[wLongitudinal],
-                                 X$X[wLongitudinal, , drop = FALSE])
-        colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
-        data_model <- data_model[,c("id",model_var)]
+          data_model <- data.frame(id = as.numeric(X$id[wLongitudinal]), time = X$time[wLongitudinal],
+                                   X$X[wLongitudinal, , drop = FALSE])
+          colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
+          data_model <- data_model[,c("id",model_var)]
 
-        RE <- predRE(tree$model_param[[as.character(current_node)]][[1]],
-                     X$model[[var.split]], data_model)$bi
+          RE <- predRE(tree$model_param[[as.character(current_node)]][[1]],
+                       X$model[[var.split]], data_model)$bi
+        }
 
         ######################
 
