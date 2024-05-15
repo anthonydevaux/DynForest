@@ -30,37 +30,73 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
   # Bootstrap sample
   set.seed(seed)
-  id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
+  # id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
+  id_boot <- sample(unique(Y$id), length(unique(Y$id)), replace=TRUE)
 
   # Longitudinal bootstrap data
   if (!is.null(Longitudinal)){
-    wXLongitudinal <- which(Longitudinal$id%in%id_boot)
+    newid <- NULL
+    wXLongitudinal <- NULL
+    for (i in seq(length(id_boot))){
+      wXLongitudinali <- which(Longitudinal$id == id_boot[i])
+      wXLongitudinal <- c(wXLongitudinal, wXLongitudinali)
+      newid <- c(newid, rep(i, length(wXLongitudinali)))
+    }
+
+    # wXLongitudinal <- which(Longitudinal$id%in%id_boot)
     Longitudinal_boot <- list(type = Longitudinal$type,
                               X = Longitudinal$X[wXLongitudinal,, drop=FALSE],
-                              id = Longitudinal$id[wXLongitudinal],
+                              oldid = Longitudinal$id[wXLongitudinal],
+                              id = newid, # faire propre
                               time = Longitudinal$time[wXLongitudinal],
                               model = Longitudinal$model)
   }
 
   # Numeric bootstrap data
   if (!is.null(Numeric)){
-    wXNumeric <- which(Numeric$id%in%id_boot)
+    newid <- NULL
+    wXNumeric <- NULL
+    for (i in seq(length(id_boot))){
+      wXNumerici <- which(Numeric$id == id_boot[i])
+      wXNumeric <- c(wXNumeric, wXNumerici)
+      newid <- c(newid, rep(i, length(wXNumerici)))
+    }
+
+    # wXNumeric <- which(Numeric$id%in%id_boot)
     Numeric_boot <- list(type = Numeric$type,
                          X = Numeric$X[wXNumeric,, drop=FALSE],
-                         id = Numeric$id[wXNumeric])
+                         oldid = Numeric$id[wXNumeric],
+                         id = newid)
   }
 
   # Factor bootstrap data
   if (!is.null(Factor)){
-    wXFactor <- which(Factor$id%in%id_boot)
+
+    newid <- NULL # optimiser ça..
+    wXFactor <- NULL
+    for (i in seq(length(id_boot))){
+      wXFactori <- which(Factor$id == id_boot[i])
+      wXFactor <- c(wXFactor, wXFactori)
+      newid <- c(newid, rep(i, length(wXFactori)))
+    }
+
+    # wXFactor <- which(Factor$id%in%id_boot)
     Factor_boot <- list(type = Factor$type,
                         X = Factor$X[wXFactor,, drop=FALSE],
                         id = Factor$id[wXFactor])
   }
 
   # Outcome bootstrap data
-  wY <- which(Y$id%in%id_boot)
-  Y_boot <- list(type=Y$type,Y=Y$Y[wY], id=Y$id[wY], comp=Y$comp)
+  newid_Y <- NULL
+  wY <- NULL
+  for (i in seq(length(id_boot))){
+    wYi <- which(Y$id == id_boot[i])
+    wY <- c(wY, wYi)
+    newid_Y <- c(newid_Y, rep(i, length(wYi)))
+  }
+  # wY <- which(Y$id%in%id_boot)
+  Y_boot <- list(type=Y$type,Y=Y$Y[wY], oldid=Y$id[wY], id = newid_Y, comp=Y$comp)
+
 
 
   # Initialize the tree
@@ -94,6 +130,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       Y_current <- list(type=Y_boot$type, Y=Y_boot$Y[w], id=Y_boot$id[w], comp=Y$comp)
       Nevent_current <- sum(Y_current$Y[,2]==cause)
       N_current <- length(Y_current$id)
+
 
       F_SPLIT <- data.frame(TYPE = character(), Impurity = numeric(), stringsAsFactors = FALSE) # stringsAsFactors false by default
       # F_SPLIT <- matrix(NA, nrow = length(mtry_type_pred), ncol = 2)
