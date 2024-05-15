@@ -31,19 +31,20 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
     if (names(X$model[[i]][1]) == "PVEfpca"){
 
       PVEfpca <- X$model[[i]]$PVEfpca
+      nRegGrid <- if (!is.null(X$model[[i]]$nRegGrid)) X$model[[i]]$nRegGrid else 51
 
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,colnames_X_i, drop = FALSE])
       colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
 
       dt_Lt_train <- split(data_model$time, data_model$id)
-      dt_Ly_train <-split(data_model[,colnames_X_i], data_model$id)
+      dt_Ly_train <- split(data_model[,colnames_X_i], data_model$id)
 
       current_warn <- getOption("warn")
       options(warn = -1)
       model_output <- tryCatch(FPCA(dt_Ly_train,
                                     dt_Lt_train,
                                     # mettre nRegGrid en option possible de la FPCA
-                                    list(FVEthreshold = PVEfpca, imputeScores = FALSE)),
+                                    list(FVEthreshold = PVEfpca, imputeScores = FALSE, nRegGrid = nRegGrid)),
                                error = function(e) return(NULL))
       options(warn = current_warn)
 
@@ -52,13 +53,18 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
         next()
       }
 
-      model_param[[i]] <- list("workgrid" = model_output$workgrid,
+      model_param[[i]] <- list("workgrid" = model_output$workGrid,
                                "K" = model_output$selectK,
                                "mu" = model_output$mu,
                                "FPCs" = model_output$phi,
                                "Cov" = model_output$fittedCov,
                                "lambda" = model_output$lambda,
-                               "sigma2" = model_output$sigma2) # ici je vais devoir sortir les objets de la FPCA pour recalculer les prédictions
+                               "sigma2" = model_output$sigma2,
+                               # "min_dt_Lt_train" = min(unlist(dt_Lt_train), na.rm = TRUE),
+                               # "max_dt_Lt_train" = max(unlist(dt_Lt_train), na.rm = TRUE))
+                               "min_dt_Lt_train" = min(model_output$workGrid, na.rm = TRUE),
+                               "max_dt_Lt_train" = max(model_output$workGrid, na.rm = TRUE))
+
       RE <- pred_fpca_manual(model_output, dt_Ly_train, dt_Lt_train, model_output$workGrid)
       colnames(RE) <- paste0("PC", seq(dim(RE)[2]))
     }
@@ -196,13 +202,14 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                 impur_res <- impurity_split(Y, split, cause = cause)
 
                 impur <- impur_res$impur # contient l'impureté calculée pour ce split
-                imp_list <- impur_res$imp_list # il me semble que c'est vide ??
+                # imp_list <- impur_res$imp_list # il me semble que c'est vide ??
               } else { # si split impossible
                 impur <- Inf
-                imp_list <- list(Inf, Inf)
+                # imp_list <- list(Inf, Inf)
               }
 
-              return(list(split = split, impur = impur, imp_list = imp_list))
+              # return(list(split = split, impur = impur, imp_list = imp_list))
+              return(list(split = split, impur = impur))
 
             })
 
@@ -212,7 +219,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
               best_part_sum_nsplit <- which.min(partition_sum_impur)
               split_sum[[i_sum]] <- split_sum_list[[best_part_sum_nsplit]]$split # on recupere la repartition des ind qui donne le meilleur split
               impur_sum[i_sum] <- split_sum_list[[best_part_sum_nsplit]]$impur # on recupere la valeur d'impurete associee a ce meilleur split
-              all_imp_sum[[i_sum]] <- split_sum_list[[best_part_sum_nsplit]]$imp_list # on recupere cette liste dont je vois pas l'utilite ici, me parait vide
+              # all_imp_sum[[i_sum]] <- split_sum_list[[best_part_sum_nsplit]]$imp_list # on recupere cette liste dont je vois pas l'utilite ici, me parait vide
               split_sum_threholds[i_sum] <- split_threholds[best_part_sum_nsplit] # on recupere la valeur du seuil qui donne le meilleur split
             }
           }
@@ -225,7 +232,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       var_sum[i] <- mtry_sum[best_part_sum] #
       split_var[[i]] <- split_sum[[best_part_sum]] # on recupere la repartition des individus associée
       impur_var[i] <- impur_sum[best_part_sum] # on recupere l'impureté associée
-      all_imp_var[[i]] <- all_imp_sum[[best_part_sum]] # liste (??)
+      # all_imp_var[[i]] <- all_imp_sum[[best_part_sum]] # liste (??)
       threshold_var[i] <- split_sum_threholds[best_part_sum] # on recupere la valeur du seuil associée
     }
 
