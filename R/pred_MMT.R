@@ -38,11 +38,31 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
       meanD <- tree$hist_nodes[[as.character(2*current_node+1)]]
 
       if (type=="longitudinal"){
+        # print(names(X$model[[var.split]][1]))
+        if (names(X$model[[var.split]][1]) == "PVEfpca"){
 
-        if (names(X$model[[i]][1]) == "PVEfpca"){
-          # extraire les objets de la FPCA : mu, FPC et cov
-          # puis appeler predRE ou predScores en fonction
+          model_var <- unique(names(X$model)[var.split])
+
+          workgrid = tree$model_param[[as.character(current_node)]][[1]]$workgrid
+          K = tree$model_param[[as.character(current_node)]][[1]]$K
+          mu = tree$model_param[[as.character(current_node)]][[1]]$mu
+          FPCs = tree$model_param[[as.character(current_node)]][[1]]$FPCs
+          Cov = tree$model_param[[as.character(current_node)]][[1]]$Cov
+          lambda = tree$model_param[[as.character(current_node)]][[1]]$lambda
+          sigma2 = tree$model_param[[as.character(current_node)]][[1]]$sigma2
+          min_dt_Lt_train = tree$model_param[[as.character(current_node)]][[1]]$min_dt_Lt_train
+          max_dt_Lt_train = tree$model_param[[as.character(current_node)]][[1]]$max_dt_Lt_train
+
+          dt_Lt_test <- split(X$time[wLongitudinal], X$id[wLongitudinal])
+          dt_Ly_test <- split(X$X[wLongitudinal, model_var], X$id[wLongitudinal])
+
+          RE <- pred_fpca_manual2(workgrid = workgrid, K = K, mu = mu, FPCs = FPCs, Cov = Cov, sigma2 = sigma2, lambda = lambda,
+                                  min_dt_Lt_train = min_dt_Lt_train, max_dt_Lt_train = max_dt_Lt_train,
+                                  dt_Ly_test = dt_Ly_test, dt_Lt_test = dt_Lt_test)
+
+
         } else {
+
           fixed_var <- all.vars(X$model[[var.split]]$fixed)
           random_var <- all.vars(X$model[[var.split]]$random)
           model_var <- unique(c(fixed_var,random_var))
@@ -54,6 +74,7 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
           RE <- predRE(tree$model_param[[as.character(current_node)]][[1]],
                        X$model[[var.split]], data_model)$bi
+
         }
 
         ######################
