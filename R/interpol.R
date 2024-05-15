@@ -75,6 +75,27 @@ pred_fpca_manual <- function(FPCAobj, dt_Ly_test, dt_Lt_test, dt_Lt_train){
   return(scores)
 }
 
+pred_fpca_manual2 <- function(workgrid, K, mu, FPCs, Cov, sigma2, lambda, min_dt_Lt_train, max_dt_Lt_train, dt_Ly_test, dt_Lt_test){
+
+  scores <- matrix(NA, nrow = length(dt_Ly_test), ncol = K)
+  for (i in seq(length(dt_Ly_test))){
+
+    Lti <- dt_Lt_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<=max_dt_Lt_train]
+    Lyi <- dt_Ly_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<=max_dt_Lt_train]
+    Lti <- Lti[!is.na(Lyi)]; Lyi <- Lyi[!is.na(Lyi)];
+
+    interpol_mui <- Interpol1D(mu, workgrid, Lti)
+    interpol_FPCi <- apply(FPCs, 2, function(x) return(Interpol1D(x, workgrid, Lti)))
+
+    interpolCov <- InterpolCovMat(Cov, workgrid, Lti)
+    scores[i,] <- t(matrix(rep(lambda, length(Lti)), nrow = length(Lti), byrow = TRUE) * interpol_FPCi) %*%
+      solve(interpolCov + sigma2*diag(length(Lti))) %*% (Lyi - interpol_mui)
+
+  }
+
+  return(scores)
+}
+
 pred_fdapace <- function(FPCAobj, dt_Ly_test, dt_Lt_test, dt_Lt_train){
 
   # censoring

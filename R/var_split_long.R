@@ -29,6 +29,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
     # FPCA to summarize
     if (names(X$model[[i]][1]) == "PVEfpca"){
+
       PVEfpca <- X$model[[i]]$PVEfpca
 
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,colnames_X_i, drop = FALSE])
@@ -51,9 +52,15 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
         next()
       }
 
-      model_param[[i]] <- NA # ici je vais devoir sortir les objets de la FPCA pour recalculer les prédictions
+      model_param[[i]] <- list("workgrid" = model_output$workgrid,
+                               "K" = model_output$selectK,
+                               "mu" = model_output$mu,
+                               "FPCs" = model_output$phi,
+                               "Cov" = model_output$fittedCov,
+                               "lambda" = model_output$lambda,
+                               "sigma2" = model_output$sigma2) # ici je vais devoir sortir les objets de la FPCA pour recalculer les prédictions
       RE <- pred_fpca_manual(model_output, dt_Ly_train, dt_Lt_train, model_output$workGrid)
-      colnames(RE) <- paste0("PC",seq(dim(RE)[2]))
+      colnames(RE) <- paste0("PC", seq(dim(RE)[2]))
     }
 
     # mixed model to summarize
