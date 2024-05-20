@@ -23,6 +23,8 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
   threshold_var <- var_sum <- rep(NA, X_ncol)
   conv_issue <- NULL
 
+
+
   for (i in 1:X_ncol){
 
     colnames_X_i <- colnames(X$X)[i]
@@ -36,14 +38,13 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
       data_model <- data.frame(id = as.numeric(X$id), time = X$time, X$X[,colnames_X_i, drop = FALSE])
       colnames(data_model)[which(colnames(data_model)=="time")] <- timeVar
 
-      dt_Lt_train <- split(data_model$time, data_model$id)
+      dt_Lt_train <- split(data_model[,timeVar], data_model$id)
       dt_Ly_train <- split(data_model[,colnames_X_i], data_model$id)
 
       current_warn <- getOption("warn")
       options(warn = -1)
       model_output <- tryCatch(FPCA(dt_Ly_train,
                                     dt_Lt_train,
-                                    # mettre nRegGrid en option possible de la FPCA
                                     list(FVEthreshold = PVEfpca, imputeScores = FALSE, nRegGrid = nRegGrid)),
                                error = function(e) return(NULL))
       options(warn = current_warn)
@@ -71,7 +72,6 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
 
     # mixed model to summarize
     else {
-      #print("mixed")
       fixed_var <- all.vars(X$model[[i]]$fixed)
       random_var <- all.vars(X$model[[i]]$random)
       model_var <- unique(c(fixed_var,random_var))
