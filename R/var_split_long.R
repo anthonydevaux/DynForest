@@ -23,8 +23,6 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
   threshold_var <- var_sum <- rep(NA, X_ncol)
   conv_issue <- NULL
 
-
-
   for (i in 1:X_ncol){
 
     colnames_X_i <- colnames(X$X)[i]
@@ -47,6 +45,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                                     dt_Lt_train,
                                     list(FVEthreshold = PVEfpca, imputeScores = FALSE, nRegGrid = nRegGrid)),
                                error = function(e) return(NULL))
+
       options(warn = current_warn)
 
       if (is.null(model_output)){ # hlme error
@@ -65,6 +64,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                                # "max_dt_Lt_train" = max(unlist(dt_Lt_train), na.rm = TRUE))
                                "min_dt_Lt_train" = min(model_output$workGrid, na.rm = TRUE),
                                "max_dt_Lt_train" = max(model_output$workGrid, na.rm = TRUE))
+
 
       RE <- pred_fpca_manual(model_output, dt_Ly_train, dt_Lt_train, model_output$workGrid)
       colnames(RE) <- paste0("PC", seq(dim(RE)[2]))

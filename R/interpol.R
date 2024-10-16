@@ -1,6 +1,7 @@
 ## 1D interpolation function ====================================================
 Interpol1D <- function(y, t, tNew){
   # Function that interpolates 1d function from t grid to tNew grid
+
   yNew <- rep(NA, length(tNew))
   idx_tNew <- sapply(tNew, function(x) sum(x>=t))
   for (j in seq(length(tNew))){
@@ -23,7 +24,9 @@ InterpolCovMat <- function(CovMat, tMat, tNew){
   # add pre-treatment to remove tNew not in the range of tMat
   mat_tNew <- matrix(NA,nrow=length(tNew), ncol=length(tNew))
   idx_tNew <- sapply(tNew, function(x) sum(x>=tMat))
+
   for (j in seq(length(tNew))){
+
     tj <- tNew[j]
     idx_tauj <- idx_tNew[j]
     tauj <- tMat[idx_tauj]
@@ -38,10 +41,8 @@ InterpolCovMat <- function(CovMat, tMat, tNew){
       Gjk <- CovMat[idx_tauj,idx_tauk] +
         (tj-tauj)/(taujplus-tauj)*(CovMat[idx_tauj+1, idx_tauk]-CovMat[idx_tauj,idx_tauk]) +
         (tj-tauj)*(tk-tauk)/((taujplus-tauj)*(taukplus-tauk))*
-        (CovMat[idx_tauj+1, idx_tauk+1] - CovMat[idx_tauj+1, idx_tauk] -
-           CovMat[idx_tauj,idx_tauk+1] + CovMat[idx_tauj,idx_tauk]) -
+        (CovMat[idx_tauj+1, idx_tauk+1] - CovMat[idx_tauj+1, idx_tauk] - CovMat[idx_tauj,idx_tauk+1] + CovMat[idx_tauj,idx_tauk]) +
         (tk-tauk)/(taukplus-tauk)*(CovMat[idx_tauj,idx_tauk+1]-CovMat[idx_tauj,idx_tauk])
-      # browser()
       if (j != k) {
         mat_tNew[j,k] <- mat_tNew[k,j] <- Gjk
       } else {
@@ -60,18 +61,20 @@ pred_fpca_manual <- function(FPCAobj, dt_Ly_test, dt_Lt_test, dt_Lt_train){
 
   for (i in seq(length(dt_Ly_test))){
 
-    Lti <- dt_Lt_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<=max_dt_Lt_train]
-    Lyi <- dt_Ly_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<=max_dt_Lt_train]
+    Lti <- dt_Lt_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<max_dt_Lt_train]
+    Lyi <- dt_Ly_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<max_dt_Lt_train]
     Lti <- Lti[!is.na(Lyi)]; Lyi <- Lyi[!is.na(Lyi)];
 
-    interpol_mui <- Interpol1D(FPCAobj$mu, FPCAobj$workGrid, Lti)
-    interpol_FPCi <- apply(FPCAobj$phi, 2, function(x) return(Interpol1D(x, FPCAobj$workGrid, Lti)))
-    interpolCov <- InterpolCovMat(FPCAobj$fittedCov, FPCAobj$workGrid, Lti)
+    if (length(Lti) > 0){
 
-    scores[i,] <- t(matrix(rep(FPCAobj$lambda, length(Lti)), nrow = length(Lti), byrow = TRUE) * interpol_FPCi) %*%
-      solve(interpolCov + FPCAobj$sigma2*diag(length(Lti))) %*% (Lyi - interpol_mui)
+      interpol_mui <- Interpol1D(FPCAobj$mu, FPCAobj$workGrid, Lti)
+      interpol_FPCi <- apply(FPCAobj$phi, 2, function(x) return(Interpol1D(x, FPCAobj$workGrid, Lti)))
+      interpolCov <- InterpolCovMat(FPCAobj$fittedCov, FPCAobj$workGrid, Lti)
+
+      scores[i,] <- t(matrix(rep(FPCAobj$lambda, length(Lti)), nrow = length(Lti), byrow = TRUE) * interpol_FPCi) %*%
+        solve(interpolCov + FPCAobj$sigma2*diag(length(Lti))) %*% (Lyi - interpol_mui)
+    }
   }
-
   return(scores)
 }
 

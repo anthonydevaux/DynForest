@@ -79,7 +79,7 @@
 #' @export
 predict.DynForest <- function(object,
                               timeData = NULL, fixedData = NULL,
-                              idVar, timeVar, t0 = NULL, ...){
+                              idVar, timeVar, t0 = NULL, predTimes = NULL, ...){
 
   Longitudinal <- Factor <- Numeric <- NULL
 
@@ -114,7 +114,6 @@ predict.DynForest <- function(object,
   Inputs <- NULL
 
   if (!is.null(timeData)){
-
     timeData_id_noNA_list <- lapply(colnames(subset(timeData,
                                                     select = -c(get(idVar),get(timeVar)))),
                                     FUN = function(x){
@@ -128,7 +127,7 @@ predict.DynForest <- function(object,
     if (length(timeData_id_noNA)>0){
 
       timeData <- timeData[which(timeData[,idVar]%in%timeData_id_noNA),]
-
+      # print(dim(timeData)) OK
     }else{
       stop("One measurement or more is required for each marker by subject!")
     }
@@ -139,17 +138,16 @@ predict.DynForest <- function(object,
   if (!is.null(fixedData)){
 
     fixedData_na_row <- which(rowSums(is.na(fixedData))>0)
-
     if (length(fixedData_na_row)>0){
       fixedData <- fixedData[-fixedData_na_row,]
     }
-
     Inputs <- c(Inputs, "fixedData")
+    # print(dim(fixedData)) OK
   }
 
   # all idnoNA
   idnoNA <- Reduce(intersect, lapply(Inputs, FUN = function(x) return(unique(get(x)[,idVar]))))
-
+  # print(idnoNA) OK
   # Keep id with noNA
   if (!is.null(timeData)){
     timeData <- timeData[which(timeData[,idVar]%in%idnoNA),]
@@ -195,20 +193,22 @@ predict.DynForest <- function(object,
   #####################
 
   Id.pred <- as.integer(idnoNA)
-
+  # print(Id.pred) OK
   if (object$type=="surv"){
 
     allTimes <- object$times
-    predTimes <- c(t0, allTimes[which(allTimes>=t0)])
 
+    if (is.null(predTimes)){
+      predTimes <- c(t0, allTimes[which(allTimes>=t0)]) # PK ?????? PAS MEME TIMESCALE PARFOIS
+      # predTimes <- allTimes
+    }
+
+    # take id of predTimes inside allTimes
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
-
     pred <- lapply(object$causes, FUN = function(x){
-
       lapply(Id.pred, FUN = function(x){
         pred_tree <- matrix(NA, nrow = ncol(object$rf), ncol = length(predTimes))
       })
-
     })
 
     names(pred) <- as.character(object$causes)
@@ -226,6 +226,7 @@ predict.DynForest <- function(object,
 
   for (t in 1:ncol(object$rf)){
 
+    # print(ncol(object$rf)) OK
     pred_leaf[t,] <- pred.MMT(object$rf[,t],
                               Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
                               timeVar = timeVar)
@@ -239,15 +240,12 @@ predict.DynForest <- function(object,
           i.leaf <- pred_leaf[t,][indiv]
 
           pred_leaf_indiv <- object$rf[,t]$Y_pred[[as.character(i.leaf)]][[cause]]$traj[id.predTimes]
-
           if (!is.null(pred_leaf_indiv)){
             pred[[cause]][[indiv]][t,] <- pred_leaf_indiv
           }else{
             pred[[cause]][[indiv]][t,] <- rep(0, length(id.predTimes))
           }
-
         }
-
       }
 
     }else{
@@ -275,14 +273,20 @@ predict.DynForest <- function(object,
 
   if (object$type=="surv"){
 
+    lapply(pred_out$pred, FUN = function(x){
+      # print(x) pas OK
+    })
+
     # Average CIF by subjects for each cause
     pred_cif_mean <- lapply(pred_out$pred, FUN = function(x){
       pred_cause_indiv <- t(sapply(x, FUN = function(y){
         apply(y, 2, mean, na.rm = TRUE)
       }))
+      # print(dim(pred_cause_indiv)) pas OK
       rownames(pred_cause_indiv) <- Id.pred
       return(pred_cause_indiv)
     })
+
 
     # S landmark time / t horizon time
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)

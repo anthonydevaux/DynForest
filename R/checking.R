@@ -154,4 +154,3 @@ checking <- function(DynForest_obj = NULL,
   }
 
 }
-
