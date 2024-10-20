@@ -9,6 +9,7 @@
 #' @import stringr
 #'
 #' @keywords internal
+#' @noRd
 pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
                      timeVar = NULL){
 

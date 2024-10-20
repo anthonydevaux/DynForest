@@ -1,9 +1,11 @@
-#' Display the summary of DynForest
+#' Display the summary of dynforest
 #'
-#' @param object \code{DynForest} or \code{DynForestOOB} object
+#' @param object \code{dynforest} or \code{dynforestOOB} object
 #' @param ... Optional parameters to be passed to the low level function
 #'
 #' @return Return some information about the random forest
+#'
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -45,22 +47,22 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Compute OOB error
-#' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
+#' res_dyn_OOB <- compute_ooberror(dynforest_obj = res_dyn, ncores = 2)
 #'
-#' # DynForest summary
+#' # dynforest summary
 #' summary(object = res_dyn_OOB)
 #' }
-#' @rdname summary.DynForest
+#' @rdname summary.dynforest
 #' @export
-summary.DynForest <- function(object, ...){
+summary.dynforest <- function(object, ...){
 
   if (object$type=="surv"){
     if (length(object$causes)>1){
@@ -90,7 +92,7 @@ summary.DynForest <- function(object, ...){
 
   ##############################
 
-  cat(paste0("DynForest executed for ", type, " outcome"),"\n")
+  cat(paste0("dynforest executed for ", type, " outcome"),"\n")
   cat(paste0("\t","Splitting rule: ", split.rule),"\n")
   cat(paste0("\t","Out-of-bag error type: ", oob.type),"\n")
   cat(paste0("\t","Leaf statistic: ", leaf.stat),"\n")
@@ -115,8 +117,8 @@ summary.DynForest <- function(object, ...){
   cat("----------------","\n")
   cat("----------------","\n")
 
-  # DynForest summary
-  cat("DynForest summary","\n")
+  # dynforest summary
+  cat("dynforest summary","\n")
   cat(paste0("\t","Average depth per tree: ",
              round(mean(apply(object$rf, 2, FUN = function(x){
                mean(x$V_split$depth[which(x$V_split$type=="Leaf")])}),
@@ -147,9 +149,9 @@ summary.DynForest <- function(object, ...){
 
 }
 
-#' @rdname summary.DynForest
+#' @rdname summary.dynforest
 #' @export
-summary.DynForestOOB <- function(object, ...){
+summary.dynforestoob <- function(object, ...){
 
   if (object$type=="surv"){
     if (length(object$causes)>1){
@@ -179,7 +181,7 @@ summary.DynForestOOB <- function(object, ...){
 
   ##############################
 
-  cat(paste0("DynForest executed for ", type, " outcome"),"\n")
+  cat(paste0("dynforest executed for ", type, " outcome"),"\n")
   cat(paste0("\t","Splitting rule: ", split.rule),"\n")
   cat(paste0("\t","Out-of-bag error type: ", oob.type),"\n")
   cat(paste0("\t","Leaf statistic: ", leaf.stat),"\n")
@@ -204,8 +206,8 @@ summary.DynForestOOB <- function(object, ...){
   cat("----------------","\n")
   cat("----------------","\n")
 
-  # DynForest summary
-  cat("DynForest summary","\n")
+  # dynforest summary
+  cat("dynforest summary","\n")
   cat(paste0("\t","Average depth per tree: ",
              round(mean(apply(object$rf, 2, FUN = function(x){
                mean(x$V_split$depth[which(x$V_split$type=="Leaf")])}),

@@ -1,16 +1,12 @@
 #' Compute the grouped importance of variables (gVIMP) statistic
 #'
-#' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
-#' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
-#' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
+#' @inheritParams compute_vimp
 #' @param group A list of groups with the name of the predictors assigned in each group
-#' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
-#' @param seed Seed to replicate results
 #'
 #' @importFrom methods is
 #' @import doRNG
 #'
-#' @return \code{compute_gVIMP()} function returns a list with the following elements:\tabular{ll}{
+#' @return \code{compute_gvimp()} function returns a list with the following elements:\tabular{ll}{
 #'    \code{Inputs} \tab A list of 3 elements: \code{Longitudinal}, \code{Numeric} and \code{Factor}. Each element contains the names of the predictors \cr
 #'    \tab \cr
 #'    \code{group} \tab A list of each group defined in \code{group} argument \cr
@@ -23,6 +19,8 @@
 #' }
 #'
 #' @export
+#'
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -64,29 +62,29 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Compute gVIMP statistic
-#' res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn,
+#' res_dyn_gVIMP <- compute_gvimp(dynforest_obj = res_dyn,
 #'                                group = list(group1 = c("serBilir","SGOT"),
 #'                                             group2 = c("albumin","alkaline")),
 #'                                ncores = 2, seed = 1234)
 #' }
-compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
+compute_gvimp <- function(dynforest_obj, IBS.min = 0, IBS.max = NULL,
                           group = NULL, ncores = NULL, seed = 1234){
 
-  if (!methods::is(DynForest_obj,"DynForest")){
-    stop("'DynForest_obj' should be a 'DynForest' class!")
+  if (!methods::is(dynforest_obj,"dynforest")){
+    stop("'dynforest_obj' should be a 'dynforest' class!")
   }
 
-  if (DynForest_obj$type=="surv"){
+  if (dynforest_obj$type=="surv"){
     if (is.null(IBS.max)){
-      IBS.max <- max(DynForest_obj$data$Y$Y[,1])
+      IBS.max <- max(dynforest_obj$data$Y$Y[,1])
     }
   }
 
@@ -94,7 +92,7 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
     stop("'group' argument cannot be NULL! Please define groups to compute the gVIMP statistic!")
   }
 
-  rf <- DynForest_obj
+  rf <- dynforest_obj
   Longitudinal <- rf$data$Longitudinal
   Numeric <- rf$data$Numeric
   Factor <- rf$data$Factor
@@ -218,13 +216,13 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
 
   }
 
-  out <- list(Inputs = DynForest_obj$Inputs,
+  out <- list(Inputs = dynforest_obj$Inputs,
               group = group,
               gVIMP = gVIMP,
               tree_oob_err = tree_oob_err,
               IBS.range = c(IBS.min, IBS.max))
 
-  class(out) <- c("DynForestgVIMP")
+  class(out) <- c("dynforestgvimp")
 
   return(out)
 }

@@ -1,6 +1,6 @@
 #' Prediction using dynamic random forests
 #'
-#' @param object \code{DynForest} object containing the dynamic random forest used on train data
+#' @param object \code{dynforest} object containing the dynamic random forest used on train data
 #' @param timeData A data.frame containing the id and time measurements variables and the time-dependent predictors.
 #' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.
 #' @param idVar A character indicating the name of variable to identify the subjects
@@ -12,6 +12,8 @@
 #' @importFrom methods is
 #'
 #' @return Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
+#'
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -53,8 +55,8 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
@@ -75,20 +77,20 @@
 #'                     idVar = "id", timeVar = "time",
 #'                     t0 = 4)
 #' }
-#' @rdname predict.DynForest
+#' @rdname predict.dynforest
 #' @export
-predict.DynForest <- function(object,
+predict.dynforest <- function(object,
                               timeData = NULL, fixedData = NULL,
                               idVar, timeVar, t0 = NULL, ...){
 
   Longitudinal <- Factor <- Numeric <- NULL
 
-  if (!methods::is(object,"DynForest")){
-    stop("'object' should be an object of 'DynForest' class!")
+  if (!methods::is(object,"dynforest")){
+    stop("'object' should be an object of 'dynforest' class!")
   }
 
   # checking function
-  checking(DynForest_obj = object,
+  checking(dynforest_obj = object,
            timeData = timeData, fixedData = fixedData,
            idVar = idVar, timeVar = timeVar)
 
@@ -339,7 +341,7 @@ predict.DynForest <- function(object,
                    t0 = t0)
   }
 
-  class(output) <- c("DynForestPred")
+  class(output) <- c("dynforestpred")
   return(output)
 
 }

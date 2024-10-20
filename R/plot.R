@@ -1,28 +1,28 @@
-#' Plot function in DynForest
+#' Plot function in dynforest
 #'
-#' This function displays a plot of CIF for a given node and tree (for class \code{DynForest}), the most predictive variables with the minimal depth (for class \code{DynForestVarDepth}), the variable importance (for class \code{DynForestVIMP}) or the grouped variable importance (for class \code{DynForestgVIMP}).
+#' This function displays a plot of CIF for a given node and tree (for class \code{dynforest}), the most predictive variables with the minimal depth (for class \code{dynforestvardepth}), the variable importance (for class \code{dynforestvimp}) or the grouped variable importance (for class \code{dynforestgvimp}).
 #'
-#' @param x Object inheriting from classes \code{DynForest}, \code{DynForestVarDepth}, \code{DynForestVIMP} or \code{DynForestgVIMP}, to respectively plot the CIF, the minimal depth, the variable importance or grouped variable importance.
-#' @param tree For \code{DynForest} class, integer indicating the tree identifier
-#' @param nodes For \code{DynForest} class, identifiers for the selected nodes
-#' @param id For \code{DynForest} and \code{DynForestPred} classes, identifier for a given subject
-#' @param max_tree For \code{DynForest} class, integer indicating the number of tree to display while using \code{id} argument
-#' @param plot_level For \code{DynForestVarDepth} class, compute the statistic at predictor (\code{plot_level}="predictor") or feature (\code{plot_level}="feature") level
-#' @param PCT For \code{DynForestVIMP} or \code{DynForestgVIMP} class, display VIMP statistic in percentage. Default value is FALSE.
-#' @param ordering For \code{DynForestVIMP} class, order predictors according to VIMP value. Default value is TRUE.
+#' @param x Object inheriting from classes \code{dynforest}, \code{dynforestvardepth}, \code{dynforestvimp} or \code{dynforestgvimp}, to respectively plot the CIF, the minimal depth, the variable importance or grouped variable importance.
+#' @param tree For \code{dynforest} class, integer indicating the tree identifier
+#' @param nodes For \code{dynforest} class, identifiers for the selected nodes
+#' @param id For \code{dynforest} and \code{dynforestpred} classes, identifier for a given subject
+#' @param max_tree For \code{dynforest} class, integer indicating the number of tree to display while using \code{id} argument
+#' @param plot_level For \code{dynforestvardepth} class, compute the statistic at predictor (\code{plot_level}="predictor") or feature (\code{plot_level}="feature") level
+#' @param PCT For \code{dynforestvimp} or \code{dynforestgvimp} class, display VIMP statistic in percentage. Default value is FALSE.
+#' @param ordering For \code{dynforestvimp} class, order predictors according to VIMP value. Default value is TRUE.
 #' @param ... Optional parameters to be passed to the low level function
 #'
 #' @import ggplot2
 #' @importFrom stringr str_order
 #'
-#' @seealso \code{\link{DynForest} \link{var_depth} \link{compute_VIMP} \link{compute_gVIMP}}
+#' @seealso [dynforest()] [compute_ooberror()] [compute_vimp()] [compute_gvimp()] [compute_vardepth()]
 #'
 #' @return \code{plot()} function displays: \tabular{ll}{
-#'    With \code{DynForestVarDepth} \tab the minimal depth for each predictor/feature \cr
+#'    With \code{dynforestvardepth} \tab the minimal depth for each predictor/feature \cr
 #'    \tab \cr
-#'    With \code{DynForestVIMP} \tab the VIMP for each predictor \cr
+#'    With \code{dynforestvimp} \tab the VIMP for each predictor \cr
 #'    \tab \cr
-#'    With \code{DynForestgVIMP} \tab the grouped-VIMP for each given group \cr
+#'    With \code{dynforestgvimp} \tab the grouped-VIMP for each given group \cr
 #' }
 #'
 #' @examples
@@ -65,8 +65,8 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
@@ -76,19 +76,19 @@
 #' plot(x = res_dyn, tree = 1, nodes = c(17,32))
 #'
 #' # Run var_depth function
-#' res_varDepth <- var_depth(res_dyn)
+#' res_varDepth <- compute_vardepth(res_dyn)
 #'
 #' # Plot minimal depth
 #' plot(x = res_varDepth, plot_level = "feature")
 #'
 #' # Compute VIMP statistic
-#' res_dyn_VIMP <- compute_VIMP(DynForest_obj = res_dyn, ncores = 2)
+#' res_dyn_VIMP <- compute_vimp(dynforest_obj = res_dyn, ncores = 2)
 #'
 #' # Plot VIMP
 #' plot(x = res_dyn_VIMP, PCT = TRUE)
 #'
 #' # Compute gVIMP statistic
-#' res_dyn_gVIMP <- compute_gVIMP(DynForest_obj = res_dyn,
+#' res_dyn_gVIMP <- compute_gvimp(dynforest_obj = res_dyn,
 #'                                group = list(group1 = c("serBilir","SGOT"),
 #'                                             group2 = c("albumin","alkaline")),
 #'                                ncores = 2)
@@ -116,12 +116,12 @@
 #'
 #' }
 #'
-#' @rdname plot.DynForest
+#' @rdname plot.dynforest
 #' @export
-plot.DynForest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = NULL, ...){
+plot.dynforest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = NULL, ...){
 
-  if (!methods::is(x,"DynForest")){
-    stop("'DynForest_obj' should be a 'DynForest' class!")
+  if (!methods::is(x,"dynforest")){
+    stop("'dynforest_obj' should be a 'dynforest' class!")
   }
 
   if (!is.null(tree)){
@@ -145,7 +145,7 @@ plot.DynForest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = N
         stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
       }
     }else{
-      nodes <- getTreeNodes(DynForest_obj = x, tree = tree)
+      nodes <- get_treenodes(dynforest_obj = x, tree = tree)
     }
 
     # data transformation for ggplot2
@@ -239,9 +239,9 @@ plot.DynForest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = N
 }
 
 
-#' @name plot.DynForest
+#' @name plot.dynforest
 #' @export
-plot.DynForestVarDepth <- function(x, plot_level = c("predictor","feature"), ...){
+plot.dynforestvardepth <- function(x, plot_level = c("predictor","feature"), ...){
 
   # checking
   if (!all(plot_level%in%c("predictor","feature"))){
@@ -307,9 +307,9 @@ plot.DynForestVarDepth <- function(x, plot_level = c("predictor","feature"), ...
 
 }
 
-#' @rdname plot.DynForest
+#' @rdname plot.dynforest
 #' @export
-plot.DynForestVIMP <- function(x, PCT = FALSE, ordering = TRUE, ...){
+plot.dynforestvimp <- function(x, PCT = FALSE, ordering = TRUE, ...){
 
   vimp.df <- data.frame(var = unlist(x$Inputs),
                         vimp = unlist(x$Importance))
@@ -338,9 +338,9 @@ plot.DynForestVIMP <- function(x, PCT = FALSE, ordering = TRUE, ...){
   return(print(g))
 }
 
-#' @rdname plot.DynForest
+#' @rdname plot.dynforest
 #' @export
-plot.DynForestgVIMP <- function(x, PCT = FALSE, ...){
+plot.dynforestgvimp <- function(x, PCT = FALSE, ...){
 
   vimp.df <- data.frame(var = names(x$gVIMP),
                         vimp = x$gVIMP)
@@ -361,12 +361,12 @@ plot.DynForestgVIMP <- function(x, PCT = FALSE, ...){
 
 }
 
-#' @rdname plot.DynForest
+#' @rdname plot.dynforest
 #' @export
-plot.DynForestPred <- function(x, id = NULL, ...){
+plot.dynforestpred <- function(x, id = NULL, ...){
 
-  if (!methods::is(x,"DynForestPred")){
-    stop("'x' should be a 'DynForestPred' class!")
+  if (!methods::is(x,"dynforestpred")){
+    stop("'x' should be a 'dynforestpred' class!")
   }
 
   if (is.null(id)){

@@ -1,6 +1,6 @@
 #' Internal checking function
 #'
-#' @param DynForest_obj A \code{DynForest} object resulting from \code{DynForest()} function
+#' @param dynforest_obj A \code{dynforest} object resulting from \code{dynforest()} function
 #' @param timeData A data.frame containing the id and time measurements variables and the time-dependent predictors.
 #' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.
 #' @param idVar A character indicating the name of variable to identify the subjects
@@ -13,7 +13,8 @@
 #' @param cause (Only with competing events) Number indicates the event of interest.
 #'
 #' @keywords internal
-checking <- function(DynForest_obj = NULL,
+#' @noRd
+checking <- function(dynforest_obj = NULL,
                      timeData, fixedData,
                      idVar, timeVar, timeVarModel,
                      Y, ntree = 200, mtry = 1, nodesize = 1, minsplit = 2,
@@ -30,7 +31,7 @@ checking <- function(DynForest_obj = NULL,
     }
   }
 
-  if (is.null(DynForest_obj)){
+  if (is.null(dynforest_obj)){
     if (any(is.null(c(ntree, mtry, nodesize, minsplit)))){
       stop("'ntree', 'mtry', 'nodesize' or 'minsplit' cannot be NULL!")
     }
@@ -52,7 +53,7 @@ checking <- function(DynForest_obj = NULL,
       }
     }
 
-    if (is.null(DynForest_obj)){
+    if (is.null(dynforest_obj)){
       if (!inherits(timeVarModel, "list")){
         stop("'timeVarModel' should be a list object!")
       }
@@ -62,10 +63,10 @@ checking <- function(DynForest_obj = NULL,
       }
     }else{
 
-      DynVar <- unlist(DynForest_obj$Inputs)
+      DynVar <- unlist(dynforest_obj$Inputs)
 
       if (!all(DynVar%in%c(colnames(timeData),colnames(fixedData)))){
-        stop("All variables in DynForest_obj$Inputs should be included in 'timeData' or 'fixedData'!")
+        stop("All variables in dynforest_obj$Inputs should be included in 'timeData' or 'fixedData'!")
       }
 
     }
@@ -106,7 +107,7 @@ checking <- function(DynForest_obj = NULL,
   }
 
   # Y checking
-  if (is.null(DynForest_obj)){
+  if (is.null(dynforest_obj)){
     if (is.null(Y)){
       stop("'Y' is missing!")
     }else{

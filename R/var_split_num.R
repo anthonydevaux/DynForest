@@ -7,6 +7,7 @@
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
 #'
 #' @keywords internal
+#' @noRd
 var_split_num <- function(X, Y, nsplit_option = "quantile",
                           cause = 1, nodesize = 1){
 

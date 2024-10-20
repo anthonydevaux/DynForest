@@ -3,7 +3,7 @@
 \docType{data}
 \name{data_simu2}
 \alias{data_simu2}
-\title{data_simu1 dataset}
+\title{data_simu2 dataset}
 \format{
 Longitudinal dataset with 1200 rows and 13 columns for 200 subjects
 \describe{

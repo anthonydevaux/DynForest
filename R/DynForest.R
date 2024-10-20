@@ -33,7 +33,7 @@
 #' - Continuous longitudinal outcome
 #' - Functional data analysis
 #'
-#' @return DynForest function returns a list with the following elements:\tabular{ll}{
+#' @return dynforest function returns a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
 #'    \code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
@@ -61,7 +61,7 @@
 #' - Devaux A., Helmer C., Genuer R., Proust-Lima C. (2023). Random survival forests with multivariate longitudinal endogenous covariates. SMMR <doi:10.1177/09622802231206477>
 #' - Devaux A., Proust-Lima C., Genuer R. (2023). Random Forests for time-fixed and time-dependent predictors: The DynForest R package. arXiv <doi:10.48550/arXiv.2302.02670>
 #'
-#' @seealso \code{\link{summary.DynForest} \link{compute_OOBerror} \link{compute_VIMP} \link{compute_gVIMP} \link{predict.DynForest} \link{plot.DynForest}}
+#' @seealso [summary.dynforest()] [compute_ooberror()] [compute_vimp()] [compute_gvimp()] [predict.dynforest()] [plot.dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -103,15 +103,15 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #' }
 #' @export
-DynForest <- function(timeData = NULL, fixedData = NULL,
+dynforest <- function(timeData = NULL, fixedData = NULL,
                       idVar = NULL, timeVar = NULL, timeVarModel = NULL,
                       Y = NULL, ntree = 200, mtry = NULL,
                       nodesize = 1, minsplit = 2, cause = 1,
@@ -167,7 +167,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
       var_cat_over10 <- names(num_cat)[which(num_cat>10)]
 
       if (length(var_cat_over10)>0){
-        stop("'DynForest' function cannot actually support more than 10 categories for factor predictors! Please fix the following factor predictors: ",
+        stop("'dynforest' function cannot actually support more than 10 categories for factor predictors! Please fix the following factor predictors: ",
              paste(var_cat_over10, collapse = " / "))
       }
 
@@ -257,6 +257,6 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                 ncores = ncores, comput.time = Sys.time() - debut)
   }
 
-  class(out) <- c("DynForest")
+  class(out) <- c("dynforest")
   return(out)
 }

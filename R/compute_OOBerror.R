@@ -1,13 +1,10 @@
 #' Compute the Out-Of-Bag error (OOB error)
 #'
-#' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
-#' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
-#' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
-#' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
+#' @inheritParams compute_vimp
 #'
 #' @importFrom methods is
 #'
-#' @return \code{compute_OOBerror()} function return a list with the following elements:\tabular{ll}{
+#' @return \code{compute_ooberror()} function return a list with the following elements:\tabular{ll}{
 #'    \code{data} \tab A list containing the data used to grow the trees \cr
 #'    \tab \cr
 #'    \code{rf} \tab A table with each tree in column. Provide multiple characteristics about the tree building \cr
@@ -34,6 +31,8 @@
 #' }
 #'
 #' @export
+#'
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -75,31 +74,31 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Compute OOB error
-#' res_dyn_OOB <- compute_OOBerror(DynForest_obj = res_dyn, ncores = 2)
+#' res_dyn_OOB <- compute_ooberror(dynforest_obj = res_dyn, ncores = 2)
 #' }
-compute_OOBerror <- function(DynForest_obj,
+compute_ooberror <- function(dynforest_obj,
                              IBS.min = 0, IBS.max = NULL,
                              ncores = NULL){
 
-  if (!methods::is(DynForest_obj,"DynForest")){
-    stop("'DynForest_obj' should be a 'DynForest' class!")
+  if (!methods::is(dynforest_obj,"dynforest")){
+    stop("'dynforest_obj' should be a 'dynforest' class!")
   }
 
-  if (DynForest_obj$type=="surv"){
+  if (dynforest_obj$type=="surv"){
     if (is.null(IBS.max)){
-      IBS.max <- max(DynForest_obj$data$Y$Y[,1])
+      IBS.max <- max(dynforest_obj$data$Y$Y[,1])
     }
   }
 
-  rf <- DynForest_obj
+  rf <- dynforest_obj
   Longitudinal <- rf$data$Longitudinal
   Numeric <- rf$data$Numeric
   Factor <- rf$data$Factor
@@ -117,12 +116,12 @@ compute_OOBerror <- function(DynForest_obj,
                          timeVar = timeVar, IBS.min = IBS.min, IBS.max = IBS.max, cause = rf$cause,
                          ncores = ncores)
 
-  out <- DynForest_obj
+  out <- dynforest_obj
   out$oob.err <- oob.err$err
   out$oob.pred <- oob.err$oob.pred
   out$IBS.range <- c(IBS.min, IBS.max)
 
-  class(out) <- c("DynForestOOB")
+  class(out) <- c("dynforestoob")
 
   return(out)
 

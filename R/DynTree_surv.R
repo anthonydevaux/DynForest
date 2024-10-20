@@ -18,6 +18,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
+#' @noRd
 DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                          timeVar = NULL, mtry = 1, nsplit_option = "quantile",
                          nodesize = 1, minsplit = 2, cause = 1, seed = 1234){

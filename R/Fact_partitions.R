@@ -6,6 +6,7 @@
 #' @param id List of id
 #'
 #' @keywords internal
+#' @noRd
 Fact.partitions <- function(Factor, id){
 
   U <- unique(Factor)

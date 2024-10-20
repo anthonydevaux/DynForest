@@ -8,6 +8,7 @@
 #' @importFrom cmprsk crr
 #'
 #' @keywords internal
+#' @noRd
 impurity_split <- function(Y,split,cause=1){
 
   impur <- 0

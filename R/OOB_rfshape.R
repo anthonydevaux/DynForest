@@ -17,6 +17,7 @@
 #' @import doParallel
 #'
 #' @keywords internal
+#' @noRd
 OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
                         timeVar = NULL, IBS.min = 0, IBS.max = NULL, cause = 1,
                         ncores = NULL){

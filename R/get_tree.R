@@ -1,11 +1,25 @@
-#' Extract nodes identifiers for a given tree
+#' Extract some information about the split for a tree by user
 #'
-#' @param DynForest_obj A DynForest object from \code{DynForest()} function
+#' @inheritParams compute_vimp
 #' @param tree Integer indicating the tree identifier
 #'
-#' @importFrom methods is
+#' @return A table sorted by the node/leaf identifier with each row representing a node/leaf. Each column provides information about the splits:\tabular{ll}{
+#' \code{type} \tab The nature of the predictor (\code{Longitudinal} for longitudinal predictor, \code{Numeric} for continuous predictor or \code{Factor} for categorical predictor) if the node was split, \code{Leaf} otherwise \cr
+#' \tab \cr
+#' \code{var_split} \tab The predictor used for the split defined by its order in \code{timeData} and \code{fixedData} \cr
+#' \tab \cr
+#' \code{feature} \tab The feature used for the split defined by its position in random statistic \cr
+#' \tab \cr
+#' \code{threshold} \tab The threshold used for the split (only with \code{Longitudinal} and \code{Numeric}). No information is returned for \code{Factor} \cr
+#' \tab \cr
+#' \code{N} \tab The number of subjects in the node/leaf \cr
+#' \tab \cr
+#' \code{Nevent} \tab The number of events of interest in the node/leaf (only with survival outcome) \cr
+#' \tab \cr
+#' \code{depth} \tab the depth level of the node/leaf \cr
+#' }
 #'
-#' @return Extract nodes identifiers for a given tree
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -47,33 +61,33 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Extract nodes identifiers for a given tree
-#' getTreeNodes(DynForest_obj = res_dyn, tree = 1)
+#' # Extract split information from tree 4
+#' res_tree4 <- get_tree(dynforest_obj = res_dyn, tree = 4)
 #' }
 #' @export
-getTreeNodes <- function(DynForest_obj, tree = NULL){
+get_tree <- function(dynforest_obj, tree){
 
-  if (!methods::is(DynForest_obj,"DynForest")){
-    stop("'DynForest_obj' should be a 'DynForestPred' class!")
+  if (!methods::is(dynforest_obj,"dynforest")){
+    stop("'dynforest_obj' should be a 'dynforest' class!")
   }
 
   if (!inherits(tree, "numeric")){
     stop("'tree' should be a numeric object containing the tree identifier!")
   }
 
-  if (!any(tree==seq(DynForest_obj$param$ntree))){
-    stop(paste0("'tree' should be chosen between 1 and ", DynForest_obj$param$ntree, "!"))
+  if (!any(tree==seq(dynforest_obj$param$ntree))){
+    stop(paste0("'tree' should be chosen between 1 and ", dynforest_obj$param$ntree, "!"))
   }
 
-  tree_split <- getTree(DynForest_obj = DynForest_obj, tree = tree)
-  nodes_id <- tree_split$id_node[which(tree_split$type=="Leaf")]
+  out <- dynforest_obj$rf[,tree]$V_split
 
-  return(nodes_id)
+  return(out)
+
 }

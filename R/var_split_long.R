@@ -12,6 +12,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
+#' @noRd
 var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                            cause = 1, nodesize = 1, init = NULL){
 

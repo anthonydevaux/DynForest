@@ -7,6 +7,7 @@
 #' @return List with the updated parameters from the requested markers
 #'
 #' @keywords internal
+#' @noRd
 getParamMM <- function(current_node, markers, params){
 
   starting_node_chr <- as.character(current_node)

@@ -21,6 +21,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
+#' @noRd
 rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                           timeVar = NULL, Y, mtry, ntree, ncores,
                           nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
