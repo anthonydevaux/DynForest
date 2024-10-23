@@ -200,7 +200,6 @@ print.dynforestpred <- function(x, ...){
     stop("'x' should be an object of 'dynforestpred' class!")
   }
 
-  out <- x$pred_indiv
+  x$pred_indiv
 
-  print(out)
 }
