@@ -90,11 +90,11 @@ Y <- list(type = "surv",
           Y = unique(pbc2[,c("id","years","event")]))
 ```
 
-### Run `DynForest()` function
+### Run `dynforest()` function
 
 ``` r
 # Run DynForest function
-res_dyn <- DynForest(timeData = timeData, fixedData = fixedData,
+res_dyn <- dynforest(timeData = timeData, fixedData = fixedData,
                      timeVar = "time", idVar = "id",
                      timeVarModel = timeVarModel, Y = Y,
                      ntree = 50, nodesize = 5, minsplit = 5,
@@ -105,7 +105,7 @@ res_dyn <- DynForest(timeData = timeData, fixedData = fixedData,
 
 ``` r
 summary(res_dyn)
-#> DynForest executed for survival (competing risk) outcome 
+#> dynforest executed for survival (competing risk) outcome 
 #>  Splitting rule: Fine & Gray statistic test 
 #>  Out-of-bag error type: Integrated Brier Score 
 #>  Leaf statistic: Cumulative incidence function 
@@ -123,7 +123,7 @@ summary(res_dyn)
 #>  ntree: 50 
 #> ---------------- 
 #> ---------------- 
-#> DynForest summary 
+#> dynforest summary 
 #>  Average depth per tree: 5.94 
 #>  Average number of leaves per tree: 20.44 
 #>  Average number of subjects per leaf: 9.67 
@@ -131,6 +131,6 @@ summary(res_dyn)
 #> ---------------- 
 #> Computation time 
 #>  Number of cores used: 15 
-#>  Time difference of 1.139766 mins
+#>  Time difference of 37.15092 secs
 #> ----------------
 ```

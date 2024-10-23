@@ -84,11 +84,11 @@ Y <- list(type = "surv",
           Y = unique(pbc2[,c("id","years","event")]))
 ```
 
-### Run `DynForest()` function
+### Run `dynforest()` function
 
 ```{r}
 # Run DynForest function
-res_dyn <- DynForest(timeData = timeData, fixedData = fixedData,
+res_dyn <- dynforest(timeData = timeData, fixedData = fixedData,
                      timeVar = "time", idVar = "id",
                      timeVarModel = timeVarModel, Y = Y,
                      ntree = 50, nodesize = 5, minsplit = 5,
