@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 The random forest should first be built on a learning dataset of $N$ subjects including: $Y$ the outcome; $\mathcal{M}_x$ an ensemble of $P$ time-fixed predictors; $\mathcal{M}_z$ an ensemble of $Q$ time-dependent predictors. The random forest consists of an ensemble of $B$ trees which are grown as detailed below.
 
 ```{r dynforestRgraph, eval = TRUE, echo = FALSE, out.width = "80%", out.height = "30%", fig.cap = "Figure 1: Overall scheme of the tree building in DynForest with (A) the tree structure, (B) the node-specific treatment of time-dependent predictors to obtain time-fixed features, (C) the dichotomization of the time-fixed features, (D) the splitting rule."}
-knitr::include_graphics("figures/dynforestR_graph.png")
+knitr::include_graphics("Figures/dynforestR_graph.png")
 ```
 
 ## The tree building
