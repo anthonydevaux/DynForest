@@ -16,7 +16,6 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version-last-release/DynForest)](https://CRAN.R-project.org/package=DynForest)
 [![Downloads](https://cranlogs.r-pkg.org/badges/DynForest?color=blue)](https://www.r-pkg.org/pkg/DynForest)
-[![R build status](https://github.com/anthonydevaux/DynForest/workflows/R-CMD-check/badge.svg)](https://github.com/anthonydevaux/DynForest/actions)
 <!-- badges: end -->
 
 ## Description
@@ -31,7 +30,7 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-`DynForest` package version 1.1.3 could be install from the [CRAN](https://cran.r-project.org/package=DynForest) with:
+`DynForest` package version 1.2.0 could be install from the [CRAN](https://cran.r-project.org/package=DynForest) with:
 
 ```{r, eval = FALSE}
 install.packages("DynForest")

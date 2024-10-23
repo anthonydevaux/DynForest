@@ -5,8 +5,6 @@
 [![CRAN
 status](https://www.r-pkg.org/badges/version-last-release/DynForest)](https://CRAN.R-project.org/package=DynForest)
 [![Downloads](https://cranlogs.r-pkg.org/badges/DynForest?color=blue)](https://www.r-pkg.org/pkg/DynForest)
-[![R build
-status](https://github.com/anthonydevaux/DynForest/workflows/R-CMD-check/badge.svg)](https://github.com/anthonydevaux/DynForest/actions)
 <!-- badges: end -->
 
 ## Description
@@ -32,7 +30,7 @@ a survival outcome in the paper:
 
 ## Installation
 
-`DynForest` package version 1.1.3 could be install from the
+`DynForest` package version 1.2.0 could be install from the
 [CRAN](https://cran.r-project.org/package=DynForest) with:
 
 ``` r
@@ -131,6 +129,6 @@ summary(res_dyn)
 #> ---------------- 
 #> Computation time 
 #>  Number of cores used: 15 
-#>  Time difference of 37.15092 secs
+#>  Time difference of 37.05251 secs
 #> ----------------
 ```
