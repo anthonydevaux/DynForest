@@ -86,7 +86,10 @@ predict.dynforest <- function(object,
   Longitudinal <- Factor <- Numeric <- NULL
 
   if (!methods::is(object,"dynforest")){
-    stop("'object' should be an object of 'dynforest' class!")
+    cli_abort(c(
+      "{.var object} must be a dynforest object",
+      "x" = "You've supplied a {.cls {class(object)}} object"
+    ))
   }
 
   # checking function
@@ -98,7 +101,9 @@ predict.dynforest <- function(object,
   if (object$type=="surv"){
 
     if (is.null(t0)){
-      stop("t0 value is needed for dynamic prediction !")
+      cli_abort(c(
+        "{.var t0} can't be NULL"
+      ))
     }
 
   }
@@ -132,7 +137,9 @@ predict.dynforest <- function(object,
       timeData <- timeData[which(timeData[,idVar]%in%timeData_id_noNA),]
 
     }else{
-      stop("One measurement or more is required for each marker by subject!")
+      cli_abort(c(
+        "One measurement or more is required in {.var timeData} for each marker by subject"
+      ))
     }
 
     Inputs <- c(Inputs, "timeData")

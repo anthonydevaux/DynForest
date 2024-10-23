@@ -85,7 +85,10 @@
 print.dynforest <- function(x, ...){
 
   if (!methods::is(x,"dynforest")){
-    stop("'x' should be an object of 'dynforest' class!")
+    cli_abort(c(
+      "{.var x} must be a dynforest object",
+      "x" = "You've supplied a {.cls {class(x)}} object"
+    ))
   }
 
   if (x$type=="surv"){
@@ -135,7 +138,10 @@ print.dynforest <- function(x, ...){
 print.dynforestvimp <- function(x, ...){
 
   if (!methods::is(x,"dynforestvimp")){
-    stop("'x' should be an object of 'dynforestvimp' class!")
+    cli_abort(c(
+      "{.var x} must be a dynforestvimp object",
+      "x" = "You've supplied a {.cls {class(x)}} object"
+    ))
   }
 
   out <- data.frame("Predictors" = unlist(x$Inputs),
@@ -153,7 +159,10 @@ print.dynforestvimp <- function(x, ...){
 print.dynforestgvimp <- function(x, ...){
 
   if (!methods::is(x,"dynforestgvimp")){
-    stop("'x' should be an object of 'dynforestgvimp' class!")
+    cli_abort(c(
+      "{.var x} must be a dynforestgvimp object",
+      "x" = "You've supplied a {.cls {class(x)}} object"
+    ))
   }
 
   out <- data.frame("Group" = names(x$gVIMP),
@@ -170,7 +179,10 @@ print.dynforestgvimp <- function(x, ...){
 print.dynforestvardepth <- function(x, ...){
 
   if (!methods::is(x,"dynforestvardepth")){
-    stop("'x' should be an object of 'dynforestvardepth' class!")
+    cli_abort(c(
+      "{.var x} must be a dynforestvardepth object",
+      "x" = "You've supplied a {.cls {class(x)}} object"
+    ))
   }
 
   print.data.frame(x$min_depth)
@@ -183,7 +195,10 @@ print.dynforestvardepth <- function(x, ...){
 print.dynforestoob <- function(x, ...){
 
   if (!methods::is(x,"dynforestoob")){
-    stop("'x' should be an object of 'dynforestoob' class!")
+    cli_abort(c(
+      "{.var x} must be a dynforestoob object",
+      "x" = "You've supplied a {.cls {class(x)}} object"
+    ))
   }
 
   out <- mean(x$oob.err, na.rm = TRUE)
@@ -197,7 +212,10 @@ print.dynforestoob <- function(x, ...){
 print.dynforestpred <- function(x, ...){
 
   if (!methods::is(x,"dynforestpred")){
-    stop("'x' should be an object of 'dynforestpred' class!")
+    cli_abort(c(
+      "{.var x} must be a dynforestpred object",
+      "x" = "You've supplied a {.cls {class(x)}} object"
+    ))
   }
 
   x$pred_indiv

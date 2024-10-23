@@ -89,7 +89,10 @@ compute_ooberror <- function(dynforest_obj,
                              ncores = NULL){
 
   if (!methods::is(dynforest_obj,"dynforest")){
-    stop("'dynforest_obj' should be a 'dynforest' class!")
+    cli_abort(c(
+      "{.var dynforest_obj} must be a dynforest object",
+      "x" = "You've supplied a {.cls {class(dynforest_obj)}} object"
+    ))
   }
 
   if (dynforest_obj$type=="surv"){

@@ -78,7 +78,10 @@ compute_vimp <- function(dynforest_obj, IBS.min = 0, IBS.max = NULL,
                          ncores = NULL, seed = 1234){
 
   if (!methods::is(dynforest_obj,"dynforest")){
-    stop("'dynforest_obj' should be a 'dynforest' class!")
+    cli_abort(c(
+      "{.var dynforest_obj} must be a dynforest object",
+      "x" = "You've supplied a {.cls {class(dynforest_obj)}} object"
+    ))
   }
 
   if (dynforest_obj$type=="surv"){

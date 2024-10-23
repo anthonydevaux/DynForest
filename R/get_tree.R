@@ -75,15 +75,24 @@
 get_tree <- function(dynforest_obj, tree){
 
   if (!methods::is(dynforest_obj,"dynforest")){
-    stop("'dynforest_obj' should be a 'dynforest' class!")
+    cli_abort(c(
+      "{.var dynforest_obj} must be a dynforest object",
+      "x" = "You've supplied a {.cls {class(dynforest_obj)}} object"
+    ))
   }
 
   if (!inherits(tree, "numeric")){
-    stop("'tree' should be a numeric object containing the tree identifier!")
+    cli_abort(c(
+      "{.var tree} must be a numeric object containing the tree identifier",
+      "x" = "You've supplied a {.cls {class(tree)}} object"
+    ))
   }
 
   if (!any(tree==seq(dynforest_obj$param$ntree))){
-    stop(paste0("'tree' should be chosen between 1 and ", dynforest_obj$param$ntree, "!"))
+    cli_abort(c(
+      "{.var tree} must be chosen between 1 and {dynforest_obj$param$ntree}",
+      "x" = "You've chosen {tree}"
+    ))
   }
 
   out <- dynforest_obj$rf[,tree]$V_split

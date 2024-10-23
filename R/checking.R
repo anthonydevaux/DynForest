@@ -12,6 +12,8 @@
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
 #' @param cause (Only with competing events) Number indicates the event of interest.
 #'
+#' @import cli
+#'
 #' @keywords internal
 #' @noRd
 checking <- function(dynforest_obj = NULL,
@@ -22,66 +24,96 @@ checking <- function(dynforest_obj = NULL,
 
   # global argument checking
   if (!inherits(idVar, "character")){
-    stop("'idVar' should be a character object!")
+    cli_abort(c(
+      "{.var idVar} must be a character object",
+      "x" = "You've supplied a {.cls {class(idVar)}} object"
+    ))
   }
 
   if (!is.null(timeVar)){
     if (!inherits(timeVar, "character")){
-      stop("'timeVar' should be a character object!")
+      cli_abort(c(
+        "{.var timeVar} must be a character object",
+        "x" = "You've supplied a {.cls {class(timeVar)}} object"
+      ))
     }
   }
 
   if (is.null(dynforest_obj)){
-    if (any(is.null(c(ntree, mtry, nodesize, minsplit)))){
-      stop("'ntree', 'mtry', 'nodesize' or 'minsplit' cannot be NULL!")
+    if (any(is.null(ntree)|is.null(mtry)|is.null(nodesize)|is.null(minsplit))){
+      cli_abort(c(
+        "{.var ntree}, {.var mtry}, {.var nodesize} and {.var minsplit} can't be {.var NULL}"
+      ))
     }
   }
 
   # timeData checking
   if (!is.null(timeData)){
     if (!inherits(timeData, "data.frame")){
-      stop("'timeData' should be a data.frame object!")
+      cli_abort(c(
+        "{.var timeData} must be a data.frame object",
+        "x" = "You've supplied a {.cls {class(timeData)}} object"
+      ))
     }
 
     if (!any(colnames(timeData)==idVar)){
-      stop("'idVar' variable should be contained in 'timeData'!")
+      cli_abort(c(
+        "Can't find column {.var idVar} in {.var timeData}"
+      ))
     }
 
     if (!is.null(timeVar)){
       if (!any(colnames(timeData)==timeVar)){
-        stop("'timeVar' variable should be contained in 'timeData'!")
+        cli_abort(c(
+          "Can't find column {.var timeVar} in {.var timeData}"
+        ))
       }
     }
 
     if (is.null(dynforest_obj)){
       if (!inherits(timeVarModel, "list")){
-        stop("'timeVarModel' should be a list object!")
+        cli_abort(c(
+          "{.var timeVarModel} must be a list object",
+          "x" = "You've supplied a {.cls {class(timeVarModel)}} object"
+        ))
       }
 
       if (!all(colnames(timeData)[-which(colnames(timeData)%in%c(idVar, timeVar))]%in%names(timeVarModel))){
-        stop("'timeData' predictor names should be included in the list names of 'timeVarModel'!")
+        cli_abort(c(
+          "{.var timeData} predictor names must be included in the list names of {.var timeVarModel}"
+        ))
       }
     }else{
 
       DynVar <- unlist(dynforest_obj$Inputs)
 
       if (!all(DynVar%in%c(colnames(timeData),colnames(fixedData)))){
-        stop("All variables in dynforest_obj$Inputs should be included in 'timeData' or 'fixedData'!")
+        cli_abort(c(
+          "All variables in {.var dynforest_obj$Inputs} must be included in {.var timeData} or {.var fixedData}"
+        ))
       }
 
     }
 
     if (!inherits(timeData[,idVar], c("numeric","integer"))){
-      stop(paste0(idVar, " variable should be a numeric or integer object in 'timeData'!"))
+      cli_abort(c(
+        "{.var idVar} column in {.var timeData} must be a numeric or integer object",
+        "x" = "You've supplied a {.cls {class(timeData[,idVar])}} object"
+      ))
     }
 
     if (!inherits(timeData[,timeVar], c("numeric","integer"))){
-      stop(paste0(timeVar, " variable should be a numeric or integer object in 'timeData'!"))
+      cli_abort(c(
+        "{.var timeVar} column in {.var timeData} must be a numeric or integer object",
+        "x" = "You've supplied a {.cls {class(timeData[,timeVar])}} object"
+      ))
     }
 
     if (!all(sapply(subset(timeData, select = -c(get(idVar), get(timeVar))),
                     class)%in%c("numeric","integer"))){
-      stop("Only continuous time-dependent predictors are allowed in 'timeData'!")
+      cli_abort(c(
+        "Time-dependent predictors in {.var timeVar} must be numeric or integer"
+      ))
     }
 
   }
@@ -89,19 +121,29 @@ checking <- function(dynforest_obj = NULL,
   # fixedData checking
   if (!is.null(fixedData)){
     if (!inherits(fixedData, "data.frame")){
-      stop("'fixedData' should be a data.frame object!")
+      cli_abort(c(
+        "{.var fixedData} must be a data.frame object",
+        "x" = "You've supplied a {.cls {class(fixedData)}} object"
+      ))
     }
 
     if (!any(colnames(fixedData)==idVar)){
-      stop("'idVar' variable should be contained in 'fixedData'!")
+      cli_abort(c(
+        "Can't find column {.var idVar} in {.var fixedData}"
+      ))
     }
 
     if (!inherits(fixedData[,idVar], c("numeric","integer"))){
-      stop(paste0(idVar, " variable should be a numeric or integer object in 'fixedData'!"))
+      cli_abort(c(
+        "{.var idVar} column in {.var fixedData} must be a numeric or integer object",
+        "x" = "You've supplied a {.cls {class(fixedData[,idVar])}} object"
+      ))
     }
 
     if (any(duplicated(fixedData[,idVar]))){
-      stop("Multiple rows have been found for same id in 'fixedData'!")
+      cli_abort(c(
+        "Each {.var idVar} identifier in {.var fixedData} must be unique",
+      ))
     }
 
   }
@@ -109,39 +151,62 @@ checking <- function(dynforest_obj = NULL,
   # Y checking
   if (is.null(dynforest_obj)){
     if (is.null(Y)){
-      stop("'Y' is missing!")
+      cli_abort(c(
+        "Can't find {.var Y}",
+      ))
     }else{
       if (!inherits(Y, "list")){
-        stop("'Y' should be a 'list' object!")
+        cli_abort(c(
+          "{.var Y} must be a list object",
+          "x" = "You've supplied a {.cls {class(Y)}} object"
+        ))
       }
       if (!all(names(Y%in%c("type","Y")))){
-        stop("'Y' should be a list with 'type' and 'Y' elements!")
+        cli_abort(c(
+          "{.var Y} must be a list object including {.var type} and {.var Y} elements"
+        ))
       }
       if (!any(colnames(Y$Y)==idVar)){
-        stop("'idVar' variable should be contained in Y!")
+        cli_abort(c(
+          "Can't find column {.var idVar} in {.var Y$Y}"
+        ))
       }
       if (!inherits(Y$Y[,idVar], c("numeric","integer"))){
-        stop(paste0(idVar, " variable should be a numeric or integer object in 'Y$Y'!"))
+        cli_abort(c(
+          "{.var idVar} column in {.var Y$Y} must be a numeric or integer object",
+          "x" = "You've supplied a {.cls {class(Y$Y[,idVar])}} object"
+        ))
       }
       if (any(duplicated(Y$Y[,idVar]))){
-        stop("Multiple rows have been found for same id in 'Y$Y'!")
+        cli_abort(c(
+          "Each {.var idVar} identifier in {.var Y$Y} must be unique",
+        ))
       }
       if (Y$type=="surv"){
         if (!inherits(Y$Y[,3], c("numeric","integer"))){
-          stop("The column in 'Y$Y' to provide the causes should be typed as numeric with 0 indicating no event!")
+          cli_abort(c(
+            "Third column (event) in {.var Y$Y} must be a numeric or integer object with 0 indicating no event",
+            "x" = "You've supplied a {.cls {class(Y$Y[,3])}} object"
+          ))
         }
         if (all(unique(Y$Y[,3])!=cause)){
-          stop("'cause' identifier is not included in 'Y$Y' event column!")
+          cli_abort(c(
+            "Can't find any {.var cause} in third column (event) in {.var Y$Y}"
+          ))
         }
       }
       if (!is.null(fixedData)){
         if (length(fixedData[,idVar])!=length(unique(Y$Y[,idVar]))){
-          stop("'fixedData' and 'Y$Y' should contain the same subjects!")
+          cli_abort(c(
+            "{.var fixedData} and {.var Y$Y} must contain the same subjects"
+          ))
         }
       }
       if (!is.null(timeData)){
         if (length(unique(timeData[,idVar]))!=length(unique(Y$Y[,idVar]))){
-          stop("'timeData' and 'Y$Y' should contain the same subjects!")
+          cli_abort(c(
+            "{.var timeData} and {.var Y$Y} must contain the same subjects"
+          ))
         }
       }
     }
@@ -151,7 +216,9 @@ checking <- function(dynforest_obj = NULL,
   mtry_max <- ifelse(!is.null(timeData), ncol(timeData)-2, 0) +
     ifelse(!is.null(fixedData), ncol(fixedData)-1, 0)
   if (mtry_max<mtry){
-    stop(paste0("'mtry' argument cannot be higher than the maximum allowed (", mtry_max, ")!"))
+    cli_abort(c(
+      "{.var mtry} can't be higher than the maximum allowed ({mtry_max})"
+    ))
   }
 
 }

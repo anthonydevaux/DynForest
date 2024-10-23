@@ -18,7 +18,7 @@ Description: Based on random forest principle, 'DynForest' is able to include
     methodology is fully described for a survival outcome in: 
     Devaux, Helmer, Genuer & Proust-Lima (2023) 
     <doi: 10.1177/09622802231206477>.
-Imports: DescTools, cmprsk, doParallel, doRNG, foreach, ggplot2, lcmm, methods, 
+Imports: DescTools, cli, cmprsk, doParallel, doRNG, foreach, ggplot2, lcmm, methods, 
     pbapply, pec, prodlim, stringr, survival, zoo
 Depends: R (>= 4.4.0)
 License: LGPL (>= 3)
