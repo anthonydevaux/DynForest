@@ -1,0 +1,141 @@
+---
+title: "Overview of `DynForest` package"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Overview of `DynForest` package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+preamble: >
+  \usepackage{amsmath}
+  \usepackage{graphicx}
+  \usepackage{tabularx}
+bibliography: refs.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+`DynForest` methodology was implemented into the R package `DynForest` [@devaux_dynforest_2024] freely available on The Comprehensive R Archive Network (CRAN) to users. 
+
+The package includes two main functions: `dynforest()` and `predict()` for the learning and the prediction steps. These functions are fully described in section 3.1 and 3.2. Other functions available are briefly described in the table below. These functions are illustrated in examples, one for a survival outcome, one for a categorical outcome and one for a continuous outcome.
+
+| Function | Description |
+| ----------- | ----------- |
+| *Learning and prediction steps* |  |
+| `dynforest()` | Function that builds the random forest |
+| `predict()` | Function for S3 class `dynforest` predicting the outcome on new subjects using the individual-specific information |
+| *Assessment function* |  |
+| `compute_ooberror()` | Function that computes the Out-Of-Bag error to be minimized to tune the random forest |
+| *Exploring functions* |  |
+| `compute_vimp()` | Function that computes the importance of variables |
+| `compute_gvimp()` | Function that computes the importance of a group of variables |
+| `compute_vardepth()` | Function that extracts information about the tree building process |
+| *plot() functions for S3 class:* | |
+| `dynforest` | Plot the estimated CIF for given tree nodes or subjects |
+| `dynforestpred` | Plot the predicted CIF for the cause of interest for given subjects |
+| `dynforestvimp` | Plot the importance of variables by value or percentage |
+| `dynforestgvimp` | Plot the importance of a group of variables by value or percentage |
+| `dynforestvardepth` | Plot the minimal depth by predictors or features |
+| *Other functions* | |
+| `summary()` | Function for class S3 `dynforest` or `dynforestoob` displaying information about the type of random forest, predictors included, parameters used, Out-Of-Bag error (only for `dynforestoob` class) and brief summaries about the leaves |
+| `print()` | Function to print object of class `dynforest`, `dynforestoob`, `dynforestvimp`, `dynforestgvimp`, `dynforestvardepth` and `dynforestpred` |
+| `get_tree()` | Function that extracts the tree structure for a given tree |
+| `get_treenode()` | Function that extracts the terminal node identifiers for a given tree |
+
+
+## `dynforest()` function
+
+`dynforest()` is the function to build the random forest. The call of this function is:
+  
+```{r, eval = FALSE, echo = TRUE}
+dynforest(timeData = NULL, fixedData = NULL, idVar = NULL, 
+          timeVar = NULL, timeVarModel = NULL, Y = NULL, 
+          ntree = 200, mtry = NULL, nodesize = 1, minsplit = 2, cause = 1,
+          nsplit_option = "quantile", ncores = NULL,
+          seed = 1234, verbose = TRUE)
+```
+
+### Arguments
+
+`timeData` is an optional argument that contains the dataframe in longitudinal format (i.e., one observation per row) for the time-dependent predictors. In addition to time-dependent predictors, this dataframe should include a unique identifier and the measurement times. This argument is set to `NULL` if no time-dependent predictor is included. Argument `fixedData` contains the dataframe in wide format (i.e., one subject per row) for the time-fixed predictors. In addition to time-fixed predictors, this dataframe should also include the same identifier as used in `timeData.` This argument is set to `NULL` if no time-fixed predictor is included. Argument `idVar` provides the name of identifier variable included in `timeData` and `fixedData` dataframes. Argument `timeVar` provides the name of time variable included in `timeData` dataframe. Argument `timeVarModel` contains as many lists as time-dependent predictors defined in `timeData` to specify the structure of the mixed models assumed for each predictor. For each time-dependent predictor, the list should contain a `fixed` and a `random` argument to define the formula of a mixed model to be estimated with `lcmm` R package [@proust_lima_estimation_2017]. `fixed` defines the formula for the fixed-effects and `random` for the random-effects (e.g., `list(Y1 = list(fixed = Y1 ~ time, random = ~ time))`.  Argument `Y` contains a list of two elements `type` and `Y`. Element `type` defines the nature of the outcome (`surv` for survival outcome with possibly competing causes, `numeric` for continuous outcome and `factor` for categorical outcome) and element `Y` defines the dataframe which includes the identifier (same as in `timeData` and `fixedData` dataframes) and outcome variables.
+
+Arguments `ntree`, `mtry`, `nodesize` and `minsplit` are the hyperparameters of the random forest. Argument `ntree` controls the number of trees in the random forest (200 by default). Argument `mtry` indicates the number of variables randomly drawn at each node (square root of the total number of predictors by default). Argument `nodesize` indicates the minimal number of subjects allowed in the leaves (1 by default). Argument `minsplit` controls the minimal number of events required to split the node (2 by default).
+
+For survival outcome, argument `cause` indicates the event the interest. Argument `nsplit_option` indicates the method to build the two groups of individuals at each node. By default, we build the groups according to deciles (`quantile` option) but they could be built according to random values (`sample` option).
+
+Argument `ncores` indicates the number of cores used to grow the trees in parallel mode. By default, we set the number of cores of the computer minus 1. Argument `seed` specifies the random seed. It can be fixed to replicate the results. Argument `verbose` allows to display a progression bar during the execution of the function.
+
+
+
+### Values
+
+`dynforest()` function returns an object of class `dynforest` containing several elements:
+
+* `data` a list with longitudinal predictors (`Longitudinal` element), continuous predictors (`Numeric` element) and categorical predictors (`Factor` element)
+* `rf` is a dataframe with one column per tree containing a list with several elements, which includes:
+    * `leaves` the leaf identifier for each subject used to grow the tree
+    * `idY` the identifiers for each subject used to grow the tree
+    * `V_split` the split summary (more detailed below)
+    * `Y_pred` the estimated outcome in each leaf
+    * `model_param` the estimated parameters of the mixed model for the longitudinal predictors used to split the subjects at each node
+    * `Ytype`, `hist_nodes`, `Y`, `boot` and `Ylevels` internal information used in other functions
+
+* `type` the nature of the outcome
+* `times` the event times (only for survival outcome)
+* `cause` the cause of interest (only for survival outcome)
+* `causes` the unique causes (only for survival outcome)
+* `Inputs` the list of predictors names for `Longitudinal` (longitudinal predictor), `Continuous` (continuous predictor) and `Factor` (categorical predictor)
+* `Longitudinal.model` the mixed model specification for each longitudinal predictor
+* `param` a list of hyperparameters used to grow the random forest
+* `comput.time` the computation time
+
+\noindent The main information returned by `rf` is `V_split` element which can also be extract using `get_tree()` function. This element contains a table sorted by the node/leaf identifier (`id_node` column) with each row representing a node/leaf. Each column provides information about the splits:
+
+* `type`: the nature of the predictor (`Longitudinal` for longitudinal predictor, `Numeric` for continuous predictor or `Factor` for categorical predictor) if the node was split, `Leaf` otherwise;
+* `var_split`: the predictor used for the split defined by its order in `timeData` and `fixedData`;
+* `feature`: the feature used for the split defined by its position in random statistic;
+* `threshold`: the threshold used for the split (only with `Longitudinal` and `Numeric`). No information is returned for `Factor`;
+* `N`: the number of subjects in the node/leaf;
+* `Nevent`: the number of events of interest in the node/leaf (only with survival outcome);
+* `depth`: the depth level of the node/leaf.
+
+### Additional information about the dependencies
+
+`dynforest()` function internally calls other functions from related packages to build the random forest:
+
+* `hlme()` function (from `lcmm` package [@proust_lima_estimation_2017]) to fit the mixed models for the time-dependent predictors defined in `timeData` and `timeVarModel` arguments
+* `Entropy()` function (from base package) to compute the Shannon entropy
+* `survdiff()` function (from `survival` package [@therneau_2022_survival]) to compute the log-rank statistic test
+* `crr()` function (from `cmprsk` package [@gray_cmprsk_2020]) to compute the Fine \& Gray statistic test
+
+
+## `predict()` function
+
+`predict()` is the S3 function for class `dynforest` to predict the outcome on new subjects. Landmark time can be specified to consider only longitudinal data collected up to this time to compute the prediction. The call of this function is:
+  
+```{r, eval = FALSE, echo = TRUE}
+predict(object, timeData = NULL, fixedData = NULL,
+        idVar, timeVar, t0 = NULL)
+```
+
+### Arguments
+
+Argument `object` contains a `dynforest` object resulting from `dynforest()` function. Argument `timeData` contains the dataframe in longitudinal format (i.e., one observation per row) for the time-dependent predictors of new subjects. In addition to time-dependent predictors, this dataframe should also include a unique identifier and the time measurements. This argument can be set to `NULL` if no time-dependent predictor is included. Argument `fixedData` contains the dataframe in wide format (i.e., one subject per row) for the time-fixed predictors of new subjects. In addition to time-fixed predictors, this dataframe should also include an unique identifier. This argument can be set to `NULL` if no time-fixed predictor is included. Argument `idVar` provides the name of the identifier variable included in `timeData` and `fixedData` dataframes. Argument `timeVar` provides the name of time-measurement variable included in `timeData` dataframe. Argument `t0` defines the landmark time; only the longitudinal data collected up to this time are to be considered. This argument should be set to `NULL` to include all longitudinal data.
+
+### Values
+
+`predict()` function returns several elements:
+
+* `t0` the landmark time defined in argument (`NULL` by default)
+* `times` times used to compute the individual predictions (only with survival outcome). The times are defined according to the time-to-event subjects used to build the random forest.
+* `pred_indiv` the predicted outcome for the new subject. With survival outcome, predictions are provided for each time defined in `times` element.
+* `pred_leaf` a table giving for each tree (in column) the leaf in which each subject is assigned (in row)
+* `pred_indiv_proba` the proportion of the trees leading to the category prediction for each subject (only with categorical outcome)
+
+## References
