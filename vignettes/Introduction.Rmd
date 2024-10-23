@@ -25,17 +25,17 @@ knitr::opts_chunk$set(
 
 The random forest should first be built on a learning dataset of $N$ subjects including: $Y$ the outcome; $\mathcal{M}_x$ an ensemble of $P$ time-fixed predictors; $\mathcal{M}_z$ an ensemble of $Q$ time-dependent predictors. The random forest consists of an ensemble of $B$ trees which are grown as detailed below.
 
-```{r dynforestRgraph, eval = TRUE, echo = FALSE, out.width = "80%", out.height = "30%", fig.cap = "Overall scheme of the tree building in DynForest with (A) the tree structure, (B) the node-specific treatment of time-dependent predictors to obtain time-fixed features, (C) the dichotomization of the time-fixed features, (D) the splitting rule."}
+```{r dynforestRgraph, eval = TRUE, echo = FALSE, out.width = "80%", out.height = "30%", fig.cap = "Figure 1: Overall scheme of the tree building in DynForest with (A) the tree structure, (B) the node-specific treatment of time-dependent predictors to obtain time-fixed features, (C) the dichotomization of the time-fixed features, (D) the splitting rule."}
 knitr::include_graphics("figures/dynforestR_graph.png")
 ```
 
 ## The tree building
 
-The tree building process, summarized in figure \@ref(fig:dynforestRgraph), aims to recursively partition the subjects into groups/nodes that are the most homogeneous regarding the outcome $Y$. 
+The tree building process, summarized in Figure 1, aims to recursively partition the subjects into groups/nodes that are the most homogeneous regarding the outcome $Y$. 
 
 For each tree $b$ $(b = 1, ..., B)$, we first draw a bootstrap sample from the original dataset of $N$ subjects ($N$ draws among the $N$ subjects with replacement). The subjects excluded by the bootstrap constitute the out-of-bag (OOB) sample, noted $OOB^b$ for tree $b$. At each node $d \in \mathcal{D}^b$ of the tree, we recursively repeat the following steps using the $N^{(d)}$ subjects located at node $d$:
 
-1. An ensemble of $\mathcal{M}^{(d)}=\{\mathcal{M}_x^{(d)},\mathcal{M}_z^{(d)}\}$ candidate predictors are randomly selected among $\{\mathcal{M}_x,\mathcal{M}_z\}$ (see figure \@ref(fig:dynforestRgraph)B). The size of $\mathcal{M}^{(d)}$ is defined by the hyperparameter $mtry$.
+1. An ensemble of $\mathcal{M}^{(d)}=\{\mathcal{M}_x^{(d)},\mathcal{M}_z^{(d)}\}$ candidate predictors are randomly selected among $\{\mathcal{M}_x,\mathcal{M}_z\}$ (see Figure 1B). The size of $\mathcal{M}^{(d)}$ is defined by the hyperparameter $mtry$.
 
 2. For each time-dependent predictor in $\mathcal{M}_z^{(d)}$:
     a. We independently model the trajectory of the predictor using a flexible linear mixed model [@laird_random_effects_1982] according to time (the specification of the model is defined by the user). It is defined as: $Z_{ij} = X1_{ij}(t_{ij})\beta + X2_{ij}(t_{ij})b_i + \epsilon_{ij}$ where $Z_{ij}$ is the value of predictor $Z$ for subject $i$ at occasion $j$, $X1_{ij}$ and $X2_{ij}$ are vectors of time functions and covariates to be specified by the user and $t_{ij}$ is the time at occasion $j$ for subject $i$. Beta are population effects, and $b_i$ individual random effects which follow a multivariate normal distribution. $\epsilon_{ij}$ are the zero-mean independent Gaussian errors of measurement. 
@@ -44,14 +44,14 @@ For each tree $b$ $(b = 1, ..., B)$, we first draw a bootstrap sample from the o
 3. We define $\mathcal{M}_\star^{(d)}=\{\mathcal{M}_x^{(d)},\mathcal{M}_{z \star}^{(d)}\}$ our new ensemble of candidate features.
 
 4. For each candidate feature $W \in \mathcal{M}_\star^{(d)}$:
-    a. We build a series of splits $c_W^{(d)}$ according to the feature values if continuous, or subsets of categories otherwise (see figure \@ref(fig:dynforestRgraph)C), leading each time to two groups.
+    a. We build a series of splits $c_W^{(d)}$ according to the feature values if continuous, or subsets of categories otherwise (see Figure 1C), leading each time to two groups.
     b. We quantify the distance between the two groups according to the nature of $Y$:
         * If $Y$ continuous: we compute the weighted within-group variance with the proportion of subjects in each group as weights 
         * If $Y$ categorical: we compute the weighted within-group Shannon entropy [@shannon_mathematical_1948] (i.e., the amount of uncertainty) with the proportion of subjects in each group as weights 
         * If $Y$ survival \underline{without} competing events: we compute the log-rank statistic test [@peto_asymptotically_1972]
         * If $Y$ survival \underline{with} competing events: we compute the Fine \& Gray statistic test [@gray_class_1988]
 
-5. We split the subjects into the two groups that minimize (for continuous and categorical outcome) or maximize (for survival outcome) the quantity defined previously. We denote $\{W_0^d,c_0^d\}$ the optimal couple used to split the subjects and assign them to the left and right daughter nodes $2d$ and $2d + 1$, respectively (see figure \@ref(fig:dynforestRgraph)D and A).
+5. We split the subjects into the two groups that minimize (for continuous and categorical outcome) or maximize (for survival outcome) the quantity defined previously. We denote $\{W_0^d,c_0^d\}$ the optimal couple used to split the subjects and assign them to the left and right daughter nodes $2d$ and $2d + 1$, respectively (see Figure 1D and A).
 
 6. Step 1 to 5 are iterated on the daughter nodes until stopping criteria are met. 
 
