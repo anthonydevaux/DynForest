@@ -122,6 +122,21 @@ dynforest <- function(timeData = NULL, fixedData = NULL,
 
   debut <- Sys.time()
 
+  # fix issue with tibble data
+  if (!is.null(timeData)){
+    timeData <- as.data.frame(timeData)
+  }
+
+  # fix issue with tibble data
+  if (!is.null(fixedData)){
+    fixedData <- as.data.frame(fixedData)
+  }
+
+  # fix issue with tibble data
+  if (!is.null(Y$Y)){
+    Y$Y <- as.data.frame(Y$Y)
+  }
+
   if (is.null(mtry)){
     mtry <- round(sqrt(ifelse(!is.null(timeData), ncol(timeData)-2, 0) +
                          ifelse(!is.null(fixedData), ncol(fixedData)-1, 0)))

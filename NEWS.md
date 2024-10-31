@@ -1,10 +1,16 @@
-# DynForest 1.2.0 (Test version)
+# DynForest 1.2.1
+
+## Minor changes
+
+*   Fixed bug when `tibble` object is defined in `timeData`, `fixedData` or `Y$Y`.
+
+# DynForest 1.2.0 (CRAN version)
 
 ## Breaking changes
 
 *   `DynForest()`, `compute_OOBerror()`, `compute_VIMP()`, `compute_gVIMP()`, `var_depth()`, `getTree()`, `getTreeNodes()` are now depreciated and replaced by `dynforest()`, `compute_ooberror()`, `compute_vimp()`, `compute_gvimp()`, `compute_vardepth()`, `get_tree()`, `get_treenodes()`, respectively.
 
-# DynForest 1.1.3 (CRAN version)
+# DynForest 1.1.3
 
 *   Improved `DynForest()` computation time function with survival outcome
 

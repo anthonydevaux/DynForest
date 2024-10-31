@@ -92,6 +92,16 @@ predict.dynforest <- function(object,
     ))
   }
 
+  # fix issue with tibble data
+  if (!is.null(timeData)){
+    timeData <- as.data.frame(timeData)
+  }
+
+  # fix issue with tibble data
+  if (!is.null(fixedData)){
+    fixedData <- as.data.frame(fixedData)
+  }
+
   # checking function
   checking(dynforest_obj = object,
            timeData = timeData, fixedData = fixedData,
