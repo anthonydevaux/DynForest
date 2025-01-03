@@ -20,19 +20,24 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
   pred <- sapply(seq_along(id.pred), FUN = function(i){
 
-    if (is.element("Longitudinal",Inputs)==TRUE) wLongitudinal <- which(Longitudinal$id==id.pred[i])
-    if (is.element("Numeric",Inputs)==TRUE) wNumeric <- which(Numeric$id==id.pred[i])
-    if (is.element("Factor",Inputs)==TRUE) wFactor <- which(Factor$id==id.pred[i])
+    if (is.element("Longitudinal",Inputs)) wLongitudinal <- which(Longitudinal$id==id.pred[i])
+    if (is.element("Numeric",Inputs)) wNumeric <- which(Numeric$id==id.pred[i])
+    if (is.element("Factor",Inputs)) wFactor <- which(Factor$id==id.pred[i])
 
     current_node <- 1
 
     while (is.element(current_node, tree$leaves)==FALSE){
 
-      X <- get(as.character(tree$V_split[which(tree$V_split[,2]==current_node),1]))
-      type <- str_to_lower(as.character(tree$V_split[which(tree$V_split[,2]==current_node),1]))
-      var.split <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),3]))
-      var.split.sum <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),4]))
-      threshold <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),5]))
+      # X <- get(as.character(tree$V_split[which(tree$V_split[,2]==current_node),1]))
+      # type <- str_to_lower(as.character(tree$V_split[which(tree$V_split[,2]==current_node),1]))
+      # var.split <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),3]))
+      # var.split.sum <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),4]))
+      # threshold <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),5]))
+      X <- get(tree$V_split[which(tree$V_split[,2]==current_node),1])
+      type <- str_to_lower(tree$V_split[which(tree$V_split[,2]==current_node),1])
+      var.split <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node),3])
+      var.split.sum <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node),4])
+      threshold <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node),5])
 
       meanG <- tree$hist_nodes[[as.character(2*current_node)]]
       meanD <- tree$hist_nodes[[as.character(2*current_node+1)]]
