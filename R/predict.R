@@ -296,12 +296,12 @@ predict.DynForest <- function(object,
                         MARGIN = 2,
                         FUN = function(x) {
                           if (length(pred_cif_mean)>1){
-                            surv <- 1 - Reduce("+", lapply(pred_cif_mean, FUN = function(x) x[,1]))
+                            surv <- 1 - Reduce("+", lapply(pred_cif_mean, FUN = function(x) x[,1])) # S(S)
                           }else{
-                            surv <- 1 - pred_cif_mean[[1]][,1]
+                            surv <- 1 - pred_cif_mean[[1]][,1] # S(S)
                           }
 
-                          return((x-pred_cif_mean[[as.character(object$cause)]][,1])/surv)
+                          return((x-pred_cif_mean[[as.character(object$cause)]][,1])/surv) # (F(S+t) - F(S)) / S(S)
                         })
 
     output <- list(pred_indiv = pred_indiv,
