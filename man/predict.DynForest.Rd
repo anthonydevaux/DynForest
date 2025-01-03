@@ -11,6 +11,7 @@
   idVar,
   timeVar,
   t0 = NULL,
+  predTimes = NULL,
   ...
 )
 }

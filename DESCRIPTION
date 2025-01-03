@@ -19,7 +19,7 @@ Description: Based on random forest principle, 'DynForest' is able to include
     Devaux, Helmer, Genuer & Proust-Lima (2023) 
     <doi: 10.1177/09622802231206477>.
 Imports: DescTools, cmprsk, doParallel, doRNG, foreach, ggplot2, lcmm, methods, 
-    pbapply, pec, prodlim, stringr, survival, zoo
+    pbapply, pec, prodlim, stringr, survival, zoo, fdapace
 Depends: R (>= 4.3.0)
 License: LGPL (>= 3)
 LazyData: true
