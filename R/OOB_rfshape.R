@@ -81,24 +81,24 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
         indiv <- OOB_IBS[i]
         w_y <- which(Y$id==indiv)
 
-        if (is.element("Longitudinal",Inputs)==TRUE){
-          if (IBS.min==0){
-            w_XLongitudinal <- which(Longitudinal$id==indiv) # all measurements until IBS.min
-          }else{
-            w_XLongitudinal <- which(Longitudinal$id==indiv&Longitudinal$time<=IBS.min) # only measurements until IBS.min
+        if (is.element("Longitudinal", Inputs)){
+          if (IBS.min == 0){
+            w_XLongitudinal <- which(Longitudinal$id == indiv) # all measurements until IBS.min
+          } else {
+            w_XLongitudinal <- which(Longitudinal$id == indiv & Longitudinal$time <= IBS.min) # only measurements until IBS.min
           }
 
           Longitudinal_courant <- list(type="Longitudinal", X=Longitudinal$X[w_XLongitudinal,, drop=FALSE], id=Longitudinal$id[w_XLongitudinal], time=Longitudinal$time[w_XLongitudinal],
                                        model=Longitudinal$model)
         }
 
-        if (is.element("Numeric",Inputs)==TRUE){
-          w_XNumeric <- which(Numeric$id==indiv)
+        if (is.element("Numeric", Inputs)){
+          w_XNumeric <- which(Numeric$id == indiv)
           Numeric_courant <- list(type="Numeric", X=Numeric$X[w_XNumeric,, drop=FALSE], id=Numeric$id[w_XNumeric])
         }
 
-        if (is.element("Factor",Inputs)==TRUE){
-          w_XFactor <- which(Factor$id==indiv)
+        if (is.element("Factor", Inputs)){
+          w_XFactor <- which(Factor$id == indiv)
           Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
         }
 
@@ -108,7 +108,7 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
 
           BOOT <- rf$rf[,t]$boot
           oob <- setdiff(Y$id,BOOT)
-          if (is.element(indiv, oob)== TRUE){
+          if (is.element(indiv, oob)){
 
             pred_node <- tryCatch(pred.MMT(rf$rf[,t], Longitudinal = Longitudinal_courant,
                                            Numeric = Numeric_courant, Factor = Factor_courant,
@@ -187,18 +187,18 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           oob <- setdiff(unique(Y$id),BOOT)
           if (is.element(indiv, oob)== TRUE){
 
-            if (is.element("Longitudinal",Inputs)==TRUE){
+            if (is.element("Longitudinal",Inputs)){
               w_XLongitudinal <- which(Longitudinal$id== indiv)
               Longitudinal_courant <- list(type="Longitudinal", X=Longitudinal$X[w_XLongitudinal,, drop=FALSE], id=Longitudinal$id[w_XLongitudinal], time=Longitudinal$time[w_XLongitudinal],
                                            model=Longitudinal$model)
             }
 
-            if (is.element("Numeric",Inputs)==TRUE){
+            if (is.element("Numeric",Inputs)){
               w_XNumeric <- which(Numeric$id== indiv)
               Numeric_courant <- list(type="Numeric", X=Numeric$X[w_XNumeric,, drop=FALSE], id=Numeric$id[w_XNumeric])
             }
 
-            if (is.element("Factor",Inputs)==TRUE){
+            if (is.element("Factor",Inputs)){
               w_XFactor <- which(Factor$id== indiv)
               Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
             }
@@ -257,18 +257,18 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
           oob <- setdiff(unique(Y$id),BOOT)
           if (is.element(indiv, oob)== TRUE){
 
-            if (is.element("Longitudinal",Inputs)==TRUE){
+            if (is.element("Longitudinal",Inputs)){
               w_XLongitudinal <- which(Longitudinal$id== indiv)
               Longitudinal_courant <- list(type="Longitudinal", X=Longitudinal$X[w_XLongitudinal,, drop=FALSE], id=Longitudinal$id[w_XLongitudinal], time=Longitudinal$time[w_XLongitudinal],
                                            model=Longitudinal$model)
             }
 
-            if (is.element("Numeric",Inputs)==TRUE){
+            if (is.element("Numeric",Inputs)){
               w_XNumeric <- which(Numeric$id== indiv)
               Numeric_courant <- list(type="Numeric", X=Numeric$X[w_XNumeric,, drop=FALSE], id=Numeric$id[w_XNumeric])
             }
 
-            if (is.element("Factor",Inputs)==TRUE){
+            if (is.element("Factor",Inputs)){
               w_XFactor <- which(Factor$id== indiv)
               Factor_courant <- list(type="Factor", X=Factor$X[w_XFactor,, drop=FALSE], id=Factor$id[w_XFactor])
             }
