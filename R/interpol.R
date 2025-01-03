@@ -1,12 +1,14 @@
 ## 1D interpolation function ====================================================
+
+#' @export
 Interpol1D <- function(y, t, tNew){
   # Function that interpolates 1d function from t grid to tNew grid
 
   yNew <- rep(NA, length(tNew))
   idx_tNew <- sapply(tNew, function(x) sum(x>=t))
-  for (j in seq(length(tNew))){
+  for (j in 1:length(tNew)){
     tj <- tNew[j]
-    if (tj %in% t){
+    if (any(tNew == t)){
       yNew[j] <- y[idx_tNew[j]]
     } else {
       idx_tauj <- idx_tNew[j]
@@ -19,20 +21,22 @@ Interpol1D <- function(y, t, tNew){
 }
 
 ## Covariance matrix interpolation function ====================================
+
+#' @export
 InterpolCovMat <- function(CovMat, tMat, tNew){
   # Function that interpolates CovMat from tMat grid to tNew grid
   # add pre-treatment to remove tNew not in the range of tMat
   mat_tNew <- matrix(NA,nrow=length(tNew), ncol=length(tNew))
   idx_tNew <- sapply(tNew, function(x) sum(x>=tMat))
 
-  for (j in seq(length(tNew))){
+  for (j in 1:length(tNew)){
 
     tj <- tNew[j]
     idx_tauj <- idx_tNew[j]
     tauj <- tMat[idx_tauj]
     taujplus <- tMat[idx_tauj+1]
     # on parcourt la triangulaire inférieure
-    for (k in seq(j)){
+    for (k in 1:j){
       tk <- tNew[k]
       idx_tauk <- idx_tNew[k]
       tauk <- tMat[idx_tauk]
@@ -53,13 +57,14 @@ InterpolCovMat <- function(CovMat, tMat, tNew){
   return(mat_tNew)
 }
 
+#' @export
 pred_fpca_manual <- function(FPCAobj, dt_Ly_test, dt_Lt_test, dt_Lt_train){
 
   scores <- matrix(NA, nrow = length(dt_Ly_test), ncol = FPCAobj$selectK)
   min_dt_Lt_train <- min(unlist(dt_Lt_train), na.rm = TRUE)
   max_dt_Lt_train <- max(unlist(dt_Lt_train), na.rm = TRUE)
 
-  for (i in seq(length(dt_Ly_test))){
+  for (i in 1:length(dt_Ly_test)){
 
     Lti <- dt_Lt_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<max_dt_Lt_train]
     Lyi <- dt_Ly_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<max_dt_Lt_train]
@@ -78,10 +83,11 @@ pred_fpca_manual <- function(FPCAobj, dt_Ly_test, dt_Lt_test, dt_Lt_train){
   return(scores)
 }
 
+#' @export
 pred_fpca_manual2 <- function(workgrid, K, mu, FPCs, Cov, sigma2, lambda, min_dt_Lt_train, max_dt_Lt_train, dt_Ly_test, dt_Lt_test){
 
   scores <- matrix(NA, nrow = length(dt_Ly_test), ncol = K)
-  for (i in seq(length(dt_Ly_test))){
+  for (i in 1:length(dt_Ly_test)){
 
     Lti <- dt_Lt_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<=max_dt_Lt_train]
     Lyi <- dt_Ly_test[[i]][dt_Lt_test[[i]]>=min_dt_Lt_train & dt_Lt_test[[i]]<=max_dt_Lt_train]
@@ -99,6 +105,7 @@ pred_fpca_manual2 <- function(workgrid, K, mu, FPCs, Cov, sigma2, lambda, min_dt
   return(scores)
 }
 
+#' @export
 pred_fdapace <- function(FPCAobj, dt_Ly_test, dt_Lt_test, dt_Lt_train){
 
   # censoring
