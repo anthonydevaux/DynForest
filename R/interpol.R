@@ -8,7 +8,7 @@ Interpol1D <- function(y, t, tNew){
   idx_tNew <- sapply(tNew, function(x) sum(x>=t))
   for (j in 1:length(tNew)){
     tj <- tNew[j]
-    if (any(tNew == t)){
+    if (any(tj == t)){
       yNew[j] <- y[idx_tNew[j]]
     } else {
       idx_tauj <- idx_tNew[j]
