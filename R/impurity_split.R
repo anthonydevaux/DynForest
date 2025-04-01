@@ -42,8 +42,25 @@ impurity_split <- function(Y,split,cause=1){
       }else{
 
         # logrank splitting rule
-        surv.res <- tryCatch(survival::survdiff(Y$Y~split),
-                             error = function(e) return(list(chisq = NULL)))
+        # ici je peux faire le test uniquement sur un sous-ens de Y$Y
+        # compter le nb d'event et l'associer à un nb d'intervalle
+        # selectionner aleatoirement un de ces intervalles
+        vect_int <- c(3,6,12,24)
+        interval <- rep(TRUE, length(Y$Y))
+        nb_interval <- findInterval(sum(Y$Y[,2]), vect_int)+1
+        if (nb_interval == 1){
+          print("1 intervalle")
+          surv.res <- tryCatch(survival::survdiff(Y$Y~split),
+                               error = function(e) return(list(chisq = NULL)))
+        } else {
+          print(paste0(nb_interval, " intervalles"))
+          bornes <- quantile(Y$Y[,1][Y$Y[,2] == 1], probs = seq(0,1,length.out = nb_interval))
+          idx_interval <- findInterval(Y$Y[,1], bornes)
+          idx_interval <- ifelse(idx_interval == 0, 1, idx_interval) # pour changer 0 en 1
+          random_interval <- ceiling(runif(1,0,nb_interval))
+          surv.res <- tryCatch(survival::survdiff(Y$Y[idx_interval == random_interval]~split[idx_interval == random_interval]),
+                               error = function(e) return(list(chisq = NULL)))
+        }
 
         if (!is.null(surv.res$chisq)){
           impur <- 1/(1+surv.res$chisq)
