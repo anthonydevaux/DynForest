@@ -46,7 +46,6 @@ impurity_split <- function(Y,split,cause=1){
         nb_interval <- findInterval(sum(Y$Y[,2]), vect_int)+1
         idx_interval <- rep(1, length(Y$Y))
         random_interval <- 1
-        browser()
         if (nb_interval > 1){
           print(paste0(nb_interval, " intervalles"))
           bornes <- quantile(Y$Y[,1][Y$Y[,2] == 1], probs = seq(0,1,length.out = nb_interval))
