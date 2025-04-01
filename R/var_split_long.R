@@ -15,6 +15,7 @@
 var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
                            cause = 1, nodesize = 1, init = NULL){
 
+
   X_ncol <- ncol(X$X)
   all_imp_var <- split_var <- vector("list", X_ncol)
   impur_var <- rep(Inf, X_ncol)
