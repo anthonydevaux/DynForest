@@ -5,7 +5,8 @@
 #' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.
 #' @param idVar A character indicating the name of variable to identify the subjects
 #' @param timeVar A character indicating the name of time variable
-#' @param t0 Landmark time
+#' @param t0 Landmark time for dynamic prediction. If t0=NULL, the function computes the predicted probability of event at any time from 0 using all the available information at all times. Else, the function computes the predicted probability of event from t0 using all the available information before t0.
+#'
 #' @param ... Optional parameters to be passed to the low level function
 #'
 #' @import stringr
@@ -108,15 +109,17 @@ predict.dynforest <- function(object,
            idVar = idVar, timeVar = timeVar)
 
   # checking landmark/horizon times
-  if (object$type=="surv"){
+  # CPL 2025/04
+  # if (object$type=="surv"){
 
-    if (is.null(t0)){
-      cli_abort(c(
-        "{.var t0} can't be NULL"
-      ))
-    }
 
-  }
+    # if (is.null(t0)){
+    #   cli_abort(c(
+    #     "{.var t0} can't be NULL"
+    #   ))
+    # }
+
+  # }
 
   # Select data before landmark time
   if (is.null(timeData)==FALSE){
@@ -218,7 +221,16 @@ predict.dynforest <- function(object,
   if (object$type=="surv"){
 
     allTimes <- object$times
+
+
+    # CPL 2025/04
+    if (!is.null(t0)){
     predTimes <- c(t0, allTimes[which(allTimes>=t0)])
+    } else {
+      predTimes <- allTimes
+    }
+
+
 
     id.predTimes <- sapply(predTimes, function(x){ sum(allTimes <= x) })
 
@@ -307,6 +319,10 @@ predict.dynforest <- function(object,
     # P(S<T<S+t|T>S) = ( P(T<S+t) - P(T<S) ) / P(T>S)
     #                = ( F(S+t) - F(S) ) / S(S)
     # With competing risk S(S) = sum of Fj(S) avec j event
+
+
+    #CPL 2025/04
+    if (!is.null(t0)){
     pred_indiv <- apply(pred_cif_mean[[as.character(object$cause)]],
                         MARGIN = 2,
                         FUN = function(x) {
@@ -315,9 +331,11 @@ predict.dynforest <- function(object,
                           }else{
                             surv <- 1 - pred_cif_mean[[1]][,1]
                           }
-
                           return((x-pred_cif_mean[[as.character(object$cause)]][,1])/surv)
                         })
+    }else{
+      pred_indiv <- pred_cif_mean[[as.character(object$cause)]]
+    }
 
     output <- list(pred_indiv = pred_indiv,
                    pred_leaf = pred_out$pred_leaf,

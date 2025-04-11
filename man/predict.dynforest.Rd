@@ -25,7 +25,7 @@
 
 \item{timeVar}{A character indicating the name of time variable}
 
-\item{t0}{Landmark time}
+\item{t0}{Landmark time for dynamic prediction. If t0=NULL, the function computes the predicted probability of event at any time from 0 using all the available information at all times. Else, the function computes the predicted probability of event from t0 using all the available information before t0.}
 
 \item{...}{Optional parameters to be passed to the low level function}
 }
