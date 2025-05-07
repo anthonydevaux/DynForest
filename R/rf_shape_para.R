@@ -12,6 +12,7 @@
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
 #' @param cause (Only with competing events) Number indicates the event of interest.
+#' @param sampsize Size of the sample to draw in the subsampling (without replacement) case. If NULL (default), Bootstrap samples are drawn.
 #' @param seed Seed to replicate results
 #' @param verbose A logical controlling the function progress. Default is \code{TRUE}
 #'
@@ -24,8 +25,8 @@
 #' @noRd
 rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                           timeVar = NULL, Y, mtry, ntree, ncores,
-                          nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
-                          seed = 1234, verbose = TRUE){
+                          nsplit_option = "quantile", nodesize = 1, minsplit = 2,
+                          cause = 1, sampsize = NULL, seed = 1234, verbose = TRUE){
 
   if (!verbose){
     pbapply::pboptions(type="none")
@@ -49,7 +50,7 @@ rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         DynTree_surv(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
                      timeVar = timeVar, mtry = mtry, nsplit_option = nsplit_option,
                      nodesize = nodesize, minsplit = minsplit, cause = cause,
-                     seed = seed*i)
+                     sampsize = sampsize, seed = seed*i)
       },cl=cl)
     }
     if (Y$type%in%c("factor","numeric")){

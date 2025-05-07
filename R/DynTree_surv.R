@@ -10,6 +10,7 @@
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
 #' @param cause (Only with competing events) Number indicates the event of interest.
+#' @param sampsize Size of the sample to draw in the subsampling (without replacement) case. If NULL (default), Bootstrap samples are drawn.
 #' @param seed Seed to replicate results
 #'
 #' @import stringr
@@ -21,7 +22,8 @@
 #' @noRd
 DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                          timeVar = NULL, mtry = 1, nsplit_option = "quantile",
-                         nodesize = 1, minsplit = 2, cause = 1, seed = 1234){
+                         nodesize = 1, minsplit = 2, cause = 1, sampsize = NULL,
+                         seed = 1234){
 
   Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
   type_pred <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))
@@ -30,9 +32,13 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                         feature = integer(), threshold = numeric(), N = integer(),
                         Nevent = integer(), stringsAsFactors = FALSE)
 
-  # Bootstrap sample
+  # Bootstrap or subsampling
   set.seed(seed)
-  id_boot <- unique(sample(unique(Y$id), length(unique(Y$id)), replace=TRUE))
+  if (is.null(sampsize)) {
+    id_boot <- sample(unique(Y$id), length(unique(Y$id)), replace=TRUE)
+  } else {
+    id_boot <- sample(unique(Y$id), size = sampsize, replace=FALSE)
+  }
 
   # Longitudinal bootstrap data
   if (!is.null(Longitudinal)){

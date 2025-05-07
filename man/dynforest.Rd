@@ -17,6 +17,7 @@ dynforest(
   minsplit = 2,
   cause = 1,
   nsplit_option = "quantile",
+  sampsize = NULL,
   ncores = NULL,
   seed = 1234,
   verbose = TRUE
@@ -46,6 +47,8 @@ dynforest(
 \item{cause}{(Only with competing events) Number indicates the event of interest.}
 
 \item{nsplit_option}{A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".}
+
+\item{sampsize}{Size of the sample to draw in the subsampling (without replacement) case. If NULL (default), Bootstrap samples are drawn.}
 
 \item{ncores}{Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.}
 

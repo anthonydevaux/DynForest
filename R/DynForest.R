@@ -14,6 +14,7 @@
 #' @param minsplit (Only with survival outcome) Minimal number of events required to split the node. Cannot be smaller than 2.
 #' @param nsplit_option A character indicates how the values are chosen to build the two groups for the splitting rule (only for continuous predictors). Values are chosen using deciles (\code{nsplit_option}="quantile") or randomly (\code{nsplit_option}="sample"). Default value is "quantile".
 #' @param cause (Only with competing events) Number indicates the event of interest.
+#' @param sampsize Size of the sample to draw in the subsampling (without replacement) case. If NULL (default), Bootstrap samples are drawn.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.
 #' @param seed Seed to replicate results
 #' @param verbose A logical controlling the function progress. Default is \code{TRUE}
@@ -115,7 +116,7 @@ dynforest <- function(timeData = NULL, fixedData = NULL,
                       idVar = NULL, timeVar = NULL, timeVarModel = NULL,
                       Y = NULL, ntree = 200, mtry = NULL,
                       nodesize = 1, minsplit = 2, cause = 1,
-                      nsplit_option = "quantile",
+                      nsplit_option = "quantile", sampsize = NULL,
                       ncores = NULL,
                       seed = 1234,
                       verbose = TRUE){
@@ -250,7 +251,8 @@ dynforest <- function(timeData = NULL, fixedData = NULL,
                        mtry = mtry, ntree = ntree, ncores = ncores,
                        nsplit_option = nsplit_option,
                        nodesize = nodesize, minsplit = minsplit,
-                       cause = cause, seed = seed, verbose = verbose)
+                       cause = cause, sampsize = sampsize, seed = seed,
+                       verbose = verbose)
 
   rf <- list(type=Y$type, rf=rf)
 
