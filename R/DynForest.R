@@ -206,7 +206,7 @@ dynforest <- function(timeData = NULL, fixedData = NULL,
 
   Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
   for (k in 1:length(Inputs)){
-    str_sub(Inputs[k],1,1) <- str_to_upper(str_sub(Inputs[k],1,1))
+    stringr::str_sub(Inputs[k],1,1) <- stringr::str_to_upper(stringr::str_sub(Inputs[k],1,1))
   }
 
   # Outcome
@@ -217,16 +217,29 @@ dynforest <- function(timeData = NULL, fixedData = NULL,
 
   if (Y$type=="surv"){
 
-    causes <- sort(unique(Y$Y[which(Y$Y[,3]!=0),3]))
+    if (!is.factor(Y$Y[, 3])) {
+      causes <- sort(unique(Y$Y[which(Y$Y[,3]!=0),3]))
 
-    if (length(unique(Y$Y[,3]))>2){
-      Y$Y <- survival::Surv(Y$Y[,2], factor(Y$Y[,3]))
-      Y$comp <- TRUE
-    }else{
-      Y$Y <- survival::Surv(Y$Y[,2], Y$Y[,3])
-      Y$comp <- FALSE
+      if (length(unique(Y$Y[,3]))>2){
+        Y$Y <- survival::Surv(Y$Y[,2], factor(Y$Y[,3]))
+        Y$comp <- TRUE
+      } else {
+        Y$Y <- survival::Surv(Y$Y[,2], Y$Y[,3])
+        Y$comp <- FALSE
+      }
+    } else {
+      causes <- as.numeric(levels(Y$Y[, 3])[-1])
+
+      if (nlevels(Y$Y[, 3]) > 2) {
+        Y$Y <- survival::Surv(Y$Y[, 2], Y$Y[, 3])
+        Y$comp <- TRUE
+      }
+      else {
+        Y$Y <- survival::Surv(Y$Y[,2], as.numeric(as.character(Y$Y$event)))
+        Y$comp <- FALSE
+      }
     }
-  }else{
+  } else {
     Y$Y <- subset(Y$Y, select = -get(idVar), drop = TRUE)
   }
 

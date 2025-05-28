@@ -183,9 +183,11 @@ checking <- function(dynforest_obj = NULL,
         ))
       }
       if (Y$type=="surv"){
-        if (!inherits(Y$Y[,3], c("numeric","integer"))){
+        if (!inherits(Y$Y[,3], c("numeric","integer", "factor"))){
           cli_abort(c(
-            "Third column (event) in {.var Y$Y} must be a numeric or integer object with 0 indicating no event",
+            "Third column (event) in {.var Y$Y} must be a numeric, integer of
+            factor object with 0 (either the value, either the level name)
+            indicating no event",
             "x" = "You've supplied a {.cls {class(Y$Y[,3])}} object"
           ))
         }
