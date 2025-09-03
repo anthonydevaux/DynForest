@@ -163,13 +163,12 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
 
       }
       Longitudinal.perm$X[,p] <- Longitudinal$X[,p]
-      res <- mean(Longitudinal.err[,p]- tree_oob_err)
+      res <- mean(Longitudinal.err[,p]- tree_oob_err, na.rm = TRUE)
     }
 
     parallel::stopCluster(cl)
 
   }
-
 
   if (is.element("Numeric",Inputs)==TRUE){
 
@@ -198,7 +197,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
 
       }
       Numeric.perm$X[,p] <- Numeric$X[,p]
-      res <- mean(Numeric.err[,p]- tree_oob_err)
+      res <- mean(Numeric.err[,p]- tree_oob_err, na.rm = TRUE)
     }
 
     parallel::stopCluster(cl)
@@ -232,7 +231,7 @@ compute_VIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
       }
 
       Factor.perm$X[,p] <- Factor$X[,p]
-      res <- mean(Factor.err[,p]- tree_oob_err)
+      res <- mean(Factor.err[,p]- tree_oob_err, na.rm = TRUE)
     }
 
     parallel::stopCluster(cl)
