@@ -25,32 +25,46 @@ impurity_split <- function(Y,split,cause=1){
     if (Y$type == "surv"){
 
       if (Y$comp){
-
         # Fine & Gray splitting rule
-        crr.res <- tryCatch(cmprsk::crr(ftime = Y$Y[,1], fstatus = Y$Y[,2], cov1 = split, failcode = cause),
+        vect_int <- c(3,6,12,24)
+        # vect_int <- c(100)
+        nb_interval <- findInterval(sum(Y$Y[,2]==cause), vect_int)+1
+        idx_interval <- rep(1, length(Y$Y))
+        random_interval <- 1
+        if (nb_interval > 1){
+          bornes <- quantile(Y$Y[,1][Y$Y[,2] == cause], probs = seq(0,1,length.out = nb_interval+1))
+          idx_interval <- findInterval(Y$Y[,1], bornes)
+          idx_interval <- ifelse(idx_interval == 0, 1, idx_interval)
+          idx_interval <- ifelse(idx_interval == nb_interval+1, nb_interval, idx_interval)
+          random_interval <- ceiling(runif(1,0,nb_interval))
+        }
+
+        crr.res <- tryCatch(cmprsk::crr(ftime = Y$Y[,1][idx_interval == random_interval], fstatus = Y$Y[,2][idx_interval == random_interval], cov1 = split[idx_interval == random_interval], failcode = cause),
                             error = function(e) return(list(converged = FALSE)))
-        if (crr.res$converged){
+
+        if (crr.res$converged & (length(Y$Y[,1]) == length(split))){ # condition on length to avoid troubles
           impur <- 2*pnorm(abs(crr.res$coef)/sqrt(diag(crr.res$var)), lower.tail=FALSE) # p-value (from emil package)
         }else{
           impur <- Inf
         }
 
+
         if (is.nan(impur)){
           impur <- Inf
         }
 
-      }else{
-
+      } else {
         # logrank splitting rule
-        vect_int <- c(3,6,12,24)
+        vect_int <- c(3,6,12,24) # mettre en arg avec une val par defaut (et l'option de ne pas le faire)
+        # vect_int <- c(100)
         nb_interval <- findInterval(sum(Y$Y[,2]), vect_int)+1
         idx_interval <- rep(1, length(Y$Y))
         random_interval <- 1
         if (nb_interval > 1){
-          print(paste0(nb_interval, " intervalles"))
-          bornes <- quantile(Y$Y[,1][Y$Y[,2] == 1], probs = seq(0,1,length.out = nb_interval))
+          bornes <- quantile(Y$Y[,1][Y$Y[,2] == 1], probs = seq(0,1,length.out = nb_interval+1))
           idx_interval <- findInterval(Y$Y[,1], bornes)
           idx_interval <- ifelse(idx_interval == 0, 1, idx_interval) # pour changer 0 en 1
+          idx_interval <- ifelse(idx_interval == nb_interval+1, nb_interval, idx_interval)
           random_interval <- ceiling(runif(1,0,nb_interval))
         }
         surv.res <- tryCatch(survival::survdiff(Y$Y[idx_interval == random_interval]~split[idx_interval == random_interval]),
