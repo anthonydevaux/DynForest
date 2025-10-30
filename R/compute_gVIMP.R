@@ -214,7 +214,7 @@ compute_gVIMP <- function(DynForest_obj, IBS.min = 0, IBS.max = NULL,
 
     parallel::stopCluster(cl)
 
-    gVIMP[g] <- mean(res - tree_oob_err)
+    gVIMP[g] <- mean(res - tree_oob_err, na.rm = TRUE)
 
   }
 
