@@ -116,11 +116,27 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                       Y = NULL, ntree = 200, mtry = NULL,
                       nodesize = 1, minsplit = 2, cause = 1,
                       nsplit_option = "quantile",
+                      randsplit = FALSE, splits_evt = NULL,
                       ncores = NULL,
                       seed = 1234,
                       verbose = TRUE){
 
   debut <- Sys.time()
+
+  # fix issue with tibble data
+  if (!is.null(timeData)){
+    timeData <- as.data.frame(timeData)
+  }
+
+  # fix issue with tibble data
+  if (!is.null(fixedData)){
+    fixedData <- as.data.frame(fixedData)
+  }
+
+  # fix issue with tibble data
+  if (!is.null(Y$Y)){
+    Y$Y <- as.data.frame(Y$Y)
+  }
 
   if (is.null(mtry)){
     mtry <- round(sqrt(ifelse(!is.null(timeData), ncol(timeData)-2, 0) +
@@ -235,6 +251,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                        mtry = mtry, ntree = ntree, ncores = ncores,
                        nsplit_option = nsplit_option,
                        nodesize = nodesize, minsplit = minsplit,
+                       randsplit = randsplit, splits_evt = splits_evt,
                        cause = cause, seed = seed, verbose = verbose)
 
   rf <- list(type=Y$type, rf=rf)
@@ -246,7 +263,7 @@ DynForest <- function(timeData = NULL, fixedData = NULL,
                 rf = rf$rf, type = rf$type, timeVar = timeVar, times = sort(unique(c(0,Y$Y[,1]))), cause = cause, causes = causes,
                 Inputs = list(Longitudinal = names(Longitudinal$X), Numeric = names(Numeric$X), Factor = names(Factor$X)),
                 Longitudinal.model = Longitudinal$model, param = list(mtry = mtry, nodesize = nodesize,
-                                                                      minsplit = minsplit, ntree = ntree),
+                                                                      minsplit = minsplit, ntree = ntree, randsplit = randsplit, splits_evt = splits_evt),
                 ncores = ncores, comput.time = Sys.time() - debut)
   }else{
     out <- list(data = list(Longitudinal = Longitudinal, Factor = Factor, Numeric = Numeric, Y = Y),
