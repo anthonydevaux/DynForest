@@ -4,7 +4,14 @@
 \alias{var_split_factor}
 \title{Split function to build the two daughter nodes from factor predictor}
 \usage{
-var_split_factor(X, Y, cause = 1, nodesize = 1)
+var_split_factor(
+  X,
+  Y,
+  cause = 1,
+  nodesize = 1,
+  randsplit = FALSE,
+  splits_evt = NULL
+)
 }
 \arguments{
 \item{X}{Input data}

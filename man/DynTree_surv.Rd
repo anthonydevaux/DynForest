@@ -14,6 +14,8 @@ DynTree_surv(
   nsplit_option = "quantile",
   nodesize = 1,
   minsplit = 2,
+  randsplit = FALSE,
+  splits_evt = NULL,
   cause = 1,
   seed = 1234
 )

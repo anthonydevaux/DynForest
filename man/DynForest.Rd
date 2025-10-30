@@ -17,6 +17,8 @@ DynForest(
   minsplit = 2,
   cause = 1,
   nsplit_option = "quantile",
+  randsplit = FALSE,
+  splits_evt = NULL,
   ncores = NULL,
   seed = 1234,
   verbose = TRUE

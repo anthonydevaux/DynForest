@@ -4,7 +4,15 @@
 \alias{var_split_num}
 \title{Split function to build the two daughter nodes from numeric predictors}
 \usage{
-var_split_num(X, Y, nsplit_option = "quantile", cause = 1, nodesize = 1)
+var_split_num(
+  X,
+  Y,
+  nsplit_option = "quantile",
+  cause = 1,
+  nodesize = 1,
+  randsplit = FALSE,
+  splits_evt = NULL
+)
 }
 \arguments{
 \item{X}{Input data}

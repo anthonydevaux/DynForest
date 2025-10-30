@@ -11,6 +11,8 @@ var_split_long(
   nsplit_option = "quantile",
   cause = 1,
   nodesize = 1,
+  randsplit = FALSE,
+  splits_evt = NULL,
   init = NULL
 )
 }

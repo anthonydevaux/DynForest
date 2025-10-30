@@ -4,7 +4,7 @@
 \alias{impurity_split}
 \title{Impurity Split}
 \usage{
-impurity_split(Y, split, cause = 1)
+impurity_split(Y, split, cause = 1, randsplit = FALSE, splits_evt = NULL)
 }
 \arguments{
 \item{Y}{Outcome data}

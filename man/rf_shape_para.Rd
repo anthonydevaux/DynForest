@@ -17,6 +17,8 @@ rf_shape_para(
   nodesize = 1,
   minsplit = 2,
   cause = 1,
+  randsplit = FALSE,
+  splits_evt = NULL,
   seed = 1234,
   verbose = TRUE
 )

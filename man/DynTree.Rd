@@ -12,6 +12,8 @@ DynTree(
   timeVar = NULL,
   mtry = 1,
   nsplit_option = "quantile",
+  randsplit = FALSE,
+  splits_evt = NULL,
   nodesize = 1,
   seed = 1234
 )
