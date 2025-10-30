@@ -8,7 +8,7 @@
 #'
 #' @keywords internal
 var_split_num <- function(X, Y, nsplit_option = "quantile",
-                          cause = 1, nodesize = 1){
+                          cause = 1, nodesize = 1, randsplit = FALSE, splits_evt = NULL){
 
   X_ncol <- ncol(X$X)
   all_imp_var <- split_var <- vector("list", X_ncol)
@@ -54,8 +54,8 @@ var_split_num <- function(X, Y, nsplit_option = "quantile",
             split <- ifelse(X$X[,i]<=split_threholds[x],1,2)
 
             if ((length(unique(split))>1)&(all(table(split)>=nodesize))){
-              # Evaluate the partition
-              impur_res <- impurity_split(Y, split, cause = cause)
+              # Evaluate the partitionf
+              impur_res <- impurity_split(Y, split, cause = cause, randsplit = randsplit, splits_evt = splits_evt)
 
               impur <- impur_res$impur
               imp_list <- impur_res$imp_list

@@ -18,6 +18,7 @@
 #' @keywords internal
 DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                     timeVar = NULL, mtry = 1, nsplit_option = "quantile",
+                    randsplit = FALSE, splits_evt = NULL,
                     nodesize = 1, seed = 1234){
 
   Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
@@ -121,7 +122,7 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                                        time=Longitudinal_boot$time[wXLongitudinal, drop=FALSE],
                                        model = Longitudinal_boot$model[tirageLongitudinal])
 
-          if (current_node > 1){
+          if (current_node > 1){ # useless if fpca, change
             model_init <- getParamMM(current_node = current_node, markers = colnames(Longitudinal_current$X),
                                      params = model_init)
           }else{
@@ -174,7 +175,6 @@ DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         }
 
         if (is.element("Numeric", mtry_type_pred)){
-
           leaf_split_Numeric <- var_split_num(X = Numeric_current, Y = Y_current,
                                               nsplit_option = nsplit_option,
                                               nodesize = nodesize)

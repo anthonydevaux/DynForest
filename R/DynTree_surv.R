@@ -20,7 +20,9 @@
 #' @keywords internal
 DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                          timeVar = NULL, mtry = 1, nsplit_option = "quantile",
-                         nodesize = 1, minsplit = 2, cause = 1, seed = 1234){
+                         nodesize = 1, minsplit = 2, randsplit = FALSE, splits_evt = NULL,
+                         cause = 1, seed = 1234){
+
   Inputs <- c(Longitudinal$type, Numeric$type, Factor$type)
   type_pred <- unlist(sapply(Inputs, FUN = function(x) return(rep(get(x)$type, ncol(get(x)$X)))))
 
@@ -179,6 +181,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         if (is.element("Factor", mtry_type_pred)){
 
           leaf_split_Factor <- var_split_factor(X = Factor_current, Y = Y_current,
+                                                randsplit = randsplit, splits_evt = splits_evt,
                                                 cause = cause, nodesize = nodesize)
 
           if (leaf_split_Factor$Pure==FALSE){
@@ -192,12 +195,12 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
         }
 
         if (is.element("Longitudinal", mtry_type_pred)){
-
           leaf_split_Longitudinal <- var_split_long(X = Longitudinal_current, Y = Y_current,
                                                     timeVar = timeVar,
                                                     nsplit_option = nsplit_option,
                                                     cause = cause, nodesize = nodesize,
-                                                    init = model_init[[current_node_chr]])
+                                                    init = model_init[[current_node_chr]],
+                                                    randsplit = randsplit, splits_evt = splits_evt)
 
           if (leaf_split_Longitudinal$Pure==FALSE){ # si le noeud n'est pas pur
             model_init[[current_node_chr]] <- leaf_split_Longitudinal$init # update initial values at current node
@@ -216,6 +219,7 @@ DynTree_surv <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
 
           leaf_split_Numeric <- var_split_num(X = Numeric_current, Y = Y_current,
                                               nsplit_option = nsplit_option,
+                                              randsplit = randsplit, splits_evt = splits_evt,
                                               cause = cause, nodesize = nodesize)
 
           if (leaf_split_Numeric$Pure==FALSE){

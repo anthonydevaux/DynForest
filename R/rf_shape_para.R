@@ -24,6 +24,7 @@
 rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                           timeVar = NULL, Y, mtry, ntree, ncores,
                           nsplit_option = "quantile", nodesize = 1, minsplit = 2, cause = 1,
+                          randsplit = FALSE, splits_evt = NULL,
                           seed = 1234, verbose = TRUE){
 
   if (!verbose){
@@ -33,6 +34,8 @@ rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL,
   }
 
   if (ncores>1){
+
+    force(randsplit)
 
     cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
@@ -47,14 +50,16 @@ rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       trees <- pbsapply(1:ntree, FUN=function(i){
         DynTree_surv(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
                      timeVar = timeVar, mtry = mtry, nsplit_option = nsplit_option,
-                     nodesize = nodesize, minsplit = minsplit, cause = cause,
-                     seed = seed*i)
+                     nodesize = nodesize, minsplit = minsplit,
+                     randsplit = randsplit, splits_evt = splits_evt,
+                     cause = cause, seed = seed*i)
       },cl=cl)
     }
     if (Y$type%in%c("factor","numeric")){
       trees <- pbsapply(1:ntree, FUN=function(i){
         DynTree(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
                 timeVar = timeVar, mtry = mtry, nsplit_option = nsplit_option,
+                randsplit = randsplit, splits_evt = splits_evt,
                 nodesize = nodesize, seed = seed*i)
       },cl=cl)
     }
@@ -67,14 +72,16 @@ rf_shape_para <- function(Longitudinal = NULL, Numeric = NULL, Factor = NULL,
       trees <- pbsapply(1:ntree, FUN=function(i){
         DynTree_surv(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
                      timeVar = timeVar, mtry = mtry, nsplit_option = nsplit_option,
-                     nodesize = nodesize, minsplit = minsplit, cause = cause,
-                     seed = seed*i)
+                     nodesize = nodesize, minsplit = minsplit,
+                     randsplit = randsplit, splits_evt = splits_evt,
+                     cause = cause, seed = seed*i)
       },cl=NULL)
     }
     if (Y$type%in%c("factor","numeric")){
       trees <- pbsapply(1:ntree, FUN=function(i){
         DynTree(Y = Y, Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
                 timeVar = timeVar, mtry = mtry, nsplit_option = nsplit_option,
+                randsplit = randsplit, splits_evt = splits_evt,
                 nodesize = nodesize, seed = seed*i)
       },cl=NULL)
     }

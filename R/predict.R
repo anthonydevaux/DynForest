@@ -5,13 +5,16 @@
 #' @param fixedData A data.frame containing the id variable and the time-fixed predictors. Non-continuous variables should be characterized as factor.
 #' @param idVar A character indicating the name of variable to identify the subjects
 #' @param timeVar A character indicating the name of time variable
-#' @param t0 Landmark time
+#' @param t0 Landmark time for dynamic prediction. If t0=NULL, the function computes the predicted probability of event at any time from 0 using all the available information at all times. Else, the function computes the predicted probability of event from t0 using all the available information before t0.
+#'
 #' @param ... Optional parameters to be passed to the low level function
 #'
 #' @import stringr
 #' @importFrom methods is
 #'
 #' @return Return the outcome of interest for the new subjects: matrix of probability of event of interest in survival mode, average value in regression mode and most likely value in classification mode
+#'
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -226,7 +229,9 @@ predict.DynForest <- function(object,
 
   for (t in 1:ncol(object$rf)){
 
-    # print(ncol(object$rf)) OK
+    # print(paste0("tree:",t))
+
+    # print(ncol(object$rf)) # nb arbres OK
     pred_leaf[t,] <- pred.MMT(object$rf[,t],
                               Longitudinal = Longitudinal, Numeric = Numeric, Factor = Factor,
                               timeVar = timeVar)

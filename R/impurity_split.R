@@ -8,7 +8,7 @@
 #' @importFrom cmprsk crr
 #'
 #' @keywords internal
-impurity_split <- function(Y,split,cause=1){
+impurity_split <- function(Y,split,cause=1, randsplit = FALSE, splits_evt = NULL) {
 
   impur <- 0
   imp <- list()
@@ -21,14 +21,17 @@ impurity_split <- function(Y,split,cause=1){
       imp[[i]] <- impurity(list(type=Y$type,Y=Y$Y[w],id=Y$id[w]))
       impur <- impur + imp[[i]]*prop
     }
-
     if (Y$type == "surv"){
-
       if (Y$comp){
         # Fine & Gray splitting rule
-        vect_int <- c(3,6,12,24)
-        # vect_int <- c(100)
-        nb_interval <- findInterval(sum(Y$Y[,2]==cause), vect_int)+1
+        if (randsplit){
+          if (is.null(splits_evt)){
+            splits_evt <- c(3,6,12,24)
+          }
+        } else {
+          splits_evt <- Inf
+        }
+        nb_interval <- findInterval(sum(Y$Y[,2]==cause), splits_evt)+1
         idx_interval <- rep(1, length(Y$Y))
         random_interval <- 1
         if (nb_interval > 1){
@@ -55,9 +58,15 @@ impurity_split <- function(Y,split,cause=1){
 
       } else {
         # logrank splitting rule
-        vect_int <- c(3,6,12,24) # mettre en arg avec une val par defaut (et l'option de ne pas le faire)
-        # vect_int <- c(100)
-        nb_interval <- findInterval(sum(Y$Y[,2]), vect_int)+1
+        if (randsplit){
+          if (is.null(splits_evt)){
+            splits_evt <- c(3,6,12,24)
+          }
+        } else {
+          splits_evt <- Inf
+        }
+
+        nb_interval <- findInterval(sum(Y$Y[,2]), splits_evt)+1
         idx_interval <- rep(1, length(Y$Y))
         random_interval <- 1
         if (nb_interval > 1){

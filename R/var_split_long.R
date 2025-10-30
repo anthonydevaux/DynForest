@@ -13,8 +13,8 @@
 #'
 #' @keywords internal
 var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
-                           cause = 1, nodesize = 1, init = NULL){
-
+                           cause = 1, nodesize = 1,
+                           randsplit = FALSE, splits_evt = NULL, init = NULL){
 
   X_ncol <- ncol(X$X)
   all_imp_var <- split_var <- vector("list", X_ncol)
@@ -200,7 +200,7 @@ var_split_long <- function(X, Y, timeVar = NULL, nsplit_option = "quantile",
               # if ((length(unique(split))>1)&(all(table(split)>=nodesize))){ ## check si des individus dans les deux noeuds et check si nodesize ok
               if ((length(unique(split))>1)&(all(table(split)>=nodesize))){ ## nodesize déjà checké... et l'un implique l'autre...
                 # Evaluate the partition
-                impur_res <- impurity_split(Y, split, cause = cause)
+                impur_res <- impurity_split(Y, split, cause = cause, randsplit = randsplit, splits_evt = splits_evt)
 
                 impur <- impur_res$impur # contient l'impureté calculée pour ce split
                 # imp_list <- impur_res$imp_list # il me semble que c'est vide ??
