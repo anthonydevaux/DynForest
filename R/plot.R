@@ -75,8 +75,8 @@
 #' # Plot estimated CIF at nodes 17 and 32
 #' plot(x = res_dyn, tree = 1, nodes = c(17,32))
 #'
-#' # Run var_depth function
-#' res_varDepth <- var_depth(res_dyn)
+#' # Run compute_vardepth function
+#' res_varDepth <- compute_vardepth(res_dyn)
 #'
 #' # Plot minimal depth
 #' plot(x = res_varDepth, plot_level = "feature")
@@ -145,7 +145,7 @@ plot.dynforest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = N
         stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
       }
     }else{
-      nodes <- getTreeNodes(dynforest_obj = x, tree = tree)
+      nodes <- get_treenodes(dynforest_obj = x, tree = tree)
     }
 
     # data transformation for ggplot2
