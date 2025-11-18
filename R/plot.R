@@ -121,28 +121,44 @@
 plot.dynforest <- function(x, tree = NULL, nodes = NULL, id = NULL, max_tree = NULL, ...){
 
   if (!methods::is(x,"dynforest")){
-    stop("'dynforest_obj' should be a 'dynforest' class!")
+    cli_abort(c(
+      "{.var dynforest_obj} must be a dynforest object",
+      "x" = "You've supplied a {.cls {class(dynforest_obj)}} object"
+    ))
   }
 
   if (!is.null(tree)){
 
     if (!inherits(tree, "numeric")){
-      stop("'tree' should be a numeric object containing the tree identifier!")
+      cli_abort(c(
+        "{.var tree} must be a numeric object containing the tree identifier",
+        "x" = "You've supplied a {.cls {class(tree)}} object"
+      ))
     }
 
     if (!any(tree==seq(x$param$ntree))){
-      stop(paste0("'tree' should be chosen between 1 and ", x$param$ntree, "!"))
+      cli_abort(c(
+        "{.var tree} must be chosen between 1 and {x$param$ntree}",
+        "x" = "You've chosen {tree}"
+      ))
     }
 
     if (all(!is.null(nodes))){
       if (!all(inherits(nodes, "numeric"))){
-        stop("'nodes' should be a numeric object containing the tree identifier!")
+        cli_abort(c(
+          "{.var nodes} must be a numeric vector containing the node identifiers",
+          "x" = "You've supplied a {.cls {class(nodes)}} object"
+        ))
       }
       if (!all(nodes%in%names(x$rf[,tree]$Y_pred))){
-        stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
+        cli_abort(c(
+          "At least one selected node in {.var nodes} doesn't exist in {.var tree} {tree}"
+        ))
       }
       if (any(sapply(nodes, FUN = function(node) is.null(x$rf[,tree]$Y_pred[[as.character(node)]])))){
-        stop("One selected node do not have CIF! Please verify the 'nodes' identifiers!")
+        cli_abort(c(
+          "At least one selected node in {.var nodes} doesn't exist in {.var tree} {tree}"
+        ))
       }
     }else{
       nodes <- get_treenodes(dynforest_obj = x, tree = tree)
