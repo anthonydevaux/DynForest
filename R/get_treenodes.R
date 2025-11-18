@@ -1,25 +1,12 @@
-#' Extract some information about the split for a tree by user
+#' Extract nodes identifiers for a given tree
 #'
-#' @inheritParams compute_vimp
-#' @param tree Integer indicating the tree identifier
+#' @inheritParams get_tree
 #'
-#' @return A table sorted by the node/leaf identifier with each row representing a node/leaf. Each column provides information about the splits:\tabular{ll}{
-#' \code{type} \tab The nature of the predictor (\code{Longitudinal} for longitudinal predictor, \code{Numeric} for continuous predictor or \code{Factor} for categorical predictor) if the node was split, \code{Leaf} otherwise \cr
-#' \tab \cr
-#' \code{var_split} \tab The predictor used for the split defined by its order in \code{timeData} and \code{fixedData} \cr
-#' \tab \cr
-#' \code{feature} \tab The feature used for the split defined by its position in random statistic \cr
-#' \tab \cr
-#' \code{threshold} \tab The threshold used for the split (only with \code{Longitudinal} and \code{Numeric}). No information is returned for \code{Factor} \cr
-#' \tab \cr
-#' \code{N} \tab The number of subjects in the node/leaf \cr
-#' \tab \cr
-#' \code{Nevent} \tab The number of events of interest in the node/leaf (only with survival outcome) \cr
-#' \tab \cr
-#' \code{depth} \tab the depth level of the node/leaf \cr
-#' }
+#' @importFrom methods is
 #'
-#' @seealso [dynforest()]
+#' @return Extract nodes identifiers for a given tree
+#'
+#'#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -68,26 +55,35 @@
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Extract split information from tree 4
-#' res_tree4 <- get_tree(dynforest_obj = res_dyn, tree = 4)
+#' # Extract nodes identifiers for a given tree
+#' get_treenodes(dynforest_obj = res_dyn, tree = 1)
 #' }
 #' @export
-get_tree <- function(dynforest_obj, tree){
+get_treenodes <- function(dynforest_obj, tree = NULL){
 
   if (!methods::is(dynforest_obj,"dynforest")){
-    stop("'dynforest_obj' should be a 'dynforest' class!")
+    cli_abort(c(
+      "{.var dynforest_obj} must be a dynforest object",
+      "x" = "You've supplied a {.cls {class(dynforest_obj)}} object"
+    ))
   }
 
   if (!inherits(tree, "numeric")){
-    stop("'tree' should be a numeric object containing the tree identifier!")
+    cli_abort(c(
+      "{.var tree} must be a numeric object containing the tree identifier",
+      "x" = "You've supplied a {.cls {class(tree)}} object"
+    ))
   }
 
   if (!any(tree==seq(dynforest_obj$param$ntree))){
-    stop(paste0("'tree' should be chosen between 1 and ", dynforest_obj$param$ntree, "!"))
+    cli_abort(c(
+      "{.var tree} must be chosen between 1 and {dynforest_obj$param$ntree}",
+      "x" = "You've chosen {tree}"
+    ))
   }
 
-  out <- dynforest_obj$rf[,tree]$V_split
+  tree_split <- get_tree(dynforest_obj = dynforest_obj, tree = tree)
+  nodes_id <- tree_split$id_node[which(tree_split$type=="Leaf")]
 
-  return(out)
-
+  return(nodes_id)
 }
