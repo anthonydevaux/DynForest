@@ -147,7 +147,7 @@ print.dynforestvimp <- function(x, ...){
                     "VIMP" = unlist(x$Importance),
                     row.names = NULL)
 
-  out
+  print.data.frame(out)
 }
 
 
@@ -165,7 +165,7 @@ print.dynforestgvimp <- function(x, ...){
                     "gVIMP" = x$gVIMP,
                     row.names = NULL)
 
-  out
+  print.data.frame(out)
 }
 
 
@@ -178,7 +178,7 @@ print.dynforestvardepth <- function(x, ...){
     stop("'x' should be an object of 'dynforestvardepth' class!")
   }
 
-  x$min_depth
+  print.data.frame(x$min_depth)
 }
 
 
@@ -191,7 +191,8 @@ print.dynforestoob <- function(x, ...){
     stop("'x' should be an object of 'dynforestoob' class!")
   }
 
-  mean(x$oob.err, na.rm = TRUE)
+  out <- mean(x$oob.err, na.rm = TRUE)
+  print(out)
 }
 
 
@@ -204,5 +205,6 @@ print.dynforestpred <- function(x, ...){
     stop("'x' should be an object of 'dynforestpred' class!")
   }
 
-  x$pred_indiv
+  out <- x$pred_indiv
+  print(out)
 }
