@@ -39,7 +39,6 @@ checking <- function(dynforest_obj = NULL,
   }
 
   if (is.null(dynforest_obj)){
-    if (any(is.null(c(ntree, mtry, nodesize, minsplit)))){
       if (any(is.null(ntree)|is.null(mtry)|is.null(nodesize)|is.null(minsplit))){
         cli_abort(c(
           "{.var ntree}, {.var mtry}, {.var nodesize} and {.var minsplit} can't be {.var NULL}"
