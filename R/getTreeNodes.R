@@ -1,11 +1,12 @@
 #' Extract nodes identifiers for a given tree
 #'
-#' @param DynForest_obj A DynForest object from \code{DynForest()} function
-#' @param tree Integer indicating the tree identifier
+#' @inheritParams get_tree
 #'
 #' @importFrom methods is
 #'
 #' @return Extract nodes identifiers for a given tree
+#'
+#'#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -47,32 +48,32 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Extract nodes identifiers for a given tree
-#' getTreeNodes(DynForest_obj = res_dyn, tree = 1)
+#' get_treenodes(dynforest_obj = res_dyn, tree = 1)
 #' }
 #' @export
-getTreeNodes <- function(DynForest_obj, tree = NULL){
+get_treenodes <- function(dynforest_obj, tree = NULL){
 
-  if (!methods::is(DynForest_obj,"DynForest")){
-    stop("'DynForest_obj' should be a 'DynForestPred' class!")
+  if (!methods::is(dynforest_obj,"dynforest")){
+    stop("'dynforest_obj' should be a 'dynforestPred' class!")
   }
 
   if (!inherits(tree, "numeric")){
     stop("'tree' should be a numeric object containing the tree identifier!")
   }
 
-  if (!any(tree==seq(DynForest_obj$param$ntree))){
-    stop(paste0("'tree' should be chosen between 1 and ", DynForest_obj$param$ntree, "!"))
+  if (!any(tree==seq(dynforest_obj$param$ntree))){
+    stop(paste0("'tree' should be chosen between 1 and ", dynforest_obj$param$ntree, "!"))
   }
 
-  tree_split <- getTree(DynForest_obj = DynForest_obj, tree = tree)
+  tree_split <- get_tree(dynforest_obj = dynforest_obj, tree = tree)
   nodes_id <- tree_split$id_node[which(tree_split$type=="Leaf")]
 
   return(nodes_id)

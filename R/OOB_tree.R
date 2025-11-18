@@ -15,6 +15,7 @@
 #' @import prodlim
 #'
 #' @keywords internal
+#' @noRd
 OOB.tree <- function(tree, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
                      timeVar = NULL, IBS.min = 0, IBS.max = NULL, cause = 1){
 

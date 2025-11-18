@@ -16,6 +16,7 @@
 #' @importFrom splines ns
 #'
 #' @keywords internal
+#' @noRd
 DynTree <- function(Y, Longitudinal = NULL, Numeric = NULL, Factor = NULL,
                     timeVar = NULL, mtry = 1, nsplit_option = "quantile",
                     randsplit = FALSE, splits_evt = NULL,

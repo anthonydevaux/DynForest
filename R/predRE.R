@@ -10,6 +10,7 @@
 #' @return A table of random-effects in column by subjects in row
 #'
 #' @keywords internal
+#' @noRd
 predRE <- function(model, formula, data){
 
   subject <- "id"

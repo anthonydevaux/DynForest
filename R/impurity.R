@@ -5,6 +5,7 @@
 #' @importFrom DescTools Entropy
 #'
 #' @keywords internal
+#' @noRd
 impurity <- function(Y){
 
   if (Y$type=="numeric"){

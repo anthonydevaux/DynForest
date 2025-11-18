@@ -6,6 +6,7 @@
 #' @param nodesize Minimal number of subjects required in both child nodes to split. Cannot be smaller than 1.
 #'
 #' @keywords internal
+#' @noRd
 var_split_factor <- function(X, Y, cause = 1, nodesize = 1, randsplit = FALSE, splits_evt = NULL){
 
   X_ncol <- ncol(X$X)

@@ -1,10 +1,10 @@
 #' Extract characteristics from the trees building process
 #'
-#' @param DynForest_obj \code{DynForest} object
+#' @inheritParams compute_vimp
 #'
 #' @importFrom stringr str_order
 #'
-#' @return var_depth function return a list with the following elements:\tabular{ll}{
+#' @return compute_vardepth function return a list with the following elements:\tabular{ll}{
 #'    \code{min_depth} \tab A table providing for each feature in row: the average depth and the rank \cr
 #'    \tab \cr
 #'    \code{var_node_depth} \tab A table providing for each tree in column the minimal depth for each feature in row. NA indicates that the feature was not used for the corresponding tree \cr
@@ -12,7 +12,7 @@
 #'    \code{var_count} \tab A table providing for each tree in column the number of times where the feature is used (in row). 0 value indicates that the feature was not used for the corresponding tree \cr
 #' }
 #'
-#' @seealso \code{\link{DynForest}}
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -54,33 +54,33 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
-#' # Run var_depth function
-#' res_varDepth <- var_depth(res_dyn)
+#' # Run compute_vardepth function
+#' res_varDepth <- compute_vardepth(res_dyn)
 #' }
 #' @export
-var_depth <- function(DynForest_obj){
+compute_vardepth <- function(dynforest_obj){
 
-  Inputs <- names(DynForest_obj$Inputs)[unlist(lapply(DynForest_obj$Inputs, FUN = function(x) return(!is.null(x))))]
+  Inputs <- names(dynforest_obj$Inputs)[unlist(lapply(dynforest_obj$Inputs, FUN = function(x) return(!is.null(x))))]
 
   if (any(Inputs%in%c("Longitudinal"))){
 
     # mindepth and node at depth
 
-    Longitudinal_depth_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
+    Longitudinal_depth_list <- apply(dynforest_obj$rf, 2, FUN = function(x){
 
       if (nrow(x$V_split[x$V_split$type=="Longitudinal",])==0){
         return(data.frame("var" = character(), "depth" = numeric()))
       }
 
       df <- aggregate(depth ~ type + var_split + feature, x$V_split[x$V_split$type=="Longitudinal",], min)
-      df <- data.frame(var = paste0(DynForest_obj$Inputs$Longitudinal[df$var_split], ".bi", df$feature-1),
+      df <- data.frame(var = paste0(dynforest_obj$Inputs$Longitudinal[df$var_split], ".bi", df$feature-1),
                        depth = df$depth)
       return(df)
 
@@ -99,14 +99,14 @@ var_depth <- function(DynForest_obj){
 
     # count by tree
 
-    Longitudinal_count_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
+    Longitudinal_count_list <- apply(dynforest_obj$rf, 2, FUN = function(x){
 
       if (nrow(x$V_split[x$V_split$type=="Longitudinal",])==0){
         return(data.frame("var" = character(), "depth" = numeric()))
       }
 
       df <- aggregate(depth ~ type + var_split + feature, x$V_split[x$V_split$type=="Longitudinal",], length)
-      df <- data.frame(var = paste0(DynForest_obj$Inputs$Longitudinal[df$var_split], ".bi", df$feature-1),
+      df <- data.frame(var = paste0(dynforest_obj$Inputs$Longitudinal[df$var_split], ".bi", df$feature-1),
                        depth = df$depth)
       return(df)
 
@@ -132,12 +132,12 @@ var_depth <- function(DynForest_obj){
 
     # mindepth and node at depth
 
-    Other_depth_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
+    Other_depth_list <- apply(dynforest_obj$rf, 2, FUN = function(x){
 
       if (nrow(x$V_split[x$V_split$type%in%c("Numeric"),])>0){
 
         df_Numeric <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Numeric"),], min)
-        df_Numeric <- data.frame(var = DynForest_obj$Inputs$Numeric[df_Numeric$var_split],
+        df_Numeric <- data.frame(var = dynforest_obj$Inputs$Numeric[df_Numeric$var_split],
                                 depth = df_Numeric$depth)
 
       }else{
@@ -149,7 +149,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
         df_factor <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], min)
-        df_factor <- data.frame(var = DynForest_obj$Inputs$Factor[df_factor$var_split],
+        df_factor <- data.frame(var = dynforest_obj$Inputs$Factor[df_factor$var_split],
                                 depth = df_factor$depth)
 
       }else{
@@ -177,12 +177,12 @@ var_depth <- function(DynForest_obj){
 
     # count by tree
 
-    Other_count_list <- apply(DynForest_obj$rf, 2, FUN = function(x){
+    Other_count_list <- apply(dynforest_obj$rf, 2, FUN = function(x){
 
       if (nrow(x$V_split[x$V_split$type%in%c("Numeric"),])>0){
 
         df_Numeric <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Numeric"),], length)
-        df_Numeric <- data.frame(var = DynForest_obj$Inputs$Numeric[df_Numeric$var_split],
+        df_Numeric <- data.frame(var = dynforest_obj$Inputs$Numeric[df_Numeric$var_split],
                                 depth = df_Numeric$depth)
 
       }else{
@@ -194,7 +194,7 @@ var_depth <- function(DynForest_obj){
       if (nrow(x$V_split[x$V_split$type%in%c("Factor"),])>0){
 
         df_factor <- aggregate(depth ~ type + var_split, x$V_split[x$V_split$type%in%c("Factor"),], length)
-        df_factor <- data.frame(var = DynForest_obj$Inputs$Factor[df_factor$var_split],
+        df_factor <- data.frame(var = dynforest_obj$Inputs$Factor[df_factor$var_split],
                                 depth = df_factor$depth)
 
       }else{
@@ -238,7 +238,7 @@ var_depth <- function(DynForest_obj){
   out <- list(min_depth = min_depth, var_node_depth = var_node_depth,
               var_count = var_count)
 
-  class(out) <- "DynForestVarDepth"
+  class(out) <- "dynforestvardepth"
 
   return(out)
 

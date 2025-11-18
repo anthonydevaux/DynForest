@@ -9,6 +9,7 @@
 #' @import stringr
 #'
 #' @keywords internal
+#' @noRd
 pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
                      timeVar = NULL){
 
@@ -26,18 +27,24 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
     current_node <- 1
 
-    while (is.element(current_node, tree$leaves)==FALSE){
+    while ((is.element(current_node, tree$leaves)==FALSE)&(length(which(tree$V_split[,2]==current_node))==1)){
+
+      # print(paste0("node:",current_node))
 
       # X <- get(as.character(tree$V_split[which(tree$V_split[,2]==current_node),1]))
       # type <- str_to_lower(as.character(tree$V_split[which(tree$V_split[,2]==current_node),1]))
       # var.split <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),3]))
       # var.split.sum <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),4]))
       # threshold <- as.numeric(as.character(tree$V_split[which(tree$V_split[,2]==current_node),5]))
-      X <- get(tree$V_split[which(tree$V_split[,2]==current_node),1])
-      type <- str_to_lower(tree$V_split[which(tree$V_split[,2]==current_node),1])
-      var.split <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node),3])
-      var.split.sum <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node),4])
-      threshold <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node),5])
+
+      #print(which(tree$V_split[,2]==current_node)[1])
+      # print(length(which(tree$V_split[,2]==current_node)))
+
+      X <- get(as.character(tree$V_split[which(tree$V_split[,2]==current_node)[1],1]))
+      type <- str_to_lower(tree$V_split[which(tree$V_split[,2]==current_node)[1],1])
+      var.split <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node)[1],3])
+      var.split.sum <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node)[1],4])
+      threshold <- as.numeric(tree$V_split[which(tree$V_split[,2]==current_node)[1],5])
 
       meanG <- tree$hist_nodes[[as.character(2*current_node)]]
       meanD <- tree$hist_nodes[[as.character(2*current_node+1)]]
@@ -45,6 +52,8 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
       if (type=="longitudinal"){
         # print(names(X$model[[var.split]][1]))
         if (names(X$model[[var.split]][1]) == "PVEfpca"){
+
+          # browser()
 
           model_var <- unique(names(X$model)[var.split])
 
@@ -61,10 +70,10 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
           dt_Lt_test <- split(X$time[wLongitudinal], X$id[wLongitudinal])
           dt_Ly_test <- split(X$X[wLongitudinal, model_var], X$id[wLongitudinal])
 
-          RE <- pred_fpca_manual2(workgrid = workgrid, K = K, mu = mu, FPCs = FPCs, Cov = Cov, sigma2 = sigma2, lambda = lambda,
+          RE <- pred_fpca_manual2(workgrid = workgrid, K = max(K,1), mu = mu, FPCs = FPCs, Cov = Cov, sigma2 = sigma2, lambda = lambda,
                                   min_dt_Lt_train = min_dt_Lt_train, max_dt_Lt_train = max_dt_Lt_train,
                                   dt_Ly_test = dt_Ly_test, dt_Lt_test = dt_Lt_test)
-
+          if(is.null(K)){browser()}
 
         } else {
 
@@ -90,6 +99,7 @@ pred.MMT <- function(tree, Longitudinal=NULL, Numeric=NULL, Factor=NULL,
 
         data_summaries <- RE
 
+        #if(anyNA(RE)){browser()}
         if (is.na(data_summaries[,var.split.sum])){
           current_node <- NA
           break

@@ -1,6 +1,6 @@
 #' Compute the importance of variables (VIMP) statistic
 #'
-#' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
+#' @param dynforest_obj dynforest_obj \code{dynforest} object
 #' @param IBS.min (Only with survival outcome) Minimal time to compute the Integrated Brier Score. Default value is set to 0.
 #' @param IBS.max (Only with survival outcome) Maximal time to compute the Integrated Brier Score. Default value is set to the maximal time-to-event found.
 #' @param ncores Number of cores used to grow trees in parallel. Default value is the number of cores of the computer-1.

@@ -1,4 +1,4 @@
-#' data_simu1 dataset
+#' data_simu2 dataset
 #'
 #' Simulated dataset 2 with continuous outcome
 #'

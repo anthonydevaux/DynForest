@@ -7,6 +7,7 @@
 #' @importFrom zoo na.locf
 #'
 #' @keywords internal
+#' @noRd
 combine_times <- function(pred, newtimes, type = "surv"){
 
   newtimes <- unique(sort(c(0,newtimes, pred$times)))

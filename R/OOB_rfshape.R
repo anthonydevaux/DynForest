@@ -17,6 +17,7 @@
 #' @import doParallel
 #'
 #' @keywords internal
+#' @noRd
 OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, Y,
                         timeVar = NULL, IBS.min = 0, IBS.max = NULL, cause = 1,
                         ncores = NULL){
@@ -76,7 +77,7 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
     ) %dopar%
       {
 
-        # for (i in 1:length(OOB_IBS)){
+        #for (i in 1:length(OOB_IBS)){
 
         indiv <- OOB_IBS[i]
         w_y <- which(Y$id==indiv)
@@ -117,7 +118,7 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
 
             pred_node_chr <- as.character(pred_node)
 
-            if (is.na(pred_node_chr)){
+            if (is.na(pred_node_chr) | is.null(rf$rf[,t]$Y_pred[[pred_node_chr]][[as.character(cause)]])){
               pred.mat[t,] <- NA
             }else{
               if (IBS.min == 0){
@@ -138,22 +139,22 @@ OOB.rfshape <- function(rf, Longitudinal = NULL, Numeric = NULL, Factor = NULL, 
 
         oob.pred <- apply(pred.mat, 2, mean, na.rm = TRUE)
 
-        # IPCW
-        Wi_event <- (ifelse(Y$Y[w_y,1] <= allTimes_IBS, 1, 0)*ifelse(Y$Y[w_y,2]!=0,1,0))/(G$IPCW.subjectTimes[which(Y.surv$id==indiv)])
-        Wi_censored <- ifelse(Y$Y[w_y,1] > allTimes_IBS, 1, 0)/(G$IPCW.times)
-        Wi <- Wi_event + Wi_censored
+      # IPCW
+      Wi_event <- (ifelse(Y$Y[w_y,1] <= allTimes_IBS, 1, 0)*ifelse(Y$Y[w_y,2]!=0,1,0))/(G$IPCW.subjectTimes[which(Y.surv$id==indiv)])
+      Wi_censored <- ifelse(Y$Y[w_y,1] > allTimes_IBS, 1, 0)/(G$IPCW.times)
+      Wi <- Wi_event + Wi_censored
 
-        # Individual Brier Score
-        Di <- ifelse(Y$Y[w_y,1] <= allTimes_IBS, 1, 0)*ifelse(Y$Y[w_y,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
-        pec.res <- list()
-        pec.res$AppErr$matrix <- Wi*(Di-oob.pred)^2 # BS(t)
-        pec.res$models <- "matrix"
-        pec.res$time <- allTimes_IBS
-        class(pec.res) <- "pec"
+      # Individual Brier Score
+      Di <- ifelse(Y$Y[w_y,1] <= allTimes_IBS, 1, 0)*ifelse(Y$Y[w_y,2]==cause,1,0) # D(t) = 1(s<Ti<s+t, event = cause)
+      pec.res <- list()
+      pec.res$AppErr$matrix <- Wi*(Di-oob.pred)^2 # BS(t)
+      pec.res$models <- "matrix"
+      pec.res$time <- allTimes_IBS
+      class(pec.res) <- "pec"
 
-        err <- pec::ibs(pec.res, start = IBS.min, times = max(allTimes_IBS))[1] # IBS
+      err <- pec::ibs(pec.res, start = IBS.min, times = max(allTimes_IBS))[1] # IBS
 
-        return(list(err=err,oob.pred=oob.pred))
+      return(list(err=err,oob.pred=oob.pred))
       }
 
     parallel::stopCluster(cl)

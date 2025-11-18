@@ -1,6 +1,6 @@
 #' Extract some information about the split for a tree by user
 #'
-#' @param DynForest_obj \code{DynForest} object containing the dynamic random forest used on train data
+#' @inheritParams compute_vimp
 #' @param tree Integer indicating the tree identifier
 #'
 #' @return A table sorted by the node/leaf identifier with each row representing a node/leaf. Each column provides information about the splits:\tabular{ll}{
@@ -19,7 +19,7 @@
 #' \code{depth} \tab the depth level of the node/leaf \cr
 #' }
 #'
-#' @seealso \code{\link{DynForest} \link{summary.DynForest}}
+#' @seealso [dynforest()]
 #'
 #' @examples
 #' \donttest{
@@ -61,32 +61,32 @@
 #' Y <- list(type = "surv",
 #'           Y = unique(pbc2_train[,c("id","years","event")]))
 #'
-#' # Run DynForest function
-#' res_dyn <- DynForest(timeData = timeData_train, fixedData = fixedData_train,
+#' # Run dynforest function
+#' res_dyn <- dynforest(timeData = timeData_train, fixedData = fixedData_train,
 #'                      timeVar = "time", idVar = "id",
 #'                      timeVarModel = timeVarModel, Y = Y,
 #'                      ntree = 50, nodesize = 5, minsplit = 5,
 #'                      cause = 2, ncores = 2, seed = 1234)
 #'
 #' # Extract split information from tree 4
-#' res_tree4 <- getTree(DynForest_obj = res_dyn, tree = 4)
+#' res_tree4 <- get_tree(dynforest_obj = res_dyn, tree = 4)
 #' }
 #' @export
-getTree <- function(DynForest_obj, tree){
+get_tree <- function(dynforest_obj, tree){
 
-  if (!methods::is(DynForest_obj,"DynForest")){
-    stop("'DynForest_obj' should be a 'DynForest' class!")
+  if (!methods::is(dynforest_obj,"dynforest")){
+    stop("'dynforest_obj' should be a 'dynforest' class!")
   }
 
   if (!inherits(tree, "numeric")){
     stop("'tree' should be a numeric object containing the tree identifier!")
   }
 
-  if (!any(tree==seq(DynForest_obj$param$ntree))){
-    stop(paste0("'tree' should be chosen between 1 and ", DynForest_obj$param$ntree, "!"))
+  if (!any(tree==seq(dynforest_obj$param$ntree))){
+    stop(paste0("'tree' should be chosen between 1 and ", dynforest_obj$param$ntree, "!"))
   }
 
-  out <- DynForest_obj$rf[,tree]$V_split
+  out <- dynforest_obj$rf[,tree]$V_split
 
   return(out)
 
