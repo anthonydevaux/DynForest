@@ -142,7 +142,7 @@ checking <- function(dynforest_obj = NULL,
 
     if (any(duplicated(fixedData[,idVar]))){
       cli_abort(c(
-        "Each {.var idVar} identifier in {.var fixedData} must be unique",
+        "Each {.var idVar} identifier in {.var fixedData} must be unique"
       ))
     }
 
@@ -152,7 +152,7 @@ checking <- function(dynforest_obj = NULL,
   if (is.null(dynforest_obj)){
     if (is.null(Y)){
       cli_abort(c(
-        "Can't find {.var Y}",
+        "Can't find {.var Y}"
       ))
     }else{
       if (!inherits(Y, "list")){
@@ -179,7 +179,7 @@ checking <- function(dynforest_obj = NULL,
       }
       if (any(duplicated(Y$Y[,idVar]))){
         cli_abort(c(
-          "Each {.var idVar} identifier in {.var Y$Y} must be unique",
+          "Each {.var idVar} identifier in {.var Y$Y} must be unique"
         ))
       }
       if (Y$type=="surv"){
