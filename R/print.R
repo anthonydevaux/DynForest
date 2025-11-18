@@ -82,7 +82,6 @@
 #'
 #' }
 #'
-#' @method print dynforest
 #' @rdname print.dynforest
 #' @export
 print.dynforest <- function(x, ...){
@@ -136,7 +135,6 @@ print.dynforest <- function(x, ...){
   cat("----------------","\n")
 }
 
-#' @method print dynforestvimp
 #' @rdname print.dynforest
 #' @export
 print.dynforestvimp <- function(x, ...){
@@ -157,7 +155,6 @@ print.dynforestvimp <- function(x, ...){
 }
 
 
-#' @method print dynforestgvimp
 #' @rdname print.dynforest
 #' @export
 print.dynforestgvimp <- function(x, ...){
@@ -178,7 +175,6 @@ print.dynforestgvimp <- function(x, ...){
 }
 
 
-#' @method print dynforestvardepth
 #' @rdname print.dynforest
 #' @export
 print.dynforestvardepth <- function(x, ...){
@@ -194,7 +190,6 @@ print.dynforestvardepth <- function(x, ...){
 }
 
 
-#' @method print dynforestoob
 #' @rdname print.dynforest
 #' @export
 print.dynforestoob <- function(x, ...){
@@ -211,7 +206,6 @@ print.dynforestoob <- function(x, ...){
 }
 
 
-#' @method print dynforestpred
 #' @rdname print.dynforest
 #' @export
 print.dynforestpred <- function(x, ...){
